@@ -2,25 +2,7 @@ const path = require("path");
 const vueSrc = "src";
 module.exports = {
 	configureWebpack: {
-		devServer: {
-			historyApiFallback: true,
-			proxy: {
-				'^/api': {
-					target: "https://localhost:44370",
-					headers: {
-						Connection: 'keep-alive'
-					},
-					changeOrigin: true
-				},
-				'^/login': {
-					target: "https://localhost:44370",
-					headers: {
-						Connection: 'keep-alive'
-					},
-					changeOrigin: true
-				}
-			}
-		},
+		
 		resolve: {
 			modules: [vueSrc],
 			alias: {
