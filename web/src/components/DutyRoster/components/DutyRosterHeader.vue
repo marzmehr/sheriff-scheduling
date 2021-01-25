@@ -8,6 +8,9 @@
 				<b-navbar-nav v-if="activetab!='Day'">
 					<h3 style="width:8rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal"></h3>
 				</b-navbar-nav>
+				<b-navbar-nav>
+					<h3 style="width:105px; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal"></h3>
+				</b-navbar-nav>
 				<b-navbar-nav class="custom-navbar">
                     <b-col>
                         <b-row  :style="activetab=='Day'?'width:17.5rem':'width:25rem'">
@@ -34,6 +37,18 @@
                         
                     </b-col>
                 </b-navbar-nav>
+				<b-navbar-nav>
+					<div v-b-tooltip.hover						
+						:title="activetab!='Day'?'Import duties from previous week':'Import duties from previous day'">
+							<b-button 
+								style="max-height: 40px;" 
+								size="sm"
+								variant="warning"						
+								@click="confirmImportDuty()" 
+								class="my-2 ml-2">Import Duty									
+							</b-button>
+					</div>					
+				</b-navbar-nav>
 				<b-navbar-nav v-if="activetab!='Day'" >
 					<b-tabs nav-wrapper-class = "bg-primary text-dark"
 							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
@@ -294,6 +309,58 @@
 			</template>
 		</b-modal>
 
+		<b-modal v-model="importConflict" size="lg" id="bv-modal-import-conflict" header-class="bg-primary text-light">
+			<b-table
+            :items="importConflictMsg"
+			:fields="importConflictFields"        
+            thead-class="d-none"
+            responsive="sm"
+            borderless 
+            small              
+            striped
+            >
+            </b-table>
+            <template v-slot:modal-title>
+                <h2 class="mb-0 text-light">Import Duty Conflicts</h2>                   
+            </template>
+            
+            <template v-slot:modal-footer>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-import-conflict')">Ok</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-import-conflict')"
+                >&times;</b-button>
+            </template>
+        </b-modal> 
+
+		<b-modal v-model="confirmImport" id="bv-modal-confirm-import" header-class="bg-primary text-light">
+			<b-row v-if="importError" id="ImportError" class="h4 mx-2">
+				<b-badge class="mx-1 mt-2"
+					style="width: 20rem;"
+					v-b-tooltip.hover
+					:title="importErrorMsgDesc"
+					variant="danger"> {{importErrorMsg}}
+					<b-icon class="ml-3"
+						icon = x-square-fill
+						@click="importError = false"
+				/></b-badge>                    
+            </b-row>         
+            <template v-slot:modal-title>
+                <h2 class="mb-0 text-light">Confirm Import Duties</h2>                   
+            </template>
+            <h4 >Are you sure you want to import duties?</h4>
+            <template v-slot:modal-footer>
+                <b-button variant="success" @click="importDuty()">Confirm</b-button>
+                <b-button variant="primary" @click="confirmedCloseImportForm(false)">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-import')"
+                >&times;</b-button>
+            </template>
+        </b-modal> 
+
+
+
 		<b-modal v-model="openErrorModal" header-class="bg-warning text-light">
             <b-card class="h4 mx-2 py-2">
 				<span class="p-0">{{errorText}}</span>
@@ -321,6 +388,7 @@
     const dutyState = namespace("DutyRosterInformation");
     import { locationInfoType, userInfoType } from '../../../types/common';
     import { assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '../../../types/DutyRoster';
+	import { importConflictMessageType } from '@/types/ShiftSchedule';
 	
 	@Component
 	export default class DutyRosterHeader extends Vue {
@@ -330,6 +398,9 @@
 
         @dutyState.Action
 		public UpdateDutyRangeInfo!: (newDutyRangeInfo: dutyRangeInfoType) => void
+
+		@dutyState.State
+        public dutyRangeInfo!: dutyRangeInfoType;
 		
 		@dutyState.Action
         public UpdateView24h!: (newView24h: boolean) => void
@@ -367,6 +438,18 @@
 
 		errorText=''
 		openErrorModal=false;
+
+		confirmImport = false;
+		importErrorMsg = '';
+        importErrorMsgDesc = '';
+		importError = true;
+
+		importConflictMsg: importConflictMessageType[] = [];
+		importConflict = false;
+		importConflictFields = [{key:"ConflictFieldName", tdClass: 'border-top my-2', label: "Field Name"}]
+
+
+
 
 		
 		assignment = {} as assignmentInfoType;
@@ -780,6 +863,48 @@
 		public commentFormat(value) {
 			return value.slice(0,100);
 		}
+
+		public confirmImportDuty(){
+			this.importError = false;
+			this.confirmImport = true;
+		}
+		
+		public confirmedCloseImportForm(refresh: boolean) {
+			this.confirmImport = false;
+			this.resetImportWindowState();
+			if (refresh) this.$emit('change');
+		}
+
+		public resetImportWindowState() {
+			this.importConflictMsg = [];
+			this.importErrorMsg = '';
+            this.importErrorMsgDesc = '';
+            this.importError = false;
+		}
+
+        public importDuty(){
+			const startDate = moment(this.dutyRangeInfo.startDate).subtract(7, 'days').format().substring(0,10);
+			const url = 'api/shift/importweek?locationId=' + this.location.id + '&start=' + startDate;
+			this.importConflictMsg = [];
+            this.$http.post(url)
+                .then(response => {
+					this.confirmedCloseImportForm(true);                     
+					if (response.data.conflictMessages.length> 0) {
+						for (const message of response.data.conflictMessages) {
+							this.importConflictMsg.push({ConflictFieldName: message});
+						}						
+						this.importConflict = true;
+					}                   
+                }, err=>{
+					const errMsg = err.response.data.error;
+					console.log(err.response)
+                    this.importErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.importErrorMsgDesc = errMsg;
+                    this.importError = true;
+                });
+        }
+
+
 
     }
 </script>
