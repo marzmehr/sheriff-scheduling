@@ -1,5 +1,5 @@
 import {leaveInfoType, locationInfoType, trainingInfoType} from '../common';
-import {awayLocationsJsontype, leaveJsontype, trainingJsontype, userRoleJsonType} from './jsonTypes';
+import {awayLocationsJsontype, leaveJsontype, tempRanksJsontype, trainingJsontype, userRoleJsonType} from './jsonTypes';
 
 export interface teamMemberInfoType {
 
@@ -20,6 +20,7 @@ export interface teamMemberInfoType {
     homeLocationNm?: string | null;
     homeLocation?: locationInfoType;
     awayLocation?: awayLocationsJsontype[];
+    tempRank?: tempRanksJsontype[];
     training?: trainingJsontype[];
     leave?: leaveJsontype[];
     loanedOut?: awayLocationsJsontype[];
@@ -74,6 +75,17 @@ export interface loanedLocationInfoType{
 export interface awayLocationInfoType{
     id: number|null;    
     locationId: number|null;
+    startDate: string;
+    endDate: string;
+    sheriffId: string,
+    concurrencyToken?: number,
+    comment?: string;      
+}
+
+export interface tempRankInfoType{
+    id: number|null;    
+    rankId: number|null;
+    rankName?: string;
     startDate: string;
     endDate: string;
     sheriffId: string,

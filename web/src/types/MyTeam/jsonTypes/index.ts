@@ -81,6 +81,19 @@ export interface rolePermissionsJsonType {
     concurrencyToken : number
 }
 
+export interface tempRanksJsontype {  
+  id : number,
+  rank : any,
+  rankId : number,
+  startDate : string,
+  endDate : string,
+  expiryDate : string,
+  isFullDay : boolean,
+  sheriffId : string,
+  concurrencyToken : number,
+  comment?: string 
+}
+
 export interface awayLocationsJsontype {  
     id : number,
     location : userLocationJsonType,
@@ -141,6 +154,30 @@ export interface leaveJsontype {
   concurrencyToken : number 
 }
 
+export interface userRankJsontype {
+  id : number,
+  leaveType : {
+    id : number,
+    type : string,
+    code : string,
+    subCode : string,
+    description : string,
+    effectiveDate : string,
+    expiryDate : string,
+    sortOrder : number,
+    location : userLocationJsonType,
+    locationId : number,
+    concurrencyToken : number
+  },
+  leaveTypeId : number,
+  startDate : string,
+  endDate : string,
+  expiryDate : string,
+  comment : string,
+  sheriffId : string,
+  concurrencyToken : number 
+}
+
 export interface userLocationJsonType {
   id : number,
   agencyId : string,
@@ -152,3 +189,4 @@ export interface userLocationJsonType {
   timezone : string,
   concurrencyToken : number
 }
+

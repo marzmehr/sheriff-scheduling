@@ -105,6 +105,13 @@
                                         v-on:change="getSheriffs()"/>
                                 </b-tab>
 
+                                <b-tab v-if="editMode" title="Ranks"> 
+                                    <rank-tab 
+                                        v-on:change="getSheriffs()"
+                                        v-on:refresh="refreshProfile"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>                                   
+                                </b-tab>
+
                                 <b-tab v-if="editMode && hasPermissionToAssignRoles" title="Roles" class="p-0">
                                     <role-assignment-tab  v-on:change="getSheriffs()"
                                         v-on:closeMemberDetails="closeProfileWindow()"/>
@@ -172,6 +179,7 @@
     import UserSummaryTemplate from "./Tabs/UserSummaryTemplate.vue";
     import LocationTab from './Tabs/LocationTab.vue';
     import LeaveTab from './Tabs/LeaveTab.vue';
+    import RankTab from './Tabs/RankTab.vue';
     import UserLocationSummary from './Tabs/UserLocationSummary.vue';
     import UserTrainingSummary from './Tabs/UserTrainingSummary.vue';
     import UserLeaveSummary from './Tabs/UserLeaveSummary.vue';
@@ -192,7 +200,8 @@
             IdentificationTab,
             LocationTab,
             LeaveTab,
-            TrainingTab
+            TrainingTab,
+            RankTab
         }        
     })    
     export default class MyTeamMembers extends Vue {
