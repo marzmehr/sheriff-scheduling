@@ -142,7 +142,7 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        console.log(response.data)
+                        //console.log(response.data)
                         this.extractTeamAvailabilityInfo(response.data);                        
                     }                                   
                 },err => {
@@ -229,6 +229,7 @@
                                 startInMinutes:0, 
                                 timeDuration:0, 
                                 type:this.getConflictsType(conflict), 
+                                subType: (this.getConflictsType(conflict)=='Leave' && conflict.sheriffEventType)?conflict.sheriffEventType:'',
                                 fullday: true,
                                 sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'' ,
                                 comment: conflict.comment? conflict.comment :''
@@ -268,7 +269,8 @@
                                     endTime:Vue.filter('beautify-time')(regularTimeEnd.format()), 
                                     startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
                                     timeDuration:duration.asMinutes(), 
-                                    type:this.getConflictsType(conflict), 
+                                    type:this.getConflictsType(conflict),
+                                    subType: (this.getConflictsType(conflict)=='Leave' && conflict.sheriffEventType)?conflict.sheriffEventType:'',                                 
                                     fullday:false,
                                     comment: conflict.comment? conflict.comment :''
                                 }
@@ -304,6 +306,7 @@
                                 startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
                                 timeDuration:duration.asMinutes(), 
                                 type:this.getConflictsType(conflict), 
+                                subType: (this.getConflictsType(conflict)=='Leave' && conflict.sheriffEventType)?conflict.sheriffEventType:'',                                
                                 fullday:false,
                                 sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'',
                                 comment: conflict.comment? conflict.comment :''
@@ -327,6 +330,7 @@
                                 startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
                                 timeDuration:durationStart.asMinutes(), 
                                 type:this.getConflictsType(conflict), 
+                                subType: (this.getConflictsType(conflict)=='Leave' && conflict.sheriffEventType)?conflict.sheriffEventType:'',
                                 fullday:false,
                                 sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'',
                                 comment: conflict.comment? conflict.comment :'' 
@@ -341,6 +345,7 @@
                                 startInMinutes:0,
                                 timeDuration:durationEnd.asMinutes(), 
                                 type:this.getConflictsType(conflict), 
+                                subType: (this.getConflictsType(conflict)=='Leave' && conflict.sheriffEventType)?conflict.sheriffEventType:'',                                
                                 fullday:false,
                                 sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'',
                                 comment: conflict.comment? conflict.comment :'' 
@@ -380,7 +385,7 @@
                         if(Vue.filter('isDateFullday')(conflict.start,conflict.end)){                            
                             break;
                         } else {
-                            console.log(conflict)                            
+                            //console.log(conflict)                            
                             numberOfConflictsPerDay++;
                             //console.log( numberOfConflictsPerDay)
                             const start = moment(previousConflictEndDate)

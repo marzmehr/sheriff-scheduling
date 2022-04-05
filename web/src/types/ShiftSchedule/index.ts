@@ -69,6 +69,7 @@ export interface conflictsInfoType {
     startInMinutes:number;
     timeDuration: number; 
     type: string; 
+    subType?: string;
     fullday: boolean;
     sheriffEventType?: string; 
     comment?: string;  
@@ -86,6 +87,7 @@ export interface scheduleBlockInfoType {
     headerColor: string;  
     selected: boolean;   
     type: string;
+    subType?: string;
     comment?: string;
 }
 
@@ -94,13 +96,13 @@ export interface dayOptionsInfoType {
     diff: number;
     fullday: boolean; 
     conflicts: {
-        Training: conflictsInfoType[],
-        Leave: conflictsInfoType[],
-        Loaned: conflictsInfoType[],
-        AllShifts:conflictsInfoType[], 
-        Shift: conflictsInfoType[],
-        overTimeShift: conflictsInfoType[],
-        Unavailable: conflictsInfoType[]
+        Training: conflictsInfoType[];
+        Leave: conflictsInfoType[];
+        Loaned: conflictsInfoType[];
+        AllShifts:conflictsInfoType[]; 
+        Shift: conflictsInfoType[];
+        overTimeShift: conflictsInfoType[];
+        Unavailable: conflictsInfoType[];
     }
 }
 
@@ -135,6 +137,7 @@ export interface scheduleInfoType {
     startTime:string;
     endTime:string;
     type: string;
+    subType?: string;
     workSection: string; 
     workSectionColor: string;
 }

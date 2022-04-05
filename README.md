@@ -1,3 +1,4 @@
+[![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00)](<https://github.com/bcgov/sheriff-scheduling/>)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 # Sheriff Scheduling
@@ -22,3 +23,4 @@ If you would like to contribute, please see our [CONTRIBUTING](./CONTRIBUTING.md
 
 Please note that this project is released with a [Contributor Code of Conduct](./CODE_OF_CONDUCT.md). 
 By participating in this project you agree to abide by its terms.
+

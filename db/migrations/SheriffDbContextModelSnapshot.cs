@@ -3,6 +3,8 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
 
 namespace SS.Db.Migrations
@@ -1099,6 +1101,9 @@ namespace SS.Db.Migrations
                     b.Property<DateTimeOffset?>("ExpiryDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsNotAvailable")
                         .HasColumnType("boolean");
 
@@ -1348,6 +1353,32 @@ namespace SS.Db.Migrations
                     b.HasIndex("StartDate", "EndDate");
 
                     b.ToTable("SheriffLeave");
+                });
+
+            modelBuilder.Entity("SS.Db.models.sheriff.SheriffRank", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
+
+                    b.Property<DateTimeOffset>("EffectiveDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ExpiryDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Rank")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SheriffId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SheriffId");
+
+                    b.ToTable("SheriffRank");
                 });
 
             modelBuilder.Entity("SS.Db.models.sheriff.SheriffTraining", b =>
@@ -1756,9 +1787,6 @@ namespace SS.Db.Migrations
                     b.Property<byte[]>("Photo")
                         .HasColumnType("bytea");
 
-                    b.Property<string>("Rank")
-                        .HasColumnType("text");
-
                     b.HasIndex("BadgeNumber")
                         .IsUnique();
 
@@ -2163,6 +2191,17 @@ namespace SS.Db.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
+            modelBuilder.Entity("SS.Db.models.sheriff.SheriffRank", b =>
+                {
+                    b.HasOne("SS.Db.models.sheriff.Sheriff", "Sheriff")
+                        .WithMany("Rank")
+                        .HasForeignKey("SheriffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sheriff");
+                });
+
             modelBuilder.Entity("SS.Db.models.sheriff.SheriffTraining", b =>
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
@@ -2262,6 +2301,8 @@ namespace SS.Db.Migrations
                     b.Navigation("AwayLocation");
 
                     b.Navigation("Leave");
+
+                    b.Navigation("Rank");
 
                     b.Navigation("Training");
                 });

@@ -28,7 +28,8 @@
                             </b-button>
                         </b-card-header>
                         <duty-roster-team-member-card :sheriffInfo="memberNotRequired" :weekView="weekView"/>
-                        <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/> 
+                        <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/>
+                        <duty-roster-team-member-card :sheriffInfo="memberIsClosed" :weekView="weekView"/>  
                     </div>                   
                     <div id="dutyrosterteammember" :style="{overflowX: 'hidden', overflowY: 'auto', height: getHeight}">
                         <duty-roster-team-member-card v-on:change="updateDutyRosterPage()" v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
@@ -40,7 +41,7 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Watch, Emit } from 'vue-property-decorator';
+    import { Component, Vue, Watch } from 'vue-property-decorator';
     import DutyRosterHeader from './components/DutyRosterHeader.vue'
     import DutyRosterTeamMemberCard from './components/DutyRosterTeamMemberCard.vue'
 
@@ -67,7 +68,7 @@
             DutyRosterWeekView
         }
     })
-    export default class DutyRoster extends Vue {
+    export default class ManageDutyRoster extends Vue {
 
         @commonState.State
         public localTime!: localTimeInfoType;
@@ -89,6 +90,7 @@
 
         memberNotRequired = { sheriffId: '00000-00000-11111' } as myTeamShiftInfoType;
         memberNotAvailable = { sheriffId: '00000-00000-22222' } as myTeamShiftInfoType;
+        memberIsClosed = { sheriffId: '00000-00000-33333' } as myTeamShiftInfoType;
         
         isDutyRosterDataMounted = false;
         updateDutyRoster = 0;
@@ -128,8 +130,8 @@
         
         public reloadDutyRosters(type){
             this.isDutyRosterDataMounted = false;
-            console.log(type)
-            console.log('reload dutyroster')                
+            // console.log(type)
+            // console.log('reload dutyroster')                
             this.updateCurrentTime();
             if(type=='Day'){
                 this.weekView = false
