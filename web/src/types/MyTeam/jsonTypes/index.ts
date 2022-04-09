@@ -6,6 +6,7 @@ export interface teamMemberJsonType {
      badgeNumber : string;
      rank : string;
      awayLocation : awayLocationsJsontype[];
+     actingRank : actingRankJsontype[];
      leave : leaveJsontype[];
      training : trainingJsontype[];
      photoUrl : string;
@@ -93,6 +94,19 @@ export interface awayLocationsJsontype {
     sheriffId : string;
     concurrencyToken : number ;
     comment?: string; 
+}
+
+export interface actingRankJsontype {  
+  id : number;
+  rank : string;
+  startDate : string;
+  endDate : string;
+  expiryDate? : string;
+  isFullDay? : boolean;
+  sheriffId : string;
+  timezone: string;
+  concurrencyToken? : number ;
+  comment?: string; 
 }
 
 export interface trainingJsontype {  

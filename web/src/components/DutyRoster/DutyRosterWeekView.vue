@@ -77,7 +77,7 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import {locationInfoType, userInfoType } from '../../types/common';
+    import {locationInfoType, userInfoType, commonInfoType } from '../../types/common';
     import { assignmentCardWeekInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType, selectedDutyCardInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
@@ -89,6 +89,9 @@
     })
     export default class DutyRosterDayView extends Vue {
 
+        @commonState.State
+        public commonInfo!: commonInfoType;
+        
         @commonState.State
         public location!: locationInfoType;
 
@@ -309,7 +312,8 @@
                     availabilityInfo.badgeNumber = shiftJson.sheriff.badgeNumber;
                     availabilityInfo.firstName = shiftJson.sheriff.firstName;
                     availabilityInfo.lastName = shiftJson.sheriff.lastName;
-                    availabilityInfo.rank = shiftJson.sheriff.rank;
+                    availabilityInfo.rank = ( shiftJson.sheriff.actingRank?.length>0)?  ( shiftJson.sheriff.actingRank[0].rank)+' (A)': shiftJson.sheriff.rank;
+                    availabilityInfo.rankOrder = this.getRankOrder(availabilityInfo.rank)[0]?this.getRankOrder(availabilityInfo.rank)[0].id:0;
                     availabilityInfo.availability = [];
                     availabilityInfo.duties = [];
                     availabilityInfo.dutiesDetail = dutiesDetail;
@@ -451,6 +455,16 @@
 
         public addAssignment(){ 
             this.$emit('addAssignmentClicked');
+        }
+        
+        public getRankOrder(rankName: string) {
+            if(rankName?.includes(' (A)'))
+                rankName = rankName.replace(' (A)','');
+            return this.commonInfo.sheriffRankList.filter(rank => {
+                if (rank.name == rankName) {
+                    return true;
+                }
+            })
         }
         
     }

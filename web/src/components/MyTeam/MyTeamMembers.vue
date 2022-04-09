@@ -42,7 +42,7 @@
         <div v-else class="container mb-5" style="float: left;" id="app">
             <div class="row" :key="photokey">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
-                    <div  class="card h-100 bg-dark">
+                    <div  class="card h-100 bg-dark">                        
                         <div class="card-header bg-dark border-dark mb-0 pb-0 " style="width: 13.4rem; height: 2.5rem;">
                             <b-row class="ml-3">                                                
                                 <user-location-summary v-if="teamMember.awayLocation.length>0" class="mx-3" :homeLocation="teamMember.homeLocationNm" :awayJson="teamMember.awayLocation" :index="teamMember.badgeNumber"/>
@@ -106,8 +106,16 @@
                                 </b-tab>
 
                                 <b-tab v-if="editMode && hasPermissionToAssignRoles" title="Roles" class="p-0">
-                                    <role-assignment-tab  v-on:change="getSheriffs()"
+                                    <role-assignment-tab  
+                                        v-on:change="getSheriffs()"
                                         v-on:closeMemberDetails="closeProfileWindow()"/>
+                                </b-tab>
+
+                                <b-tab v-if="editMode" title="Acting Rank"> 
+                                    <rank-tab 
+                                        v-on:change="getSheriffs()"
+                                        v-on:refresh="refreshProfile"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>                                   
                                 </b-tab>
 
                             </b-tabs>
@@ -172,6 +180,7 @@
     import UserSummaryTemplate from "./Tabs/UserSummaryTemplate.vue";
     import LocationTab from './Tabs/LocationTab.vue';
     import LeaveTab from './Tabs/LeaveTab.vue';
+    import RankTab from './Tabs/RankTab.vue'
     import UserLocationSummary from './Tabs/UserLocationSummary.vue';
     import UserTrainingSummary from './Tabs/UserTrainingSummary.vue';
     import UserLeaveSummary from './Tabs/UserLeaveSummary.vue';
@@ -192,7 +201,8 @@
             IdentificationTab,
             LocationTab,
             LeaveTab,
-            TrainingTab
+            TrainingTab,
+            RankTab
         }        
     })    
     export default class MyTeamMembers extends Vue {
@@ -320,7 +330,7 @@
                 myteam.fullName = Vue.filter('capitalizefirst')(myteaminfo.firstName) + ' ' + Vue.filter('capitalizefirst')(myteaminfo.lastName);
                 myteam.firstName = myteaminfo.firstName;
                 myteam.lastName = myteaminfo.lastName;
-                myteam.rank = myteaminfo.rank;
+                myteam.rank = (myteaminfo.actingRank?.length>0)?  (myteaminfo.actingRank[0].rank)+' (A)': myteaminfo.rank;
                 myteam.rankOrder = this.getRankOrder(myteam.rank)[0]?this.getRankOrder(myteam.rank)[0].id:0;
                 myteam.badgeNumber = myteaminfo.badgeNumber;
                 myteam.id = myteaminfo.id;
@@ -337,7 +347,7 @@
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId, timezone: myteaminfo.homeLocation.timezone};
                 
                 this.allMyTeamData.push(myteam);
-            } 
+            }
                      
         }
 
@@ -376,6 +386,8 @@
         }
 
         public getRankOrder(rankName: string) {
+            if(rankName?.includes(' (A)'))
+                rankName = rankName.replace(' (A)','');
             return this.commonInfo.sheriffRankList.filter(rank => {
                 if (rank.name == rankName) {
                     return true;
@@ -487,6 +499,7 @@
             if(userJson.awayLocation && userJson.awayLocation.length>0)
                 user.awayLocation = userJson.awayLocation;
 
+            user.actingRank = userJson.actingRank;
             user.leave = userJson.leave;
             user.training = userJson.training;
             user.userRoles = userJson.roles

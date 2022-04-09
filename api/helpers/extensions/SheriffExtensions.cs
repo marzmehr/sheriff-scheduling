@@ -7,7 +7,7 @@ namespace SS.Api.helpers.extensions
 {
     public static class SheriffExtensions
     {
-        //Include AwayLocation/Training/Leave that is within a date range. 
+        //Include AwayLocation/Training/Leave that is within a date range.
         public static IQueryable<Sheriff> IncludeSheriffEventsBetweenDates(this IQueryable<Sheriff> query, DateTimeOffset startDate, DateTimeOffset endDate)
         {
             return query.Include(s => s.AwayLocation.Where(al =>
@@ -23,6 +23,14 @@ namespace SS.Api.helpers.extensions
                     && al.ExpiryDate == null))
                 .ThenInclude(l => l.LeaveType)
                 .Include(s => s.HomeLocation);
+        }
+
+        public static IQueryable<Sheriff> IncludeSheriffActingRank(this IQueryable<Sheriff> query)
+        {
+            var startDate = DateTimeOffset.UtcNow;
+            return query.Include(s => s.ActingRank.Where(ar =>
+                    (ar.StartDate <= startDate && startDate < ar.EndDate)
+                    && ar.ExpiryDate == null));
         }
     }
 }

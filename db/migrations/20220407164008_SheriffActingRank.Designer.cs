@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -10,9 +11,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220407164008_SheriffActingRank")]
+    partial class SheriffActingRank
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1242,9 +1244,7 @@ namespace SS.Db.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedOn")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("now()");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("EndDate")
                         .HasColumnType("timestamp with time zone");
@@ -1280,8 +1280,6 @@ namespace SS.Db.Migrations
                     b.HasIndex("SheriffId");
 
                     b.HasIndex("UpdatedById");
-
-                    b.HasIndex("StartDate", "EndDate");
 
                     b.ToTable("SheriffActingRank");
                 });
@@ -2174,19 +2172,17 @@ namespace SS.Db.Migrations
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("CreatedById");
 
                     b.HasOne("SS.Db.models.sheriff.Sheriff", "Sheriff")
-                        .WithMany("ActingRank")
+                        .WithMany()
                         .HasForeignKey("SheriffId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("UpdatedById");
 
                     b.Navigation("CreatedBy");
 
@@ -2354,8 +2350,6 @@ namespace SS.Db.Migrations
 
             modelBuilder.Entity("SS.Db.models.sheriff.Sheriff", b =>
                 {
-                    b.Navigation("ActingRank");
-
                     b.Navigation("AwayLocation");
 
                     b.Navigation("Leave");

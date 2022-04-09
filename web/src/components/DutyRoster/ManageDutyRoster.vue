@@ -32,7 +32,7 @@
                         <duty-roster-team-member-card :sheriffInfo="memberIsClosed" :weekView="weekView"/>  
                     </div>                   
                     <div id="dutyrosterteammember" :style="{overflowX: 'hidden', overflowY: 'auto', height: getHeight}">
-                        <duty-roster-team-member-card v-on:change="updateDutyRosterPage()" v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
+                        <duty-roster-team-member-card v-on:change="updateDutyRosterPage()" v-for="member in sortedShiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
                     </div>
                 </b-card>
             </b-col>
@@ -44,7 +44,8 @@
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import DutyRosterHeader from './components/DutyRosterHeader.vue'
     import DutyRosterTeamMemberCard from './components/DutyRosterTeamMemberCard.vue'
-
+    import * as _ from 'underscore';
+    
     import DutyRosterDayView from './DutyRosterDayView.vue';
     import DutyRosterWeekView from './DutyRosterWeekView.vue'
 
@@ -57,7 +58,7 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import { localTimeInfoType } from '../../types/common';
+    import { localTimeInfoType, commonInfoType } from '../../types/common';
     import { dutyRangeInfoType, myTeamShiftInfoType} from '../../types/DutyRoster';
     
     @Component({
@@ -69,6 +70,9 @@
         }
     })
     export default class ManageDutyRoster extends Vue {
+
+        @commonState.State
+        public commonInfo!: commonInfoType;
 
         @commonState.State
         public localTime!: localTimeInfoType;
@@ -103,6 +107,8 @@
         gageHeight = 0;
         tableHeight = 0;
 
+        maxRank = 1000;
+
         timeHandle1
         timeHandle2
 
@@ -121,6 +127,7 @@
 
         mounted()
         {
+            this.maxRank = this.commonInfo.sheriffRankList.reduce((max, rank) => rank.id > max ? rank.id : max, this.commonInfo.sheriffRankList[0].id);
             this.isDutyRosterDataMounted = false;
             this.timeHandle1 = window.setTimeout(this.updateCurrentTimeCallBack, 1000);
             window.addEventListener('resize', this.getWindowHeight);
@@ -220,6 +227,14 @@
             } else {
                 this.dutyRosterWeekViewMethods.$emit('getData');
             }
+        }
+
+        get sortedShiftAvailabilityInfo() {
+            const teamList = this.shiftAvailabilityInfo        
+            return _.chain(teamList)
+                    .sortBy(member =>{return (member['lastName']? member['lastName'].toUpperCase() : '')})
+                    .sortBy(member =>{return (member['rankOrder']? member['rankOrder'] : this.maxRank + 1)})
+                    .value()
         }
 
     }
