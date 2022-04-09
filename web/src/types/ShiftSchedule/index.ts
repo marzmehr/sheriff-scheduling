@@ -56,6 +56,7 @@ export interface sheriffAvailabilityInfoType {
     lastName: string;
     badgeNumber: string;
     rank: string;
+    rankOrder?: number;
     homeLocation: {id:number, name:string};
 }
 

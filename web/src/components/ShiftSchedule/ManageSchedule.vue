@@ -61,7 +61,7 @@
     const shiftState = namespace("ShiftScheduleInformation");
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-    import { locationInfoType } from '../../types/common';
+    import { locationInfoType, commonInfoType } from '../../types/common';
     import { sheriffAvailabilityInfoType, shiftRangeInfoType, weekShiftInfoType,conflictsInfoType } from '../../types/ShiftSchedule/index'
     import { sheriffsAvailabilityJsonType } from '../../types/ShiftSchedule/jsonTypes';
     import moment from 'moment-timezone';
@@ -76,6 +76,9 @@
     })
     export default class ManageSchedule extends Vue {
 
+        @commonState.State
+        public commonInfo!: commonInfoType;
+        
         @commonState.State
         public location!: locationInfoType;
 
@@ -98,7 +101,7 @@
 
         errorText =''
         openErrorModal=false
-        
+        maxRank = 1000;
 
         fields=[
             {key:'myteam', label:'My Team', tdClass:'px-0 mx-0', thClass:'text-center'},
@@ -177,7 +180,8 @@
                 sheriffAvailability.firstName = sheriffAvailabilityJson.sheriff.firstName;
                 sheriffAvailability.lastName = sheriffAvailabilityJson.sheriff.lastName;
                 sheriffAvailability.badgeNumber = sheriffAvailabilityJson.sheriff.badgeNumber;
-                sheriffAvailability.rank = sheriffAvailabilityJson.sheriff.rank;
+                sheriffAvailability.rank = (sheriffAvailabilityJson.sheriff.actingRank?.length>0)?  (sheriffAvailabilityJson.sheriff.actingRank[0].rank)+' (A)': sheriffAvailabilityJson.sheriff.rank;
+                sheriffAvailability.rankOrder = this.getRankOrder(sheriffAvailability.rank)[0]?this.getRankOrder(sheriffAvailability.rank)[0].id:0;
                 sheriffAvailability.homeLocation= {id: sheriffAvailabilityJson.sheriff.homeLocation.id, name: sheriffAvailabilityJson.sheriff.homeLocation.name}
                 const isInLoanLocation = (sheriffAvailabilityJson.sheriff.homeLocation.id !=this.location.id)
                 sheriffAvailability.conflicts =isInLoanLocation? this.extractInLoanLocationConflicts(sheriffAvailabilityJson.conflicts) :this.extractConflicts(sheriffAvailabilityJson.conflicts, false);        
@@ -196,8 +200,17 @@
                 })
             }
             //this.UpdateSheriffsAvailabilityInfo(sheriffsAvailability);
+            this.maxRank = this.commonInfo.sheriffRankList.reduce((max, rank) => rank.id > max ? rank.id : max, this.commonInfo.sheriffRankList[0].id);
+            this.shiftSchedules = this.sortTeamMembers(this.shiftSchedules);
             this.isManageScheduleDataMounted = true;
             this.updateTable++;
+        }
+
+        public sortTeamMembers(teamList) {            
+            return _.chain(teamList)
+                    .sortBy(member =>{return (member.myteam['lastName']? member.myteam['lastName'].toUpperCase() : '')})
+                    .sortBy(member =>{return (member.myteam['rankOrder']? member.myteam['rankOrder'] : this.maxRank + 1)})
+                    .value()
         }
 
         public extractConflicts(conflictsJson, onlyShedules){
@@ -460,7 +473,17 @@
             if(conflict.conflict =='AwayLocation') return 'Loaned'
             else if(conflict.conflict =='Scheduled') return 'Shift'
             else return conflict.conflict
-        }        
+        } 
+        
+        public getRankOrder(rankName: string) {
+            if(rankName?.includes(' (A)'))
+                rankName = rankName.replace(' (A)','');
+            return this.commonInfo.sheriffRankList.filter(rank => {
+                if (rank.name == rankName) {
+                    return true;
+                }
+            })
+        }
 
     }
 </script>

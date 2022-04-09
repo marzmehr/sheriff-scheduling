@@ -32,9 +32,11 @@ namespace SS.Api.controllers.usermanagement
         private ShiftService ShiftService { get; }
         private DutyRosterService DutyRosterService { get; }
         private SheriffDbContext Db { get; }
+
         // ReSharper disable once InconsistentNaming
         private readonly long _uploadPhotoSizeLimitKB;
-        public SheriffController(SheriffService sheriffService, DutyRosterService dutyRosterService, ShiftService shiftService, UserService userUserService, IConfiguration configuration, SheriffDbContext db) : base (userUserService)
+
+        public SheriffController(SheriffService sheriffService, DutyRosterService dutyRosterService, ShiftService shiftService, UserService userUserService, IConfiguration configuration, SheriffDbContext db) : base(userUserService)
         {
             SheriffService = sheriffService;
             ShiftService = shiftService;
@@ -83,7 +85,7 @@ namespace SS.Api.controllers.usermanagement
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, sheriff.HomeLocationId)) return Forbid();
 
             var sheriffDto = sheriff.Adapt<SheriffWithIdirDto>();
-            //Prevent exposing Idirs to regular users. 
+            //Prevent exposing Idirs to regular users.
             sheriffDto.IdirName = User.HasPermission(Permission.EditIdir) ? sheriff.IdirName : null;
             return Ok(sheriffDto);
         }
@@ -115,7 +117,6 @@ namespace SS.Api.controllers.usermanagement
             return Ok(sheriff.Adapt<SheriffDto>());
         }
 
-
         [HttpPut]
         [Route("updateLocation")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
@@ -130,7 +131,7 @@ namespace SS.Api.controllers.usermanagement
         [HttpGet]
         [Route("getPhoto/{id}")]
         [PermissionClaimAuthorize(perm: Permission.Login)]
-        [ResponseCache(Duration = 15552000, Location = ResponseCacheLocation.Client )]
+        [ResponseCache(Duration = 15552000, Location = ResponseCacheLocation.Client)]
         public async Task<IActionResult> GetPhoto(Guid id) => File(await SheriffService.GetPhoto(id), "image/jpeg");
 
         [HttpPost]
@@ -142,7 +143,7 @@ namespace SS.Api.controllers.usermanagement
             await CheckForAccessToSheriffByLocation(id, badgeNumber);
 
             if (file.Length == 0) return BadRequest("File length = 0");
-            if (file.Length >= _uploadPhotoSizeLimitKB * 1024) return BadRequest($"File length: {file.Length/1024} KB, Maximum upload size: {_uploadPhotoSizeLimitKB} KB");
+            if (file.Length >= _uploadPhotoSizeLimitKB * 1024) return BadRequest($"File length: {file.Length / 1024} KB, Maximum upload size: {_uploadPhotoSizeLimitKB} KB");
 
             await using var ms = new MemoryStream();
             await file.CopyToAsync(ms);
@@ -157,6 +158,7 @@ namespace SS.Api.controllers.usermanagement
         #endregion Sheriff
 
         #region SheriffAwayLocation
+
         [HttpPost]
         [Route("awayLocation")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
@@ -191,9 +193,44 @@ namespace SS.Api.controllers.usermanagement
             await SheriffService.RemoveSheriffAwayLocation(id, expiryReason);
             return NoContent();
         }
-        #endregion
+
+        #endregion SheriffAwayLocation
+
+        #region SheriffActingRank
+
+        [HttpPost]
+        [Route("actingRank")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
+        public async Task<ActionResult<SheriffActingRankDto>> AddSheriffActingRank(SheriffActingRankDto sheriffActingRankDto, bool overrideConflicts = false)
+        {
+            var sheriffActingRank = sheriffActingRankDto.Adapt<SheriffActingRank>();
+            var createdSheriffActingRank = await SheriffService.AddSheriffActingRank(DutyRosterService, ShiftService, sheriffActingRank, overrideConflicts);
+            return Ok(createdSheriffActingRank.Adapt<SheriffActingRankDto>());
+        }
+
+        [HttpPut]
+        [Route("actingRank")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
+        public async Task<ActionResult<SheriffActingRankDto>> UpdateSheriffActingRank(SheriffActingRankDto sheriffActingRankDto, bool overrideConflicts = false)
+        {
+            var sheriffActingRank = sheriffActingRankDto.Adapt<SheriffActingRank>();
+            var updatedSheriffActingRank = await SheriffService.UpdateSheriffActingRank(DutyRosterService, ShiftService, sheriffActingRank, overrideConflicts);
+            return Ok(updatedSheriffActingRank.Adapt<SheriffActingRankDto>());
+        }
+
+        [HttpDelete]
+        [Route("actingRank")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
+        public async Task<ActionResult> RemoveSheriffActingRank(int id, string expiryReason)
+        {
+            await SheriffService.RemoveSheriffActingRank(id, expiryReason);
+            return NoContent();
+        }
+
+        #endregion SheriffActingRank
 
         #region SheriffLeave
+
         [HttpPost]
         [Route("leave")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
@@ -228,9 +265,11 @@ namespace SS.Api.controllers.usermanagement
             await SheriffService.RemoveSheriffLeave(id, expiryReason);
             return NoContent();
         }
-        #endregion
+
+        #endregion SheriffLeave
 
         #region SheriffTraining
+
         [HttpPost]
         [Route("training")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
@@ -279,9 +318,11 @@ namespace SS.Api.controllers.usermanagement
             await SheriffService.RemoveSheriffTraining(id, expiryReason);
             return NoContent();
         }
+
         #endregion SheriffTraining
 
         #region Access Helpers
+
         private async Task CheckForAccessToSheriffByLocation(Guid? id, string badgeNumber = null)
         {
             var savedSheriff = await SheriffService.GetSheriff(id, badgeNumber);
@@ -297,6 +338,7 @@ namespace SS.Api.controllers.usermanagement
             if (savedSheriff == null) throw new NotFoundException(CouldNotFindSheriffError);
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, savedSheriff.HomeLocationId)) throw new NotAuthorizedException();
         }
-        #endregion
+
+        #endregion Access Helpers
     }
 }

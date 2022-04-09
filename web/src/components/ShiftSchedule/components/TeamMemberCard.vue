@@ -238,6 +238,13 @@
                                         v-on:closeMemberDetails="closeProfileWindow()"/>
                                 </b-tab>
 
+                                <b-tab title="Acting Rank"> 
+                                    <rank-tab 
+                                        v-on:change="getSheriffs()"
+                                        v-on:refresh="refreshProfile"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>                                   
+                                </b-tab>
+
                             </b-tabs>
                         </b-card>
                     </b-col>
@@ -296,6 +303,7 @@
     import TrainingTab from '@/components/MyTeam/Tabs/TrainingTab.vue';
     import RoleAssignmentTab from '@/components/MyTeam/Tabs/RoleAssignmentTab.vue';
     import IdentificationTab from '@/components/MyTeam/Tabs/IdentificationTab.vue';
+    import RankTab from '@/components/MyTeam/Tabs/RankTab.vue'
     import UserSummaryTemplate from "@/components/MyTeam/Tabs/UserSummaryTemplate.vue";
     import { dayOptionsInfoType, editedShiftInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '../../../types/ShiftSchedule';
     import moment from 'moment-timezone';
@@ -312,7 +320,8 @@
             IdentificationTab,
             LocationTab,
             LeaveTab,
-            TrainingTab
+            TrainingTab,
+            RankTab
         }
     })
     export default class TeamMemberCard extends Vue {
@@ -716,6 +725,7 @@
             user.leave = userJson.leave;
             user.training = userJson.training;
             user.userRoles = userJson.roles
+            user.actingRank = userJson.actingRank;
             this.UpdateUserToEdit(user);  
         }
 

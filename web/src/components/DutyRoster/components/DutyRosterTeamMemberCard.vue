@@ -135,6 +135,13 @@
                                         v-on:closeMemberDetails="closeProfileWindow()"/>
                                 </b-tab>
 
+                                <b-tab title="Acting Rank"> 
+                                    <rank-tab 
+                                        v-on:change="getSheriffs()"
+                                        v-on:refresh="refreshProfile"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>                                   
+                                </b-tab>
+
                             </b-tabs>
                         </b-card>
                     </b-col>
@@ -199,11 +206,12 @@
     import TrainingTab from '@/components/MyTeam/Tabs/TrainingTab.vue';
     import RoleAssignmentTab from '@/components/MyTeam/Tabs/RoleAssignmentTab.vue';
     import IdentificationTab from '@/components/MyTeam/Tabs/IdentificationTab.vue';
+    import RankTab from '@/components/MyTeam/Tabs/RankTab.vue'
     import UserSummaryTemplate from "@/components/MyTeam/Tabs/UserSummaryTemplate.vue";
     
     import { locationInfoType, userInfoType } from '../../../types/common';
     import { dutyRangeInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
-    import { teamMemberInfoType } from '@/types/MyTeam';
+    import { teamMemberInfoType } from '../../../types/MyTeam';
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -214,7 +222,8 @@
             IdentificationTab,
             LocationTab,
             LeaveTab,
-            TrainingTab
+            TrainingTab,
+            RankTab
         }
     })
     export default class DutyRosterTeamMemberCard extends Vue {        
@@ -486,6 +495,7 @@
             if(userJson.awayLocation && userJson.awayLocation.length>0)
                 user.awayLocation = userJson.awayLocation;
 
+            user.actingRank = userJson.actingRank;
             user.leave = userJson.leave;
             user.training = userJson.training;
             user.userRoles = userJson.roles

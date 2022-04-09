@@ -1,5 +1,5 @@
 import { sortOrderForLocationJsonType } from '@/types/common/jsonTypes';
-import { sheriffRoleJsonType, userLocationJsonType } from '@/types/MyTeam/jsonTypes';
+import { actingRankJsontype, sheriffRoleJsonType, userLocationJsonType } from '@/types/MyTeam/jsonTypes';
 
 export interface sheriffsAvailabilityJsonType {    
     start: string;
@@ -15,6 +15,7 @@ export interface sheriffsAvailabilityDataJsonType {
     badgeNumber: string;
     rank: string;
     awayLocation: availabilityAwayLocationJsonType[];
+    actingRank: actingRankJsontype[];
     leave: availabilityLeaveJsonType[];
     training: availabilityTrainingJsonType[];
     photoUrl: string;

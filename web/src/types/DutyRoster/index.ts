@@ -16,6 +16,7 @@ export interface myTeamShiftInfoType {
     firstName: string;
     lastName: string;
     rank: string;
+    rankOrder?: number;
     availability: number[];
     duties: number[];
     dutiesDetail: dutiesDetailInfoType[];

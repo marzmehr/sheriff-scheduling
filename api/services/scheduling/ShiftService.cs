@@ -25,6 +25,7 @@ namespace SS.Api.services.scheduling
         private SheriffDbContext Db { get; }
         private SheriffService SheriffService { get; }
         public double OvertimeHoursPerDay { get; }
+
         public ShiftService(SheriffDbContext db, SheriffService sheriffService, IConfiguration configuration)
         {
             Db = db;
@@ -39,9 +40,14 @@ namespace SS.Api.services.scheduling
                 .Include(s => s.SortOrder)
                 .ToListAsync();
 
+            var rankStartDate = DateTimeOffset.UtcNow;
+
             var shifts = await Db.Shift.AsSingleQuery().AsNoTracking()
-                .Include(s=> s.Location)
+                .Include(s => s.Location)
                 .Include(s => s.Sheriff)
+                .ThenInclude(s => s.ActingRank.Where(ar =>
+                    (ar.StartDate <= rankStartDate && rankStartDate < ar.EndDate)
+                    && ar.ExpiryDate == null))
                 .Include(s => s.AnticipatedAssignment)
                 .Where(s => s.LocationId == locationId && s.ExpiryDate == null &&
                             s.StartDate < end && start < s.EndDate)
@@ -76,7 +82,6 @@ namespace SS.Api.services.scheduling
 
         public async Task<List<int>> GetShiftsLocations(List<int> ids) =>
             await Db.Shift.AsNoTracking().In(ids, s => s.Id).Select(s => s.LocationId).Distinct().ToListAsync();
-
 
         public async Task<List<Shift>> AddShifts(List<Shift> shifts)
         {
@@ -175,7 +180,7 @@ namespace SS.Api.services.scheduling
             var timezone = location?.Timezone;
             timezone.GetTimezone().ThrowBusinessExceptionIfNull("Timezone was invalid.");
 
-            //We need to adjust to their start of the week, because it can differ depending on the TZ! 
+            //We need to adjust to their start of the week, because it can differ depending on the TZ!
             var targetStartDate = start.ConvertToTimezone(timezone);
             var targetEndDate = targetStartDate.TranslateDateForDaylightSavings(timezone, 7);
 
@@ -200,7 +205,7 @@ namespace SS.Api.services.scheduling
             }
 
             var overlaps = await GetShiftConflicts(importedShifts);
-            var filteredImportedShifts = importedShifts.WhereToList(s => overlaps.All(o => o.Shift.Id != s.Id) && 
+            var filteredImportedShifts = importedShifts.WhereToList(s => overlaps.All(o => o.Shift.Id != s.Id) &&
                                                                          !overlaps.Any(ts =>
                                                                              s.Id != ts.Shift.Id && ts.Shift.StartDate < s.EndDate && s.StartDate < ts.Shift.EndDate &&
                                                                              ts.Shift.SheriffId == s.SheriffId));
@@ -217,13 +222,13 @@ namespace SS.Api.services.scheduling
         }
 
         /// <summary>
-        /// This is used for Distribute Schedule, as well as the Shift Schedule page. 
+        /// This is used for Distribute Schedule, as well as the Shift Schedule page.
         /// </summary>
         public async Task<List<ShiftAvailability>> GetShiftAvailability(DateTimeOffset start, DateTimeOffset end, int locationId)
         {
             var sheriffs = await SheriffService.GetSheriffsForShiftAvailabilityForLocation(locationId, start, end);
-            
-            //Include sheriffs that have a shift, but their home location / away location doesn't match. 
+
+            //Include sheriffs that have a shift, but their home location / away location doesn't match.
             //Grey out on the GUI if HomeLocationId and AwayLocation doesn't match.
             var sheriffIdsFromShifts = await Db.Shift.AsNoTracking()
                 .Where(s => s.StartDate < end && start < s.EndDate && s.ExpiryDate == null &&
@@ -231,9 +236,9 @@ namespace SS.Api.services.scheduling
                 .Select(s => s.SheriffId)
                 .ToListAsync();
 
-           var sheriffsOutOfLocationWithShiftIds = sheriffIdsFromShifts.Except(sheriffs.Select(s => s.Id));
+            var sheriffsOutOfLocationWithShiftIds = sheriffIdsFromShifts.Except(sheriffs.Select(s => s.Id));
 
-           //Note their AwayLocation, Leave, Training should be entirely empty, this is intentional.
+            //Note their AwayLocation, Leave, Training should be entirely empty, this is intentional.
             var sheriffsOutOfLocationWithShift = await
                Db.Sheriff.AsNoTracking()
                    .Include(s => s.HomeLocation)
@@ -251,10 +256,10 @@ namespace SS.Api.services.scheduling
             {
                 sheriffEventConflicts.AddRange(sheriff.AwayLocation.Select(s => new ShiftAvailabilityConflict
                 {
-                    Conflict = ShiftConflictType.AwayLocation, 
-                    SheriffId = sheriff.Id, 
+                    Conflict = ShiftConflictType.AwayLocation,
+                    SheriffId = sheriff.Id,
                     Start = s.StartDate,
-                    End = s.EndDate, 
+                    End = s.EndDate,
                     LocationId = s.LocationId,
                     Location = s.Location,
                     Timezone = s.Timezone,
@@ -262,9 +267,9 @@ namespace SS.Api.services.scheduling
                 }));
                 sheriffEventConflicts.AddRange(sheriff.Leave.Select(s => new ShiftAvailabilityConflict
                 {
-                    Conflict = ShiftConflictType.Leave, 
-                    SheriffId = sheriff.Id, 
-                    Start = s.StartDate, 
+                    Conflict = ShiftConflictType.Leave,
+                    SheriffId = sheriff.Id,
+                    Start = s.StartDate,
                     End = s.EndDate,
                     Timezone = s.Timezone,
                     SheriffEventType = s.LeaveType?.Code,
@@ -272,9 +277,9 @@ namespace SS.Api.services.scheduling
                 }));
                 sheriffEventConflicts.AddRange(sheriff.Training.Select(s => new ShiftAvailabilityConflict
                 {
-                    Conflict = ShiftConflictType.Training, 
-                    SheriffId = sheriff.Id, 
-                    Start = s.StartDate, 
+                    Conflict = ShiftConflictType.Training,
+                    SheriffId = sheriff.Id,
+                    Start = s.StartDate,
                     End = s.EndDate,
                     Timezone = s.Timezone,
                     SheriffEventType = s.TrainingType?.Code,
@@ -284,19 +289,19 @@ namespace SS.Api.services.scheduling
 
             var existingShiftConflicts = shiftsForSheriffs.Select(s => new ShiftAvailabilityConflict
             {
-                Conflict = ShiftConflictType.Scheduled, 
-                SheriffId = s.SheriffId, 
-                Location = s.Location, 
-                LocationId = s.LocationId, 
-                Start = s.StartDate, 
-                End = s.EndDate, 
+                Conflict = ShiftConflictType.Scheduled,
+                SheriffId = s.SheriffId,
+                Location = s.Location,
+                LocationId = s.LocationId,
+                Start = s.StartDate,
+                End = s.EndDate,
                 ShiftId = s.Id,
                 Timezone = s.Timezone,
                 OvertimeHours = s.OvertimeHours,
                 Comment = s.Comment
             });
 
-            //We've already included this information in the conflicts. 
+            //We've already included this information in the conflicts.
             sheriffs.ForEach(s => s.AwayLocation = null);
             sheriffs.ForEach(s => s.Leave = null);
             sheriffs.ForEach(s => s.Training = null);
@@ -318,7 +323,7 @@ namespace SS.Api.services.scheduling
             })
                 .OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff.Rank)
                     ?.SortOrder.FirstOrDefault()
-                    ?.SortOrder) 
+                    ?.SortOrder)
                 .ThenBy(s => s.Sheriff.LastName)
                 .ThenBy(s => s.Sheriff.FirstName)
                 .ToList();
@@ -328,7 +333,7 @@ namespace SS.Api.services.scheduling
 
         public async Task CalculateOvertimeHoursForShifts(List<Shift> shifts)
         {
-            var sheriffsAndDates = shifts.SelectDistinctToList(s => new {s.SheriffId, s.StartDate, s.Timezone});
+            var sheriffsAndDates = shifts.SelectDistinctToList(s => new { s.SheriffId, s.StartDate, s.Timezone });
             foreach (var sheriffAndDate in sheriffsAndDates)
             {
                 await CalculateOvertimeHoursForSheriffOnDay(sheriffAndDate.SheriffId, sheriffAndDate.StartDate,
@@ -357,7 +362,7 @@ namespace SS.Api.services.scheduling
             var hoursForSheriffOnDay = shiftsForSheriffOnDay.Sum(s => s.StartDate.HourDifference(s.EndDate, s.Timezone));
             var overtimeHoursForDay = Math.Max(hoursForSheriffOnDay - OvertimeHoursPerDay, 0);
 
-            //See if we have multiple shifts && a shift that is equal our OT hours 
+            //See if we have multiple shifts && a shift that is equal our OT hours
             if (shiftsForSheriffOnDay.Count > 1 && shiftsForSheriffOnDay.Any(s => s.StartDate.HourDifference(s.EndDate, s.Timezone).Equals(OvertimeHoursPerDay)))
             {
                 //Place the overtime on the other shifts. This is the scenario where an outside shift(s) are created, and the OT needs to be placed on the outer shifts.
@@ -464,7 +469,8 @@ namespace SS.Api.services.scheduling
 
             await Db.SaveChangesAsync();
         }
-        #endregion 
+
+        #endregion Override
 
         #region Availability
 
@@ -494,7 +500,6 @@ namespace SS.Api.services.scheduling
             if (targetShifts.Any(a =>
                 targetShifts.Any(b => a != b && b.StartDate < a.EndDate && a.StartDate < b.EndDate && a.SheriffId == b.SheriffId)))
                 throw new BusinessLayerException("Shifts provided overlap with themselves.");
-
 
             var sheriffIds = targetShifts.Select(ts => ts.SheriffId).Distinct().ToList();
 
@@ -592,6 +597,6 @@ namespace SS.Api.services.scheduling
 
         #endregion String Helpers
 
-        #endregion
+        #endregion Helpers
     }
 }
