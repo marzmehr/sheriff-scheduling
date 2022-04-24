@@ -1,7 +1,8 @@
 <template>
-    <div>
+    <div> 
         <loading-spinner v-if="!isDutyRosterDataMounted" />      
-            
+        <sheriff-day-view v-else-if="sheriffFullview" />       
+
         <b-table
             v-else
             :items="dutyRosterAssignments" 
@@ -67,6 +68,7 @@
     import DutyCard from './components/DutyCard.vue'
     import SheriffFuelGauge from './components/SheriffFuelGauge.vue'
     import DutyRosterAssignment from './components/DutyRosterAssignment.vue'
+    import SheriffDayView from './components/SheriffDayView.vue'
 
     import moment from 'moment-timezone';
 
@@ -85,7 +87,8 @@
         components: {
             DutyCard,
             SheriffFuelGauge,
-            DutyRosterAssignment
+            DutyRosterAssignment,
+            SheriffDayView
         }
     })
     export default class DutyRosterDayView extends Vue {
@@ -98,6 +101,12 @@
 
         @commonState.State
         public displayFooter!: boolean;
+
+        @dutyState.State
+        public sheriffFullview!: boolean;
+
+        @dutyState.State
+        public printSheriffFullview!: boolean;
 
         @commonState.State
         public userDetails!: userInfoType;
@@ -125,8 +134,6 @@
         
         isDutyRosterDataMounted = false;
         hasPermissionToAddAssignments = false;
-
-        
 
         dutyRostersJson: attachedDutyInfoType[] = [];
         dutyRosterAssignmentsJson;
@@ -164,10 +171,18 @@
         @Watch('displayFooter')
         footerChange() 
         {
-            Vue.nextTick(() => 
-            {
-                this.calculateTableHeight()
-            })
+            Vue.nextTick(() => this.calculateTableHeight() )
+        }
+
+        @Watch('sheriffFullview')
+        SheriffFullViewChanged() 
+        {  
+            Vue.nextTick(() => this.scrollAdjustment() );
+        }
+
+        @Watch('printSheriffFullview')
+        printSheriffFullviewChanged(){
+            Vue.nextTick(() => this.scrollAdjustment() );
         }
         
         async mounted()

@@ -10,6 +10,8 @@ class DutyRosterInformation extends VuexModule {
   public shiftAvailabilityInfo: myTeamShiftInfoType[] = [];
   public dutyToBeEdited = '';
   public view24h = false;
+  public sheriffFullview = false;
+  public printSheriffFullview = false;
 
   public dutyRosterAssignments: assignmentCardInfoType[] = [];
   public dutyRosterAssignmentsWeek: assignmentCardWeekInfoType[] = [];
@@ -54,6 +56,24 @@ class DutyRosterInformation extends VuexModule {
   @Action
   public UpdateView24h(newView24h: boolean): void {
     this.context.commit('setView24h', newView24h)
+  }
+
+  @Mutation
+  public setSheriffFullview(sheriffFullview: boolean): void {   
+    this.sheriffFullview = sheriffFullview;
+  }
+  @Action
+  public UpdateSheriffFullview(newSheriffFullview: boolean): void {
+    this.context.commit('setSheriffFullview', newSheriffFullview)
+  }
+
+  @Mutation
+  public setPrintSheriffFullview(printSheriffFullview: boolean): void {   
+    this.printSheriffFullview = printSheriffFullview;
+  }
+  @Action
+  public UpdatePrintSheriffFullview(newPrintSheriffFullview: boolean): void {
+    this.context.commit('setPrintSheriffFullview', newPrintSheriffFullview)
   }
 
   

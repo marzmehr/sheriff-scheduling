@@ -9,8 +9,8 @@
 					<h3 style="width:8rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal"></h3>
 				</b-navbar-nav>
 				<b-navbar-nav class="custom-navbar">
-                    <b-col>
-                        <b-row  :style="activetab=='Day'?'width:17.5rem':'width:25rem'">
+                    <b-col class="my-1">
+                        <b-row :style="activetab=='Day'?'width:17.75rem':'width:25.6rem'">
                             <b-button style=" height: 2rem;" size="sm" variant="secondary" @click="previousDateRange" class="my-0 mx-1"><b-icon-chevron-left /></b-button>
                             
 							<div v-if="activetab=='Day'" class="m-0 bg-white" style="padding:0.2rem 0.52rem; border-radius:3px; font-weight:bold;">{{selectedDate|beautify-date-weekday}}</div>
@@ -49,7 +49,7 @@
 							/>
 					</b-tabs>
 				</b-navbar-nav>
-				<b-navbar-nav >
+				<b-navbar-nav v-if="!sheriffFullview">
 					<b-tabs nav-wrapper-class = "bg-primary text-dark my-1 p-0"
 							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
 							pills							
@@ -63,6 +63,18 @@
 							v-bind:class="[ activetab === tabMapping ? 'active p-0 my-0' : 'p-0 my-0' ]"
 							/>
 					</b-tabs>
+				</b-navbar-nav>
+				<b-navbar-nav v-else>
+					<b-button
+						v-b-tooltip.hover.noninteractive
+						title="Print Sheriff Duties"							
+						style="max-height: 40px;" 
+						size="sm"
+						variant="white"						
+						@click="printSheriffDuties()" 
+						class="my-0 ml-2">
+						<b-icon icon="printer-fill" font-scale="2.0" variant="white"/>
+					</b-button>						
 				</b-navbar-nav>
 			</b-navbar>
 		</header>
@@ -336,6 +348,12 @@
 
 		@commonState.State
 		public userDetails!: userInfoType;
+
+		@dutyState.State
+        public sheriffFullview!: boolean;
+
+		@dutyState.Action
+        public UpdatePrintSheriffFullview!: (newPrintSheriffFullview: boolean) => void;
 		
 		@Prop({required: true})
 		runMethod!: any
@@ -779,6 +797,10 @@
 
 		public commentFormat(value) {
 			return value.slice(0,100);
+		}
+
+		public printSheriffDuties(){
+			this.UpdatePrintSheriffFullview(true);
 		}
 
     }
