@@ -1,13 +1,13 @@
 <template>
     <b-card bg-variant="white" class="home" no-body>
         <b-row  class="mx-0 mt-0 mb-5 p-0" cols="2" >
-            <b-col class="m-0 p-0" cols="11" >
+            <b-col  class="m-0 p-0" :cols="(sheriffFullview && !weekView)? 12: 11" >
                 <duty-roster-header v-on:change="reloadDutyRosters" :runMethod="headerAddAssignment" />
                 <duty-roster-week-view :runMethod="dutyRosterWeekViewMethods" v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
-                <duty-roster-day-view :runMethod="dutyRosterDayViewMethods" v-if="!weekView&&headerReady" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()"/>
+                <duty-roster-day-view id="duty-pdf" :runMethod="dutyRosterDayViewMethods" v-if="!weekView&&headerReady" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()"/>
                 
             </b-col>
-            <b-col class="p-0 " cols="1"  style="overflow: auto;">
+            <b-col v-if="!sheriffFullview || weekView" class="p-0 " cols="1"  style="overflow: auto;">
                 <b-card
                     v-if="isDutyRosterDataMounted"
                     :key="updateMyTeam"                     
@@ -25,6 +25,15 @@
                                 style="font-size:10px; width:1.1rem; margin:0 0 0 .2rem; padding:0; background-color:white; color:#189fd4;" 
                                 size="sm">
                                     <b-icon-bar-chart-steps /> 
+                            </b-button>
+                            <b-button
+                                v-if="!weekView"
+                                @click="toggleFullViewMyteam()"
+                                v-b-tooltip.hover                            
+                                title="Display Fullview of MyTeam "                            
+                                style="font-size:10px; width:1.1rem; margin:0 0 0 .2rem; padding:0; background-color:white; color:#725433;" 
+                                size="sm">
+                                    <b-icon-arrows-fullscreen /> 
                             </b-button>
                         </b-card-header>
                         <duty-roster-team-member-card :sheriffInfo="memberNotRequired" :weekView="weekView"/>
@@ -90,6 +99,12 @@
         public UpdateDisplayFooter!: (newDisplayFooter: boolean) => void
 
         @dutyState.State
+        public sheriffFullview!: boolean;
+        
+        @dutyState.Action
+        public UpdateSheriffFullview!: (newSheriffFullview) => void
+
+        @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
 
         memberNotRequired = { sheriffId: '00000-00000-11111' } as myTeamShiftInfoType;
@@ -119,10 +134,7 @@
         @Watch('displayFooter')
         footerChange() 
         {
-            Vue.nextTick(() => 
-            {
-                this.calculateTableHeight()
-            })
+            Vue.nextTick(() => this.calculateTableHeight())
         }
 
         mounted()
@@ -146,7 +158,10 @@
             // console.log(type)
             // console.log('reload dutyroster')                
             this.updateCurrentTime();
-            if(type=='Day'){
+            if(type=='Day' && this.sheriffFullview){
+                this.weekView = false
+
+            }else if(type=='Day'){
                 this.weekView = false
                 this.UpdateDisplayFooter(false)
             } else{
@@ -196,7 +211,14 @@
                 })
             }
             else this.UpdateDisplayFooter(true)
-        }        
+        } 
+        
+        public toggleFullViewMyteam(){
+            if(!this.sheriffFullview){
+                this.UpdateDisplayFooter(true)
+                this.UpdateSheriffFullview(true)
+            }
+        }
 
         public addAssignment(){ 
             this.headerAddAssignment.$emit('addassign');

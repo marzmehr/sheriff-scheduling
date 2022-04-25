@@ -1,13 +1,13 @@
 <template>
-    <div class="gridsheriff">
-        <div v-for="i in 96" :key="i" :style="{backgroundColor: '#F1FEF1', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/2'}"></div>
+    <div :class="{'gridsheriff':true, 'fullview':fullview}">
+        <div class="grid" v-for="i in 96" :key="i" :style="{backgroundColor: '#F1FEF1', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/2'}"></div>
         <div 
             v-for="(block,index) in sheriffInfo.availabilityDetail"
             :key="index+2000"
             :style="{gridColumnStart: (1+block.startBin),gridColumnEnd:(1+block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0 }"
             v-b-tooltip.hover.bottom                             
             :title="block.name">
-                <div style="text-transform: capitalize; margin:0 padding: 0; font-size: 13px;transform:translate(0,-4px)">
+                <div class="text" :style="{textTransform: 'capitalize', margin:fullview?'0.2rem 0 0 0':'0', padding:'0', fontSize: fullview?'15px':'13px',transform:'translate(0,-4px)'}">
                     {{block.name|truncate((block.endTime - block.startTime-1)*2)}}
                 </div>                
         </div>
@@ -17,7 +17,7 @@
             :style="{gridColumnStart: (1+block.startBin),gridColumnEnd:(1+block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0, color:'white' }"
             v-b-tooltip.hover.bottom                             
             :title="block.name +'-'+ block.code">
-                <div style="text-transform: capitalize; margin:0 padding: 0;font-size: 13px;transform:translate(0,-4px)">
+                <div class="text" :style="{textTransform: 'capitalize', margin:fullview?'0.2rem 0 0 0':'0', padding:'0', fontSize: fullview?'15px':'13px', transform:'translate(0,-4px)'}">
                     {{getBlockTitle(block.name,block.code,(block.endTime - block.startTime-1)*2)}}
                 </div>                
         </div>
@@ -37,6 +37,12 @@
         @Prop({required: true})
         sheriffInfo!: myTeamShiftInfoType;
 
+        @Prop({required: false, default:false})
+        fullview!: boolean;
+
+        styleGauge = "text-transform: capitalize; margin:0; padding: 0; font-size: 13px; transform:translate(0,-4px)"
+        styleFullview = "text-transform: capitalize; margin-top:1rem; padding: 0; font-size: 16px;"
+
         public getBlockTitle(name,code,len){
            return Vue.filter('truncate')( name+'-'+code,len)
         }
@@ -44,7 +50,7 @@
     }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 
     .gridsheriff {        
         display:grid;
@@ -57,6 +63,11 @@
         padding: 0;
         column-gap: 0;
         row-gap: 0;
+
+        &.fullview {
+            height: 1.75rem;
+            grid-template-rows: repeat(1,1.75rem);
+        }
            
     }
 

@@ -1,17 +1,17 @@
 <template>
     <div>
         <b-row  class="m-0 p-0" cols="2" >
-            <b-col class="m-0 p-0" cols="11" >
+            <b-col class="m-0 p-0" cols="12" >
                 <b-table
                     :items="myTeamMembers" 
                     :fields="gaugeFields"
                     small
-                    head-row-variant="transparant"
-                    style="overflow-x:hidden"
+                    striped
+                    head-row-variant="transparant"                    
                     sort-by="availability"
                     :sort-desc="true"
-                    class="gauge"                   
-                    sticky-header="7rem"                        
+                    :style="{ overflowX: 'scroll', height: getHeight, maxHeight: '100%', marginBottom: '0px' }"                     
+                    :sticky-header="getHeight"                        
                     borderless
                     fixed>
                         <template v-slot:table-colgroup> 
@@ -26,72 +26,55 @@
                         </template>
 
                         <template v-slot:cell(availability)="data" >
-                            <sheriff-availability-card class="m-0 p-0" :sheriffInfo="data.item" />
+                            <sheriff-availability-card class="m-0 p-0" :sheriffInfo="data.item" :fullview="true" />
                         </template>
 
                         <template v-slot:head(name) > 
-                             My Team                          
-                            <b-button
-                                @click="closeDisplayMyteam()"
-                                v-b-tooltip.hover.right                            
-                                title="Close Footer Display"
-                                style="font-size:10px; width:1.15rem; margin:0 0 0 .75rem; padding:0; background-color:white;color:#189fd4;" 
-                                size="sm">
-                                    <b-icon-bar-chart-steps /> 
-                            </b-button>
+                            My Team                                                      
                             <b-button                                
-                                @click="toggleFullViewMyteam()"
+                                @click="closeFullViewMyteam()"
                                 v-b-tooltip.hover                            
-                                title="Display Fullview of MyTeam "                            
+                                title="Exit Fullview of MyTeam "                            
                                 style="font-size:10px; width:1.1rem; margin:0 0 0 .2rem; padding:0; background-color:white; color:#725433;" 
                                 size="sm">
-                                    <b-icon-arrows-fullscreen /> 
+                                    <b-icon-arrow-left-right /> 
                             </b-button>
                             
                         </template>
 
                          <template v-slot:cell(name)="data" >
                             <div
-                                :id="'gauge--'+data.item.sheriff.sheriffId"
-                                :draggable="hasPermissionToAddAssignDuty" 
-                                v-on:dragstart="DragStart"
-                                style="height:1rem; font-size:12px; line-height: 16px; text-transform: capitalize; margin:0; padding:0"
+                                :id="'gauge--'+data.item.sheriff.sheriffId"                                                                                                 
+                                style="height:2rem; font-size:14px; line-height: 1rem; text-transform: capitalize; margin:0; padding:0.5rem 0 0 0.25rem"
+                                class="text-primary"
                                 v-b-tooltip.hover.right                            
                                 :title="data.item.fullName">
                                     {{data.value}}
                             </div>
                         </template>
                 </b-table> 
-            </b-col>
-            <b-col class="m-0 p-0" cols="1" >
-                <b-card 
-                class="bg-light"
-                    header="Colours" 
-                    header-class=" m-0 p-0 bg-primary text-white text-center no-top-rounding" 
-                    no-body>
-                    <b-row style="margin:0 0 .25rem .25rem; width:7.6rem;">
-                        <div
-                            style="width:3.8rem;"
-                            class="m-0 p-0"
-                            v-for="color in dutyColors" 
-                            :key="color.colorCode"> 
-                            <div :style="{backgroundColor:color.colorCode, width:'.65rem', height:'.65rem', borderRadius:'15px', margin:'.2rem .2rem 0 0', float:'left'}"/>
-                            <div style="font-size:9px; text-transform: capitalize; margin:0 0 0 0; padding:0">{{color.name}}</div>
-                        </div>
-                    </b-row>
-                </b-card>
-            </b-col>
+            </b-col>            
         </b-row>
+
+        <b-modal size="xl" v-model="printSheriffFullview" footer-class="d-none" header-class="bg-primary text-light" title-class="h2" title="Print Duties">            
+            
+            <duty-pdf-view :myTeamMembers="myTeamMembers"/>
+
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-white" class="text-light closeButton" @click="closePrint()"
+                >&times;</b-button>
+            </template>
+        </b-modal>
     </div>
 </template>
 
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import SheriffAvailabilityCard from './SheriffAvailabilityCard.vue'
-    import { myTeamShiftInfoType, dutiesDetailInfoType} from '../../../types/DutyRoster';
-    import { userInfoType } from '../../../types/common';
-    
-    import moment from 'moment-timezone';
+    import { myTeamShiftInfoType, dutiesDetailInfoType} from '@/types/DutyRoster';
+    import { userInfoType } from '@/types/common';
+
+    import DutyPdfView from "./pdf/DutyPdfView.vue"
 
     import { namespace } from "vuex-class";   
     import "@store/modules/CommonInformation";
@@ -102,25 +85,33 @@
 
     @Component({
         components: {
-            SheriffAvailabilityCard
+            SheriffAvailabilityCard,
+            DutyPdfView
         }
     })
-    export default class SheriffFuelGauge extends Vue {
+    export default class SheriffDayView extends Vue {
        
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
 
+        @dutyState.State
+        public sheriffFullview!: boolean;
+
+        @dutyState.Action
+        public UpdateSheriffFullview!: (newSheriffFullview) => void
+
+        @dutyState.State
+        public printSheriffFullview!: boolean;
+
+        @dutyState.Action
+        public UpdatePrintSheriffFullview!: (newPrintSheriffFullview: boolean) => void;
+        
+       
         @commonState.Action
         public UpdateDisplayFooter!: (newDisplayFooter: boolean) => void
        
         @commonState.State
         public userDetails!: userInfoType;
-
-        @dutyState.State
-        public sheriffFullview!: boolean;
-        
-        @dutyState.Action
-        public UpdateSheriffFullview!: (newSheriffFullview) => void
         
         hasPermissionToAddAssignDuty = false;
 
@@ -139,8 +130,7 @@
         }
 
         mounted()
-        {
-            //console.log(this.shiftAvailabilityInfo)
+        {   //document.body.style.zoom = "80%";           
             this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
             this.extractSheriffAvailability() 
         }
@@ -157,7 +147,7 @@
         public extractSheriffAvailability(){
             this.myTeamMembers = [];
             for(const sheriff of this.shiftAvailabilityInfo){
-                //console.log(sheriff.availability)
+                // console.log(sheriff.availability)
                 //this.findIsland(sheriff.availability)
                 this.myTeamMembers.push({                     
                     name: Vue.filter('truncate')(sheriff.lastName,10) + ', '+ sheriff.firstName.charAt(0).toUpperCase(),
@@ -209,14 +199,14 @@
             return( hour>9? hour+':00': '0'+hour+':00')
         }
 
-        public closeDisplayMyteam(){
-            this.UpdateDisplayFooter(true)
-        }
-
-        public toggleFullViewMyteam(){
-            if(!this.sheriffFullview){
-                this.UpdateDisplayFooter(true)
-                this.UpdateSheriffFullview(true)
+        public closeFullViewMyteam(){
+            if(this.sheriffFullview){
+                this.UpdateSheriffFullview(false)
+                this.UpdateDisplayFooter(false)                
+                const el = document.getElementsByClassName('b-table-sticky-header') 
+                Vue.nextTick(()=>{            
+                    if(el[1]) el[1].scrollLeft = el[0].scrollLeft
+                })
             }
         }
 
@@ -224,9 +214,22 @@
             return arrayA.reduce((acc, arr) => acc + (arr>0?1:0), 0)
         }
 
-        public DragStart(event: any) 
-        { 
-            event.dataTransfer.setData('text', event.target.id);
+
+        get getHeight() {
+            const windowHeight = document.documentElement.clientHeight;
+            return windowHeight - this.calculateTableHeight() + 'px'
+        }
+
+        public calculateTableHeight() {
+            const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
+            const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
+            const footerHeight = document.getElementById("footer")?.offsetHeight || 0;            
+            const bottomHeight = footerHeight;
+            return (topHeaderHeight + bottomHeight + secondHeader)
+        }
+
+        public closePrint(){
+            this.UpdatePrintSheriffFullview(false);
         }
 
     }
@@ -236,12 +239,6 @@
 
     .card {
         border: white;
-    }
-
-    .gauge {       
-        position: sticky;
-        overflow-y: scroll;
-        margin-bottom: 0;
     }
 
     .gridfuel24 {        
