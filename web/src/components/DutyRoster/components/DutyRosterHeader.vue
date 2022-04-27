@@ -5,10 +5,25 @@
 				<b-navbar-nav>
 					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal">Duty Roster</h3>
 				</b-navbar-nav>
+				<b-navbar-nav v-if="activetab =='Day'">
+					<b-tabs nav-wrapper-class = "bg-primary text-dark"
+							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
+							pills							
+							no-body
+							class="mx-3"> 
+						<b-tab 
+							v-for="(tabMapping, index) in tabsMyTeamToggle" 
+							:key="'toggle-myteam-'+index"                 
+							:title="tabMapping"
+							v-on:click="tabMyTeamChanged(tabMapping)" 
+							v-bind:class="[ activeMyTeamTab === tabMapping ? 'active p-0 my-0' : 'p-0 my-0' ]"
+							/>
+					</b-tabs>
+				</b-navbar-nav>
 				<b-navbar-nav v-if="activetab!='Day'">
 					<h3 style="width:8rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal"></h3>
 				</b-navbar-nav>
-				<b-navbar-nav class="custom-navbar">
+				<b-navbar-nav :class="{'custom-navbar':true, 'full-view':sheriffFullview}">
                     <b-col class="my-1">
                         <b-row :style="activetab=='Day'?'width:17.75rem':'width:25.6rem'">
                             <b-button style=" height: 2rem;" size="sm" variant="secondary" @click="previousDateRange" class="my-0 mx-1"><b-icon-chevron-left /></b-button>
@@ -42,7 +57,7 @@
 							class="mx-3">
 						<b-tab 
 							v-for="(tabMapping, index) in tabs12h24h" 
-							:key="index"                 
+							:key="'tab-24h-'+index"                 
 							:title="tabMapping"
 							v-on:click="tab12h24hChanged(tabMapping)" 
 							v-bind:class="[ active24htab === tabMapping ? 'active p-0 my-0' : 'p-0 my-0' ]"
@@ -57,14 +72,14 @@
 							class="mx-3">
 						<b-tab 
 							v-for="(tabMapping, index) in tabs" 
-							:key="index"                 
+							:key="'tab-day'+index"                 
 							:title="tabMapping"                 
 							v-on:click="tabChanged(tabMapping)" 
 							v-bind:class="[ activetab === tabMapping ? 'active p-0 my-0' : 'p-0 my-0' ]"
 							/>
 					</b-tabs>
 				</b-navbar-nav>
-				<b-navbar-nav v-else>
+				<b-navbar-nav v-if="sheriffFullview">
 					<b-button
 						v-b-tooltip.hover.noninteractive
 						title="Print Sheriff Duties"							
@@ -72,7 +87,7 @@
 						size="sm"
 						variant="white"						
 						@click="printSheriffDuties()" 
-						class="my-0 ml-2">
+						class="my-1 mr-3">
 						<b-icon icon="printer-fill" font-scale="2.0" variant="white"/>
 					</b-button>						
 				</b-navbar-nav>
@@ -351,6 +366,12 @@
 
 		@dutyState.State
         public sheriffFullview!: boolean;
+		
+		@dutyState.Action
+        public UpdateDisplayFuelGauge!: (newDisplayFuelGauge: boolean) => void
+        
+        @dutyState.Action
+        public UpdateSheriffFullview!: (newSheriffFullview) => void
 
 		@dutyState.Action
         public UpdatePrintSheriffFullview!: (newPrintSheriffFullview: boolean) => void;
@@ -363,6 +384,9 @@
 
 		activetab = 'Day';
 		tabs =['Day', 'Week']
+
+		activeMyTeamTab = 'Assignments View'
+		tabsMyTeamToggle = ['Assignments View', 'My Team View']
 		
 		selectedDate = '';
 		selectedDateBegin = '';
@@ -742,6 +766,17 @@
 			this.$emit('change',this.activetab);			
 		}
 
+		public tabMyTeamChanged(tabInfo){
+			this.activeMyTeamTab = tabInfo;
+			if(tabInfo == this.tabsMyTeamToggle[0]){                
+                this.UpdateSheriffFullview(false)
+			}			
+			else{
+                this.UpdateSheriffFullview(true)
+				this.UpdateDisplayFuelGauge(false)
+			}			
+		}
+
         
         public dateChanged(event) {
 			if(this.datePickerOpened)this.loadNewDateRange();
@@ -806,23 +841,26 @@
     }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 
 	.card {
-				border: white;
-		}
+		border: white;
+	}
 
 	.custom-navbar {
-			float: none;
-			margin:0 auto 0 auto;
-			display: block;
-			text-align: center;
-			width:20rem
+		float: none;
+		margin:0 auto 0 auto;
+		display: block;
+		text-align: center;
+		width:20rem;
+		&.full-view{
+			margin:0 auto 0 18rem;
+		}
 	}
 
 	.custom-navbar > li {
-			display: inline-block;
-			float:none;
+		display: inline-block;
+		float:none;
 	}
 
 </style>

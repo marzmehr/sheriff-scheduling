@@ -44,7 +44,19 @@
                     <duty-card v-on:change="getData" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
-        <sheriff-fuel-gauge v-show="isDutyRosterDataMounted && !displayFooter" class="fixed-bottom bg-white"/>
+        <sheriff-fuel-gauge v-show="isDutyRosterDataMounted && displayFuelGauge" class="fixed-bottom bg-white"/>
+        <div id="app-footer-assignment" v-if="!sheriffFullview">
+            <b-row style="margin:0 0 .25rem .25rem; ">
+                <div
+                    style="width:3.8rem;"
+                    class="m-0 p-0"
+                    v-for="color in dutyColorsCode" 
+                    :key="color.colorCode"> 
+                    <div :style="{backgroundColor:color.colorCode, width:'.65rem', height:'.65rem', borderRadius:'15px', margin:'.2rem .2rem 0 0', float:'left'}"/>
+                    <div style="font-size:9px; text-transform: capitalize; margin:0 0 0 0; padding:0">{{color.name}}</div>
+                </div>
+            </b-row>            
+        </div>
 
         <b-modal v-model="openErrorModal" header-class="bg-warning text-light">
             <b-card class="h4 mx-2 py-2">
@@ -99,8 +111,8 @@
         @commonState.State
         public location!: locationInfoType;
 
-        @commonState.State
-        public displayFooter!: boolean;
+        @dutyState.State
+        public displayFuelGauge!: boolean;
 
         @dutyState.State
         public sheriffFullview!: boolean;
@@ -168,7 +180,7 @@
             }            
         } 
 
-        @Watch('displayFooter')
+        @Watch('displayFuelGauge')
         footerChange() 
         {
             Vue.nextTick(() => this.calculateTableHeight() )
@@ -211,10 +223,14 @@
         public calculateTableHeight() {
             const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
             const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
-            const footerHeight = document.getElementById("footer")?.offsetHeight || 0;
-            const gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
-            const bottomHeight = this.displayFooter ? footerHeight : gageHeight;
+            const footerHeight = 0//document.getElementById("footer")?.offsetHeight || 0;
+            const gaugeHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
+            const bottomHeight = !this.displayFuelGauge ? footerHeight : gaugeHeight;
             this.tableHeight = (topHeaderHeight + bottomHeight + secondHeader)
+        }
+
+        get dutyColorsCode(){
+            return this.dutyColors.filter(color=>(color.name!='courtroom' && color.name!='free'))
         }
 
         public getBeautifyTime(hour: number){
@@ -496,6 +512,14 @@
         color: white;
         background-color:   #003366;
         font-size: 12px;
+    }
+    #app-footer-assignment {
+        padding: 2px 17px;
+        position: absolute;
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        z-index: 100;    
     }
 
 </style>

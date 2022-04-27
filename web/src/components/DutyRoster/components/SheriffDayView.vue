@@ -1,60 +1,67 @@
 <template>
     <div>
-        <b-row  class="m-0 p-0" cols="2" >
-            <b-col class="m-0 p-0" cols="12" >
-                <b-table
-                    :items="myTeamMembers" 
-                    :fields="gaugeFields"
-                    small
-                    striped
-                    head-row-variant="transparant"                    
-                    sort-by="availability"
-                    :sort-desc="true"
-                    :style="{ overflowX: 'scroll', height: getHeight, maxHeight: '100%', marginBottom: '0px' }"                     
-                    :sticky-header="getHeight"                        
-                    borderless
-                    fixed>
-                        <template v-slot:table-colgroup> 
-                            <col style="width:9rem">
-                            <col>
-                        </template>
+        
+        <b-table
+            :items="myTeamMembers" 
+            :fields="gaugeFields"
+            small
+            striped
+            head-row-variant="transparant"                    
+            sort-by="availability"
+            :sort-desc="true"
+            :style="{ overflowX: 'scroll', height: getHeight, maxHeight: '100%', marginBottom: '-48px' }"                     
+            :sticky-header="getHeight"                        
+            borderless
+            fixed>
+                <template v-slot:table-colgroup> 
+                    <col style="width:9rem">
+                    <col>
+                </template>
 
-                        <template v-slot:head(availability) >
-                            <div class="gridfuel24">
-                                <div v-for="i in 24" :key="i" :style="{gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/1'}">{{getBeautifyTime(i-1)}}</div>
-                            </div>
-                        </template>
+                <template v-slot:head(availability) >
+                    <div class="gridfuel24">
+                        <div v-for="i in 24" :key="i" :style="{gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/1'}">{{getBeautifyTime(i-1)}}</div>
+                    </div>
+                </template>
 
-                        <template v-slot:cell(availability)="data" >
-                            <sheriff-availability-card class="m-0 p-0" :sheriffInfo="data.item" :fullview="true" />
-                        </template>
+                <template v-slot:cell(availability)="data" >
+                    <sheriff-availability-card class="m-0 p-0" :sheriffInfo="data.item" :fullview="true" />
+                </template>
 
-                        <template v-slot:head(name) > 
-                            My Team                                                      
-                            <b-button                                
-                                @click="closeFullViewMyteam()"
-                                v-b-tooltip.hover                            
-                                title="Exit Fullview of MyTeam "                            
-                                style="font-size:10px; width:1.1rem; margin:0 0 0 .2rem; padding:0; background-color:white; color:#725433;" 
-                                size="sm">
-                                    <b-icon-arrow-left-right /> 
-                            </b-button>
-                            
-                        </template>
+                <template v-slot:head(name) > 
+                    My Team                                                      
+                </template>
 
-                         <template v-slot:cell(name)="data" >
-                            <div
-                                :id="'gauge--'+data.item.sheriff.sheriffId"                                                                                                 
-                                style="height:2rem; font-size:14px; line-height: 1rem; text-transform: capitalize; margin:0; padding:0.5rem 0 0 0.25rem"
-                                class="text-primary"
-                                v-b-tooltip.hover.right                            
-                                :title="data.item.fullName">
-                                    {{data.value}}
-                            </div>
-                        </template>
-                </b-table> 
-            </b-col>            
-        </b-row>
+                    <template v-slot:cell(name)="data" >
+                    <div
+                        :id="'gauge--'+data.item.sheriff.sheriffId"                                                                                                 
+                        style="height:2rem; font-size:14px; line-height: 1rem; text-transform: capitalize; margin:0; padding:0.5rem 0 0 0.25rem"
+                        class="text-primary"
+                        v-b-tooltip.hover.right                            
+                        :title="data.item.fullName">
+                            {{data.value}}
+                    </div>
+                </template>
+        </b-table> 
+        <div id="app-footer">
+            <b-card 
+                class="bg-light"
+                header="Colours" 
+                header-class=" m-0 p-0 bg-primary text-white text-center no-top-rounding" 
+                no-body>
+                <b-row style="margin:0 0 .25rem .25rem; width:7.6rem;">
+                    <div
+                        style="width:3.8rem;"
+                        class="m-0 p-0"
+                        v-for="color in dutyColors" 
+                        :key="color.colorCode"> 
+                        <div :style="{backgroundColor:color.colorCode, width:'.65rem', height:'.65rem', borderRadius:'15px', margin:'.2rem .2rem 0 0', float:'left'}"/>
+                        <div style="font-size:9px; text-transform: capitalize; margin:0 0 0 0; padding:0">{{color.name}}</div>
+                    </div>
+                </b-row>
+            </b-card>
+        </div>
+
 
         <b-modal size="xl" v-model="printSheriffFullview" footer-class="d-none" header-class="bg-primary text-light" title-class="h2" title="Print Duties">            
             
@@ -94,21 +101,13 @@
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
 
-        @dutyState.State
-        public sheriffFullview!: boolean;
-
-        @dutyState.Action
-        public UpdateSheriffFullview!: (newSheriffFullview) => void
-
+   
         @dutyState.State
         public printSheriffFullview!: boolean;
 
         @dutyState.Action
         public UpdatePrintSheriffFullview!: (newPrintSheriffFullview: boolean) => void;
         
-       
-        @commonState.Action
-        public UpdateDisplayFooter!: (newDisplayFooter: boolean) => void
        
         @commonState.State
         public userDetails!: userInfoType;
@@ -120,7 +119,6 @@
         gaugeFields = [
             {key:'name', label:'My Team', stickyColumn: true, thClass:'text-center text-white', tdClass:'border-bottom py-0 my-0', thStyle:'margin:0; padding:0;background-color:#556077;'},
             {key:'availability', label:'', thClass:'', tdClass:'p-0 m-0 bg-white', thStyle:'margin:0; padding:0;'},
-            
         ]
 
         @Watch('shiftAvailabilityInfo')
@@ -157,6 +155,7 @@
                     availabilityDetail: this.findAvailabilitySlots(sheriff.availability)
                 })
             }
+            // this.myTeamMembers=[...this.myTeamMembers, ...this.myTeamMembers,...this.myTeamMembers]
         }
 
         public findAvailabilitySlots(array){
@@ -199,17 +198,6 @@
             return( hour>9? hour+':00': '0'+hour+':00')
         }
 
-        public closeFullViewMyteam(){
-            if(this.sheriffFullview){
-                this.UpdateSheriffFullview(false)
-                this.UpdateDisplayFooter(false)                
-                const el = document.getElementsByClassName('b-table-sticky-header') 
-                Vue.nextTick(()=>{            
-                    if(el[1]) el[1].scrollLeft = el[0].scrollLeft
-                })
-            }
-        }
-
         public sumOfArrayElements(arrayA){
             return arrayA.reduce((acc, arr) => acc + (arr>0?1:0), 0)
         }
@@ -223,8 +211,9 @@
         public calculateTableHeight() {
             const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
             const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
-            const footerHeight = document.getElementById("footer")?.offsetHeight || 0;            
+            const footerHeight = 0//document.getElementById("footer")?.offsetHeight || 0;            
             const bottomHeight = footerHeight;
+            console.log(topHeaderHeight + bottomHeight + secondHeader)
             return (topHeaderHeight + bottomHeight + secondHeader)
         }
 
@@ -256,4 +245,13 @@
         color: white;
         font-size: 12px;
     }
+    #app-footer {
+        padding: 2px 0px;
+        position: absolute;
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        z-index: 100;    
+    }
+
 </style>

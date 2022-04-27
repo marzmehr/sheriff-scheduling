@@ -12,6 +12,7 @@ class DutyRosterInformation extends VuexModule {
   public view24h = false;
   public sheriffFullview = false;
   public printSheriffFullview = false;
+  public displayFuelGauge = false;
 
   public dutyRosterAssignments: assignmentCardInfoType[] = [];
   public dutyRosterAssignmentsWeek: assignmentCardWeekInfoType[] = [];
@@ -65,6 +66,15 @@ class DutyRosterInformation extends VuexModule {
   @Action
   public UpdateSheriffFullview(newSheriffFullview: boolean): void {
     this.context.commit('setSheriffFullview', newSheriffFullview)
+  }
+
+  @Mutation
+  public setDisplayFuelGauge(displayFuelGauge: boolean): void {   
+    this.displayFuelGauge = displayFuelGauge;
+  }
+  @Action
+  public UpdateDisplayFuelGauge(newDisplayFuelGauge: boolean): void {
+    this.context.commit('setDisplayFuelGauge', newDisplayFuelGauge)
   }
 
   @Mutation

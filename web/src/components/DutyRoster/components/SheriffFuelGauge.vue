@@ -38,16 +38,7 @@
                                 style="font-size:10px; width:1.15rem; margin:0 0 0 .75rem; padding:0; background-color:white;color:#189fd4;" 
                                 size="sm">
                                     <b-icon-bar-chart-steps /> 
-                            </b-button>
-                            <b-button                                
-                                @click="toggleFullViewMyteam()"
-                                v-b-tooltip.hover                            
-                                title="Display Fullview of MyTeam "                            
-                                style="font-size:10px; width:1.1rem; margin:0 0 0 .2rem; padding:0; background-color:white; color:#725433;" 
-                                size="sm">
-                                    <b-icon-arrows-fullscreen /> 
-                            </b-button>
-                            
+                            </b-button>                            
                         </template>
 
                          <template v-slot:cell(name)="data" >
@@ -110,17 +101,11 @@
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
 
-        @commonState.Action
-        public UpdateDisplayFooter!: (newDisplayFooter: boolean) => void
+        @dutyState.Action
+        public UpdateDisplayFuelGauge!: (newDisplayFuelGauge: boolean) => void
        
         @commonState.State
         public userDetails!: userInfoType;
-
-        @dutyState.State
-        public sheriffFullview!: boolean;
-        
-        @dutyState.Action
-        public UpdateSheriffFullview!: (newSheriffFullview) => void
         
         hasPermissionToAddAssignDuty = false;
 
@@ -210,14 +195,7 @@
         }
 
         public closeDisplayMyteam(){
-            this.UpdateDisplayFooter(true)
-        }
-
-        public toggleFullViewMyteam(){
-            if(!this.sheriffFullview){
-                this.UpdateDisplayFooter(true)
-                this.UpdateSheriffFullview(true)
-            }
+            this.UpdateDisplayFuelGauge(false)
         }
 
         public sumOfArrayElements(arrayA){
