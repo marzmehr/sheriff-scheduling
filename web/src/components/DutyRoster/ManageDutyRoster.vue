@@ -1,6 +1,6 @@
 <template>
     <b-card bg-variant="white" class="home" no-body>
-        <b-row  class="mx-0 mt-0 mb-5 p-0" cols="2" >
+        <b-row  class="mx-0 mt-0 mb-0 p-0" cols="2" >
             <b-col  class="m-0 p-0" :cols="(sheriffFullview && !weekView)? 12: 11" >
                 <duty-roster-header v-on:change="reloadDutyRosters" :runMethod="headerAddAssignment" />
                 <duty-roster-week-view :runMethod="dutyRosterWeekViewMethods" v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
@@ -25,16 +25,7 @@
                                 style="font-size:10px; width:1.1rem; margin:0 0 0 .2rem; padding:0; background-color:white; color:#189fd4;" 
                                 size="sm">
                                     <b-icon-bar-chart-steps /> 
-                            </b-button>
-                            <b-button
-                                v-if="!weekView"
-                                @click="toggleFullViewMyteam()"
-                                v-b-tooltip.hover                            
-                                title="Display Fullview of MyTeam "                            
-                                style="font-size:10px; width:1.1rem; margin:0 0 0 .2rem; padding:0; background-color:white; color:#725433;" 
-                                size="sm">
-                                    <b-icon-arrows-fullscreen /> 
-                            </b-button>
+                            </b-button>                           
                         </b-card-header>
                         <duty-roster-team-member-card :sheriffInfo="memberNotRequired" :weekView="weekView"/>
                         <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/>
@@ -92,17 +83,15 @@
         @dutyState.State
         public dutyRangeInfo!: dutyRangeInfoType;
 
-        @commonState.State
-        public displayFooter!: boolean;
+        @dutyState.State
+        public displayFuelGauge!: boolean;
 
-        @commonState.Action
-        public UpdateDisplayFooter!: (newDisplayFooter: boolean) => void
+        @dutyState.Action
+        public UpdateDisplayFuelGauge!: (newDisplayFuelGauge: boolean) => void
 
         @dutyState.State
         public sheriffFullview!: boolean;
         
-        @dutyState.Action
-        public UpdateSheriffFullview!: (newSheriffFullview) => void
 
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
@@ -119,7 +108,7 @@
         headerReady = false;
         windowHeight = 0;
         bottomHeight = 0;
-        gageHeight = 0;
+        gaugeHeight = 0;
         tableHeight = 0;
 
         maxRank = 1000;
@@ -131,7 +120,7 @@
         dutyRosterDayViewMethods = new Vue();
         dutyRosterWeekViewMethods = new Vue();
 
-        @Watch('displayFooter')
+        @Watch('displayFuelGauge')
         footerChange() 
         {
             Vue.nextTick(() => this.calculateTableHeight())
@@ -163,10 +152,9 @@
 
             }else if(type=='Day'){
                 this.weekView = false
-                this.UpdateDisplayFooter(false)
             } else{
                 this.weekView = true
-                this.UpdateDisplayFooter(true)
+                this.UpdateDisplayFuelGauge(false)
             }
 
             this.headerReady = true;
@@ -191,9 +179,9 @@
         public calculateTableHeight() {
             const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
             const myTeamHeader =  document.getElementById("myTeamHeader")?.offsetHeight || 0;
-            const footerHeight = document.getElementById("footer")?.offsetHeight || 0;
-            this.gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
-            this.bottomHeight = this.displayFooter ? footerHeight : this.gageHeight;
+            const footerHeight = 0//document.getElementById("footer")?.offsetHeight || 0;
+            this.gaugeHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
+            this.bottomHeight = !this.displayFuelGauge ? footerHeight : this.gaugeHeight;
             // console.log('My Team - Window: ' + this.windowHeight)
             // console.log('My Team - Top: ' + topHeaderHeight)
             // console.log('My Team - TeamHeader: ' + myTeamHeader)
@@ -203,23 +191,16 @@
         }
 
         public toggleDisplayMyteam(){
-            if(this.displayFooter){
-                this.UpdateDisplayFooter(false)
+            if(!this.displayFuelGauge){
+                this.UpdateDisplayFuelGauge(true)
                 const el = document.getElementsByClassName('b-table-sticky-header') 
                 Vue.nextTick(()=>{            
                     if(el[1]) el[1].scrollLeft = el[0].scrollLeft
                 })
             }
-            else this.UpdateDisplayFooter(true)
+            else this.UpdateDisplayFuelGauge(false)
         } 
         
-        public toggleFullViewMyteam(){
-            if(!this.sheriffFullview){
-                this.UpdateDisplayFooter(true)
-                this.UpdateSheriffFullview(true)
-            }
-        }
-
         public addAssignment(){ 
             this.headerAddAssignment.$emit('addassign');
         }

@@ -24,6 +24,12 @@ function displayFooter(to: any, from: any, next: any) {
 	next();
 }
 
+function dontDisplayFooter(to: any, from: any, next: any) {
+	store.commit('CommonInformation/setDisplayHeader',true);
+	store.commit('CommonInformation/setDisplayFooter',false);
+	next();
+}
+
 function waitFor(callback) {
 	if(!store.state.CommonInformation.userDetails.homeLocationId) {
 		window.setTimeout(waitFor.bind(null, callback), 100);
@@ -40,7 +46,7 @@ async function checkPermission(to: any, from: any, next: any) {
 			const userPermissions = store.state.CommonInformation.userDetails.permissions;
 			if(to.name == "ManageDutyRoster" || to.name == "ViewDutyRoster") {
 				if (userPermissions.includes("ViewDutyRoster")){        
-					next();	
+					dontDisplayFooter(to, from, next);	
 				} else {
 					next({ path: "/request-access" });
 				}
@@ -50,9 +56,15 @@ async function checkPermission(to: any, from: any, next: any) {
 				} else {
 					next({ path: "/manage-duty-roster" });
 				}
-			} else {
+			} else if(to.name == "DefineRolesAccess") {
 				if (userPermissions.includes(to.meta.requiredPermission)){
 					displayFooter(to, from, next);	
+				} else {
+					next({ path: "/manage-duty-roster" });
+				}
+			} else {
+				if (userPermissions.includes(to.meta.requiredPermission)){
+					dontDisplayFooter(to, from, next);	
 				} else {
 					next({ path: "/manage-duty-roster" });
 				}

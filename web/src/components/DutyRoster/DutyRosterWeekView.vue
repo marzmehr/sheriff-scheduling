@@ -45,7 +45,7 @@
                     <duty-card-week-view v-on:change="getData" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
-        <b-card><br></b-card>
+        
 
         <b-modal v-model="openErrorModal" header-class="bg-warning text-light">
             <b-card class="h4 mx-2 py-2">
@@ -97,9 +97,6 @@
 
         @commonState.State
         public userDetails!: userInfoType;
-
-        // @commonState.State
-        // public displayFooter!: boolean;
 
         @dutyState.State
         public dutyRangeInfo!: dutyRangeInfoType;
