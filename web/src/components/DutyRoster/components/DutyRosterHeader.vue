@@ -20,6 +20,10 @@
 							/>
 					</b-tabs>
 				</b-navbar-nav>
+				<b-navbar-nav>
+					<b-button class="mr-1 text-white" @click="zoomInOut(10)" variant="transparant"><b-icon-zoom-in /></b-button>
+					<b-button class="text-white" @click="zoomInOut(-10)" variant="transparant"><b-icon-zoom-out /></b-button>
+				</b-navbar-nav>
 				<b-navbar-nav v-if="activetab!='Day'">
 					<h3 style="width:8rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal"></h3>
 				</b-navbar-nav>
@@ -375,6 +379,12 @@
 
 		@dutyState.Action
         public UpdatePrintSheriffFullview!: (newPrintSheriffFullview: boolean) => void;
+
+		@dutyState.State
+        public zoomLevel!: number;
+
+		@dutyState.Action
+		public UpdateZoomLevel!: (newZoomLevel: number) => void;
 		
 		@Prop({required: true})
 		runMethod!: any
@@ -838,6 +848,13 @@
 			this.UpdatePrintSheriffFullview(true);
 		}
 
+		public zoomInOut(percent){
+			let zoom = this.zoomLevel + percent
+			if(zoom>130) zoom = 130
+			if(zoom<60) zoom = 60
+			document.body.style.zoom = zoom +"%";
+			Vue.nextTick(()=>this.UpdateZoomLevel(zoom))
+		}
     }
 </script>
 

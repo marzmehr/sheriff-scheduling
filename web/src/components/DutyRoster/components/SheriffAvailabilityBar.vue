@@ -2,50 +2,80 @@
     <div v-if="dataReady" class="gridsheriff" :style="{gridTemplateColumns: gridTemplateStyle}">                
         <div class="grid" v-for="i in barLength" :key="i" :style="{backgroundColor: '#F1FEF1', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/2'}"></div>
         <div 
-            v-for="(block,index) in findAvailabilitySlots(sheriffInfo.availability)"
+            v-for="(block,index) in findAvailabilitySlots(availability)"
             :key="index+3000"
             :style="{gridColumnStart: (offset+block.startBin),gridColumnEnd:(offset+block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0 }"
             v-b-tooltip.hover.bottom                             
             :title="block.name">                                
         </div>
         <div 
-            v-for="(block,index) in sheriffInfo.dutiesDetail"
+            v-for="(block,index) in dutiesDetail"
             :key="index+4000"
             :style="{gridColumnStart: (offset+block.startBin),gridColumnEnd:(offset+block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0, color:'white' }"
             v-b-tooltip.hover.bottom                             
             :title="block.name +'-'+ block.code">                           
-        </div>
+        </div>        
     </div>
 </template>
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import { myTeamShiftInfoType, dutiesDetailInfoType} from '../../../types/DutyRoster';
-
+    
     @Component
     export default class SheriffAvailabilityBar extends Vue {
 
         @Prop({required: true})
         sheriffInfo!: myTeamShiftInfoType;
 
+        @Prop({required: true})
+        dutyBlock!: any;
+        
+        @Prop({required: true})
+        weekView!: boolean;
+        
         offset= 1
         barLength = 96
         gridTemplateStyle
         dataReady =  false
+        dutiesDetail: dutiesDetailInfoType[] = []
+        availability: number[] = []
 
         mounted(){
             this.dataReady = false
+            this.getDutiesAndAvailabilities()
             this.getBarArea()
             this.dataReady = true
+        }
+
+        public getDutiesAndAvailabilities(){
+            
+            if(this.weekView){                
+                const dutyDate=this.dutyBlock.dutyDate.slice(0,10)
+                this.dutiesDetail = this.sheriffInfo.dutiesDetail.filter(
+                    duty => {
+                        if(duty.startTime)
+                            return duty.startTime.slice(0,10)==dutyDate
+                        else 
+                            return false 
+                    }
+                )                
+            }
+            else{
+                this.dutiesDetail = this.sheriffInfo.dutiesDetail;
+            }
+            
+            this.availability = this.sheriffInfo.availability;
+            
         }
 
         public getBarArea(){
         
             let duties =  Array(96).fill(0)
-            for(const dutydetail of this.sheriffInfo.dutiesDetail){
+            for(const dutydetail of this.dutiesDetail){
                duties = this.fillInArray(duties, 1, dutydetail.startBin, dutydetail.endBin)
             } 
-            duties = this.sumOfTwoArrays(duties,this.sheriffInfo.availability );
+            duties = this.sumOfTwoArrays(duties,this.availability );
             const indexFirst = duties.findIndex(val => val>0)
             const indexLast = duties.reverse().findIndex(val => val>0)
             this.offset = 1-indexFirst

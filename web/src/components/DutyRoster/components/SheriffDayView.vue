@@ -19,7 +19,7 @@
                 </template>
 
                 <template v-slot:head(availability) >
-                    <div class="gridfuel24">
+                    <div class="gridfuel24" :style="{gridTemplateColumns: 'repeat(96, '+zoomLevel*8.333/100+'%)'}">
                         <div v-for="i in 24" :key="i" :style="{gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/1'}">{{getBeautifyTime(i-1)}}</div>
                     </div>
                 </template>
@@ -108,7 +108,9 @@
         @dutyState.Action
         public UpdatePrintSheriffFullview!: (newPrintSheriffFullview: boolean) => void;
         
-       
+        @dutyState.State
+        public zoomLevel!: number;
+
         @commonState.State
         public userDetails!: userInfoType;
         
@@ -128,7 +130,7 @@
         }
 
         mounted()
-        {   //document.body.style.zoom = "80%";           
+        {             
             this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
             this.extractSheriffAvailability() 
         }
@@ -204,7 +206,7 @@
 
 
         get getHeight() {
-            const windowHeight = document.documentElement.clientHeight;
+            const windowHeight = Math.ceil(100*document.documentElement.clientHeight/this.zoomLevel);
             return windowHeight - this.calculateTableHeight() + 'px'
         }
 
@@ -213,7 +215,7 @@
             const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
             const footerHeight = 0//document.getElementById("footer")?.offsetHeight || 0;            
             const bottomHeight = footerHeight;
-            console.log(topHeaderHeight + bottomHeight + secondHeader)
+            //console.log(topHeaderHeight + bottomHeight + secondHeader)
             return (topHeaderHeight + bottomHeight + secondHeader)
         }
 

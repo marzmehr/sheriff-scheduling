@@ -1,5 +1,5 @@
 <template>
-    <div :class="{'gridsheriff':true, 'fullview':fullview}">
+    <div :class="{'gridsheriff':true, 'fullview':fullview}" :style="pdfView?'':{gridTemplateColumns: 'repeat(96, '+zoomLevel*2.0833/100+'%)'}">
         <div class="grid" v-for="i in 96" :key="i" :style="{backgroundColor: '#F1FEF1', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/2'}"></div>
         <div 
             v-for="(block,index) in sheriffInfo.availabilityDetail"
@@ -27,7 +27,11 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import { myTeamShiftInfoType} from '../../../types/DutyRoster';
-   
+    
+    import { namespace } from "vuex-class";
+    import "@store/modules/DutyRosterInformation";   
+    const dutyState = namespace("DutyRosterInformation");
+
     import * as _ from 'underscore';
     import moment from 'moment-timezone';
 
@@ -39,6 +43,12 @@
 
         @Prop({required: false, default:false})
         fullview!: boolean;
+
+        @Prop({required: false, default:false})
+        pdfView!: boolean;
+
+        @dutyState.State
+        public zoomLevel!: number;
 
         styleGauge = "text-transform: capitalize; margin:0; padding: 0; font-size: 13px; transform:translate(0,-4px)"
         styleFullview = "text-transform: capitalize; margin-top:1rem; padding: 0; font-size: 16px;"

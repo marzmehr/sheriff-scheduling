@@ -14,6 +14,8 @@ class DutyRosterInformation extends VuexModule {
   public printSheriffFullview = false;
   public displayFuelGauge = false;
 
+  public zoomLevel = 100;
+
   public dutyRosterAssignments: assignmentCardInfoType[] = [];
   public dutyRosterAssignmentsWeek: assignmentCardWeekInfoType[] = [];
 
@@ -84,6 +86,15 @@ class DutyRosterInformation extends VuexModule {
   @Action
   public UpdatePrintSheriffFullview(newPrintSheriffFullview: boolean): void {
     this.context.commit('setPrintSheriffFullview', newPrintSheriffFullview)
+  }
+
+  @Mutation
+  public setZoomLevel(zoomLevel: number): void {   
+    this.zoomLevel = zoomLevel;
+  }
+  @Action
+  public UpdateZoomLevel(newZoomLevel: number): void {
+    this.context.commit('setZoomLevel', newZoomLevel)
   }
 
   

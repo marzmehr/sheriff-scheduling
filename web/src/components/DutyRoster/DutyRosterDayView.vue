@@ -141,6 +141,9 @@
         @dutyState.Action
         public UpdateSelectedDuties!: (newSelectedDuties: selectedDutyCardInfoType[]) => void
 
+        @dutyState.State
+        public zoomLevel!: number;
+
         @Prop({required: true})
         runMethod!: any;
         
@@ -196,6 +199,12 @@
         printSheriffFullviewChanged(){
             Vue.nextTick(() => this.scrollAdjustment() );
         }
+
+        @Watch('zoomLevel')
+        zoomLevelChange() 
+        {   
+            Vue.nextTick(() => this.scrollAdjustment() );
+        }
         
         async mounted()
         {
@@ -212,7 +221,7 @@
         }
 
         public getWindowHeight() {
-            this.windowHeight = document.documentElement.clientHeight;
+            this.windowHeight = Math.ceil(100*document.documentElement.clientHeight/this.zoomLevel);
             this.calculateTableHeight()
         }
 
@@ -414,7 +423,7 @@
         }
 
         public scrollAdjustment(){
-            this.calculateTableHeight();
+            this.getWindowHeight();
             const el = document.getElementsByClassName('b-table-sticky-header')                
             const scrollSize = window.innerWidth*0.9173-185
 
@@ -486,7 +495,7 @@
     }
 </script>
 
-<style scoped>   
+<style scoped lang="scss">   
 
     .card {
         border: white;
@@ -521,5 +530,11 @@
         bottom: 0;
         z-index: 100;    
     }
+</style>
 
+<style lang="scss">
+    .modal-backdrop{
+        width: 1000vw !important;
+        height: 1000vh !important;
+    }
 </style>

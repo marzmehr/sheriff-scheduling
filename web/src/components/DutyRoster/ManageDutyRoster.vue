@@ -96,6 +96,12 @@
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
 
+        @dutyState.State
+        public zoomLevel!: number;
+
+        @dutyState.Action
+		public UpdateZoomLevel!: (newZoomLevel: number) => void;
+
         memberNotRequired = { sheriffId: '00000-00000-11111' } as myTeamShiftInfoType;
         memberNotAvailable = { sheriffId: '00000-00000-22222' } as myTeamShiftInfoType;
         memberIsClosed = { sheriffId: '00000-00000-33333' } as myTeamShiftInfoType;
@@ -120,6 +126,12 @@
         dutyRosterDayViewMethods = new Vue();
         dutyRosterWeekViewMethods = new Vue();
 
+        @Watch('zoomLevel')
+        zoomLevelChange() 
+        {   
+            Vue.nextTick(() =>this.getWindowHeight())
+        }
+
         @Watch('displayFuelGauge')
         footerChange() 
         {
@@ -140,6 +152,8 @@
             window.removeEventListener('resize', this.getWindowHeight);
             clearTimeout(this.timeHandle1);
             clearTimeout(this.timeHandle2);
+            document.body.style.zoom = "100%"
+            this.UpdateZoomLevel(100)
         }
         
         public reloadDutyRosters(type){
@@ -168,8 +182,8 @@
         }
 
         public getWindowHeight() {
-            this.windowHeight = document.documentElement.clientHeight;   
-            this.calculateTableHeight();     
+            this.windowHeight = Math.ceil(100*document.documentElement.clientHeight/this.zoomLevel);
+            this.calculateTableHeight();  
         }
 
         get getHeight() {

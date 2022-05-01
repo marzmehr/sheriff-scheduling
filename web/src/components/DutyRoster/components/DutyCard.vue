@@ -260,6 +260,7 @@
         <b-modal v-model="showEditDutySheriffModal" size="lg sheriff-modal" footer-class="d-none" no-close-on-backdrop centered header-class="bg-primary pt-3 pb-2 text-light">            			
             <sheriff-modal @drop="drop"
                 @editDuty="editDuty"
+                :weekView="false"
                 :dutyBlock="getDutyBlock()"
                 :assignmentName="assignmentName"
                 :assignmentBlock="getAssignmentBlock()" />
@@ -371,7 +372,6 @@
 
         showEditDutySheriffModal = false;
 
-        weekView = false;
         editingBlockId=''
 
         editDutyError = false;
@@ -453,10 +453,6 @@
             this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
             this.showEditDutyDetails = true;
             this.showEditDutySheriffModal = false;
-            this.isDutyDataMounted = true;            
-                this.isDutyDataMounted = true;
-            this.isDutyDataMounted = true;            
-                this.isDutyDataMounted = true;
             this.isDutyDataMounted = true;            
         }
 
