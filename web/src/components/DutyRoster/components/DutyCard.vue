@@ -2,14 +2,14 @@
     <div class="grid">
         <div v-for="i in 96" :key="i" :style="{backgroundColor: '#F9F9F9', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/7'}"></div>       
         <div
-            @click="editDuty($event, block.id)"
+            @click="editDutySheriffModal($event, block.id)"
             v-for="block in dutyBlocks" 
             :key="block.id"
             :id="block.id"
             :style="{border:block.border, gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
             v-b-tooltip.hover.noninteractive="block.title? block.title:''" 
             @dragover.prevent
-            @drop.prevent="drop" >
+            @drop.prevent="drop" >            
                 <div 
                     :id="'moveduty'+block.dutySlotId"
                     :draggable="localTime.isTodayInView && hasPermissionToAddAssignDuty && hasPermissionToEditDuty" 
@@ -70,7 +70,7 @@
             </template>
         </b-modal>
 
-        <b-modal v-model="showEditDutyDetails" id="bv-modal-edit-duty-details" centered header-class="bg-primary text-light">
+        <b-modal v-model="showEditDutyDetails" no-close-on-backdrop  centered header-class="bg-primary text-light">
 			<template v-slot:modal-title>
 				<div class="h2 mb-2 text-light"> Editing Duty: </div> 
                 <div style="float:left;" class="h4 ml-4 p-0 mb-0">{{assignmentName}}</div>             
@@ -82,8 +82,8 @@
 				<b-card id="EditDutyError" no-body>
 					<h2 v-if="editDutyError" class="mx-1 mt-2"
 						><b-badge v-b-tooltip.hover
-							:title="editDutyMsg"
-							variant="danger"> {{editDutyMsg | truncate(40)}}
+							:title="editDutyErrorMsg"
+							variant="danger"> {{editDutyErrorMsg | truncate(40)}}
 							<b-icon class="ml-3"
 								icon = x-square-fill
 								@click="editDutyError = false"
@@ -255,6 +255,19 @@
                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-unassign')"
                 >&times;</b-button>
             </template>
+        </b-modal>
+
+        <b-modal v-model="showEditDutySheriffModal" size="lg sheriff-modal" footer-class="d-none" no-close-on-backdrop centered header-class="bg-primary pt-3 pb-2 text-light">            			
+            <sheriff-modal @drop="drop"
+                @editDuty="editDuty"
+                :weekView="false"
+                :dutyBlock="getDutyBlock()"
+                :assignmentName="assignmentName"
+                :assignmentBlock="getAssignmentBlock()" />
+            <template v-slot:modal-header-close>                 
+                <b-button style="margin:-2.95rem -0.75rem -2rem 1rem; width:2.5rem; height:2.5rem;" variant="outline-warning" class="text-light" @click="closeEditDutySheriffModalWindow()"
+                ><div style="transform:translate(0px,1px)">&times;</div></b-button>
+            </template>
         </b-modal>  
 
 
@@ -269,6 +282,7 @@
     import AddDutySlotForm from './AddDutySlotForm.vue'
     import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType, selectedDutyCardInfoType, allEditingDutySlotsInfoType } from '../../../types/DutyRoster';
     import {localTimeInfoType, userInfoType} from '../../../types/common';
+    import SheriffModal from './SheriffModal.vue'
 
     import { namespace } from "vuex-class";
     import "@store/modules/CommonInformation";
@@ -278,7 +292,8 @@
 
     @Component({
         components: {
-            AddDutySlotForm
+            AddDutySlotForm,
+            SheriffModal
         }        
     })  
     export default class DutyCard extends Vue {
@@ -355,6 +370,10 @@
         latestEditData;
         timezone = 'UTC';
 
+        showEditDutySheriffModal = false;
+
+        editingBlockId=''
+
         editDutyError = false;
         editDutyErrorMsg = '';
 
@@ -400,7 +419,7 @@
             return assignmentName;
         }
 
-        public editDuty(e?, blkId?){
+        public editDutySheriffModal(e?, blkId?){
             
             if(e?.ctrlKey == true){
                 const block = this.dutyBlocks.filter(blk => blk.id==blkId)
@@ -417,12 +436,38 @@
                 }                               
                 this.UpdateSelectedDuties(selectedDuties)
             }
+            else if (blkId.includes('i')){
+                this.editDuty(e)
+            }
             else{			
                 this.isDutyDataMounted = false;
+                this.editingBlockId = blkId
                 this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
-                this.showEditDutyDetails = true;
+                this.showEditDutySheriffModal = true;
                 this.isDutyDataMounted = true;
             }
+        }
+
+        public editDuty(e?){                       		
+            this.isDutyDataMounted = false;
+            this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
+            this.showEditDutyDetails = true;
+            this.showEditDutySheriffModal = false;
+            this.isDutyDataMounted = true;            
+        }
+
+        public getAssignmentBlock(){
+            const dutyblock = this.dutyBlocks.filter(dutyBlock => dutyBlock.id == this.editingBlockId)            
+            if(dutyblock.length>0){
+                return this.fillInArray(Array(96).fill(0),1,dutyblock[0].startTime,dutyblock[0].endTime) 
+            }
+            return Array(96).fill(0)
+        }
+
+        public getDutyBlock(){            
+            const dutyblock = this.dutyBlocks.filter(dutyBlock => dutyBlock.id == this.editingBlockId)            
+            if(dutyblock.length>0) return dutyblock[0]
+            else return {startTimeString:'', endTimeString:''}
         }
 
         public confirmDeleteDuty(){
@@ -496,6 +541,11 @@
             this.UpdateDutyToBeEdited('');
             this.selectedComment.comment= (this.dutyRosterInfo.attachedDuty && this.dutyRosterInfo.attachedDuty.comment)? this.dutyRosterInfo.attachedDuty.comment: ''
 			this.showEditDutyDetails = false;
+		}
+
+        public closeEditDutySheriffModalWindow(){            
+            this.UpdateDutyToBeEdited('');            
+			this.showEditDutySheriffModal = false;
 		}
 
         public closeDutySlotForm() {                     
@@ -667,12 +717,20 @@
             else return false;
         }
         
-        public drop(event: any) 
-        {
+        public drop(event: any, modal?) 
+        {  
+            let targetId = ''                                  
+            if(modal){
+                targetId = this.editingBlockId
+                this.closeEditDutySheriffModalWindow()
+            }else{
+                targetId = event.target.id
+            }
+            
             const bodyArray: assignDutyInfoType[] = []
 
-            if(event.target.id){
-                const cardid = event.dataTransfer.getData('text');
+            if(targetId){
+                const cardid = modal?  event: event.dataTransfer.getData('text');                               
                 if(cardid.includes('moveduty')){
                     const fromDutySlotId = cardid.slice(8)
                     this.moveSheriff(fromDutySlotId,this.dutyId,this.localTime.timeString)
@@ -710,11 +768,11 @@
                     this.postModifiedDutyRosters(bodyArray)
                 }
                 else{
-                    const editedDutySlots = this.getEditedDutySlots(event.target.id, sheriffId, null, null)
+                    const editedDutySlots = this.getEditedDutySlots(targetId, sheriffId, null, null)
                     if(editedDutySlots){
                         const body = this.assignDuty(sheriffId, editedDutySlots, false, this.dutyRosterInfo);
                         bodyArray.push(body)
-                         this.postModifiedDutyRosters(bodyArray)
+                        this.postModifiedDutyRosters(bodyArray)
                     }
                 }
             }
@@ -951,7 +1009,7 @@
             event.dataTransfer.setData('text', event.target.id);
         }
 
-        public  moveSheriff(fromDutySlotId,toDutyId,separationTime){
+        public moveSheriff(fromDutySlotId,toDutyId,separationTime){
             const url = 'api/dutyroster/movesheriff?fromDutySlotId='+fromDutySlotId+'&toDutyId='+toDutyId+'&separationTime='+separationTime;
             this.$http.put(url)
                 .then(response => {

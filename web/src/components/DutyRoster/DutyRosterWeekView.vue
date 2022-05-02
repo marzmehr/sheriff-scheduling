@@ -111,11 +111,13 @@
         public UpdateSelectedDuties!: (newSelectedDuties: selectedDutyCardInfoType[]) => void
 
         @dutyState.State
-        dutyRosterAssignmentsWeek!: assignmentCardWeekInfoType[];
+        public dutyRosterAssignmentsWeek!: assignmentCardWeekInfoType[];
 
         @dutyState.Action
-        UpdateDutyRosterAssignmentsWeek!: (newDutyRosterAssignmentsWeek: assignmentCardWeekInfoType[]) => void
+        public UpdateDutyRosterAssignmentsWeek!: (newDutyRosterAssignmentsWeek: assignmentCardWeekInfoType[]) => void
 
+        @dutyState.State
+        public zoomLevel!: number;
 
         @Prop({required: true})
         runMethod!: any;
@@ -158,6 +160,12 @@
             }            
         } 
 
+        @Watch('zoomLevel')
+        zoomLevelChange() 
+        {   
+            Vue.nextTick(() => this.scrollAdjustment() );
+        }
+
         async mounted()
         {
             this.runMethod.$on('getData', this.getData)
@@ -171,7 +179,7 @@
             window.removeEventListener('resize', this.getWindowHeight);
         }
         public getWindowHeight() {
-            this.windowHeight = document.documentElement.clientHeight;
+            this.windowHeight = Math.ceil(100*document.documentElement.clientHeight/this.zoomLevel);
             this.calculateTableHeight()
         }
         get getHeight() {
@@ -406,7 +414,7 @@
         }
         
         public scrollAdjustment(){
-                this.calculateTableHeight();
+                this.getWindowHeight();
                 const el = document.getElementsByClassName('b-table-sticky-header') 
                 if(el[0]){                    
                     el[0].scrollTop = this.scrollPositions.scrollDuty;

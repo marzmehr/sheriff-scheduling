@@ -229,7 +229,8 @@ export interface assignDutySlotsInfoType{
 
 export interface selectedDutyCardInfoType {
     blockId: string;
-    assignment: string;    
+    assignment: string;
+    dutyBlock?: dutyBlockWeekInfoType[];   
 }
 
 export interface allEditingDutySlotsInfoType{
