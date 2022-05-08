@@ -3,110 +3,112 @@
 
         <distribute-header v-on:change="loadScheduleInformation" />
 
-        <div id="pdf">
-
-            <b-row class="mt-4 mb-0 mx-4">
-                <b-col>
-                    <b-row>
-                        <b-col cols="3" class="mr-0">
-                            <b-img 
-                                class="img-fluid"
-                                width="100rem"
-                                height="40rem"
-                                :src="require('../../../public/images/bcss-crest.png')" 
-                               alt="B.C. Government Logo">
-                            </b-img>
-                        </b-col>
-                        <b-col cols="9" class="ml-0">
-                                <h2 class="mt-5">B.C. Sheriff Service</h2>
-                                <h3 class="text-secondary font-italic">Honour - Integrity - Commitment</h3>
-                        </b-col>
-                    </b-row>
-                </b-col>
-                
-                <b-col>
-                    <b-card class="mt-4 mx-5 border border-dark text-center">
-                        <b-card-sub-title class="mb-2 h4">{{location.name}} Schedule</b-card-sub-title>
-                        <b-card-title class="h3">{{this.shiftRangeInfo.startDate | beautify-full-date}} - {{this.shiftRangeInfo.endDate | beautify-full-date}}</b-card-title>
-                        <b-card-text class="text-secondary h5">Summary as of: <i class="h6">{{today | beautify-date-time-weekday}}</i></b-card-text>
-                    </b-card>
-                </b-col>            
-
-            </b-row>
-            <b-card no-body ><br></b-card>
-
-            <b-overlay opacity="0.6" :show="!isDistributeDataMounted">
-                <template #overlay>
-                    <loading-spinner :inline="true"/>
-                </template>    
-                <b-table
-                    :key="updateTable"
-                    :items="sheriffSchedules" 
-                    :fields="fields"
-                    small
-                    fixed>
-
-                    <template v-slot:table-colgroup>
-                        <col style="width:20rem">                            
-                    </template>
-                        
-                        <template v-slot:head() = "data" >
-                            <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
-                        </template>
-
-                        <template v-slot:head(myteam) = "data" >  
-                            <span>{{data.label}}</span>
-                        </template>
-
-                        <template v-slot:cell(myteam) = "data" >  
-                            <span style="font-size: 1.2rem;">{{data.item.myteam.name}}</span>
-                            <div style="height:1rem;"                    
-                                v-if="data.item.myteam.homeLocation != location.name">
-                                <div class="m-0 p-0 text-jail"> 
-                                    <b-icon-box-arrow-in-right style="float:left;margin:0 .2rem 0 0;"/>
-                                    <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">Loaned in from </div>
-                                </div> 
-                                <div class=" m-0 p-0 text-jail" style="font-size:10px"> {{data.item.myteam.homeLocation|truncate(35)}} </div>
+        <div id="pdf" v-if="isDistributeDataMounted">
+            <div v-for="page,inx in sheriffPages" :key="'pdf-'+inx">
+                <b-row class="mt-0 mb-0 mx-4">
+                    <b-col>
+                        <b-row class="mt-1">
+                            <div style="width:20%"  class="mr-0">
+                                <b-img 
+                                    class="img-fluid"
+                                    width="100rem"
+                                    height="100rem"
+                                    :src="require('../../../public/images/bcss-crest.png')" 
+                                alt="B.C. Government Logo">
+                                </b-img>
                             </div>
+                            <div style="width:70%"  class="mr-0 mt-5">
+                                <h2>B.C. Sheriff Service</h2>
+                                <h3 class="mt-n2 text-secondary font-italic">Honour - Integrity - Commitment</h3>
+                            </div>
+                        </b-row>
+                    </b-col>
+                    
+                    <b-col>
+                        <b-card class="mt-3 mx-5 border border-dark text-center" body-class="p-3">
+                            <b-card-sub-title class="mb-2 h4">{{location.name}} Schedule</b-card-sub-title>
+                            <b-card-title class="h3">{{shiftRangeInfo.startDate | beautify-full-date}} - {{shiftRangeInfo.endDate | beautify-full-date}}</b-card-title>
+                            <b-card-text class="text-secondary h5">Summary as of: <i class="h6">{{today | beautify-date-time-weekday}}</i></b-card-text>
+                        </b-card>
+                    </b-col>            
+
+                </b-row>
+                <!-- <b-card no-body ><br></b-card> -->
+
+                <b-overlay opacity="0.6" :show="!isDistributeDataMounted">
+                    <template #overlay>
+                        <loading-spinner :inline="true"/>
+                    </template>    
+                    <b-table
+                        :key="updateTable"
+                        :items="sheriffSchedules.slice(page.start,page.end)" 
+                        :fields="fields"
+                        small
+                        fixed>
+
+                        <template v-slot:table-colgroup>
+                            <col style="width:20rem">                            
                         </template>
-                        
-                        <template v-slot:cell() = "data">                   
-                            <b-card style="font-size: 1.1rem;" class="ml-auto" body-class="p-1" v-for="event in sortEvents(data.item[data.field.key])" :key="event.id + event.date + event.location">
-                                <div v-if="event.type == 'Shift'">
-                                    <div v-if="event.workSection" :style="{float:'left',backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
-                                    <div v-else style="float:left; background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0; height:25px; "></div>
-                                    <div style=" text-align: center; " class="m-0 p-0">{{event.startTime}} - {{event.endTime}}</div>
+                            
+                            <template v-slot:head() = "data" >
+                                <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
+                            </template>
+
+                            <template v-slot:head(myteam) = "data" >  
+                                <span>{{data.label}}</span>
+                            </template>
+
+                            <template v-slot:cell(myteam) = "data" >  
+                                <span style="font-size: 1.2rem;">{{data.item.myteam.name}}</span>
+                                <div style="height:1rem;"                    
+                                    v-if="data.item.myteam.homeLocation != location.name">
+                                    <div class="m-0 p-0 text-jail"> 
+                                        <b-icon-box-arrow-in-right style="float:left;margin:0 .2rem 0 0;"/>
+                                        <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">Loaned in from </div>
+                                    </div> 
+                                    <div class=" m-0 p-0 text-jail" style="font-size:10px"> {{data.item.myteam.homeLocation|truncate(35)}} </div>
                                 </div>
-                                <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</div>
-                                <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
-                                <div class="text-center" v-else>
-                                    <div style="display:inline;" class="text-white" v-if="event.type == 'Leave'">
-                                        <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge">Leave</div>
-                                        <div v-else-if="event.subType.toUpperCase().includes('A/L')" class="bg-a-l-leave badge">Leave</div>
-                                        <div v-else-if="event.subType.toUpperCase().includes('MED/DENTAL')" class="bg-med-dental-leave badge">Leave</div>
-                                        <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge">Leave</div>
-                                        <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge">Leave</div>
-                                        <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge">Leave</div>
-                                        <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge">Leave</div>
-                                        <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge">Leave</div>
-                                        <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge">Leave</div>
-                                        <div v-else  class="bg-primary badge">Leave</div>
-                                    </div>                                    
-                                          
-                                    <b-badge v-if="event.type == 'Training'" class="bg-primary" >Training</b-badge>
-                                    <b-badge class="bg-primary"><b-icon-box-arrow-left v-if="event.type == 'Loaned'" font-scale="1.5"/></b-badge>
-                                    <span v-if="event.startTime"> {{event.startTime}} - {{event.endTime}}</span>
-                                    <span v-else > FullDay </span>   
-                                    <div v-if="event.type == 'Loaned'" style="display:block;">{{event.location}}</div>                               
-                                </div>                          
-                            </b-card>
-                        </template>
-                        
-                </b-table>
-                <div v-if="!isDistributeDataMounted && this.sheriffSchedules.length == 0" style="min-height:115.6px;">
-                </div>
-            </b-overlay>
-            <b-card><br></b-card> 
+                            </template>
+                            
+                            <template v-slot:cell() = "data">                   
+                                <b-card style="font-size: 1.1rem;" class="ml-auto" body-class="p-1" v-for="event in sortEvents(data.item[data.field.key])" :key="event.id + event.date + event.location">
+                                    <div v-if="event.type == 'Shift'">
+                                        <div v-if="event.workSection" :style="{float:'left',backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
+                                        <div v-else style="float:left; background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0; height:25px; "></div>
+                                        <div style=" text-align: center; " class="m-0 p-0">{{event.startTime}} - {{event.endTime}}</div>
+                                    </div>
+                                    <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</div>
+                                    <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
+                                    <div class="text-center" v-else>
+                                        <div style="display:inline;" class="text-white" v-if="event.type == 'Leave'">
+                                            <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge">Leave</div>
+                                            <div v-else-if="event.subType.toUpperCase().includes('A/L')" class="bg-a-l-leave badge">Leave</div>
+                                            <div v-else-if="event.subType.toUpperCase().includes('MED/DENTAL')" class="bg-med-dental-leave badge">Leave</div>
+                                            <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge">Leave</div>
+                                            <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge">Leave</div>
+                                            <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge">Leave</div>
+                                            <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge">Leave</div>
+                                            <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge">Leave</div>
+                                            <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge">Leave</div>
+                                            <div v-else  class="bg-primary badge">Leave</div>
+                                        </div>                                    
+                                            
+                                        <b-badge v-if="event.type == 'Training'" class="bg-primary" >Training</b-badge>
+                                        <b-badge class="bg-primary"><b-icon-box-arrow-left v-if="event.type == 'Loaned'" font-scale="1.5"/></b-badge>
+                                        <span v-if="event.startTime"> {{event.startTime}} - {{event.endTime}}</span>
+                                        <span v-else > FullDay </span>   
+                                        <div v-if="event.type == 'Loaned'" style="display:block;">{{event.location}}</div>                               
+                                    </div>                          
+                                </b-card>
+                            </template>
+                            
+                    </b-table>
+                    <div v-if="!isDistributeDataMounted && this.sheriffSchedules.length == 0" style="min-height:115.6px;">
+                    </div>
+                </b-overlay>
+                <div v-if="(inx+1)<sheriffPages.length" class="new-page" />
+            </div>
+
         </div>
 
         <b-modal v-model="openErrorModal" header-class="bg-warning text-light">
@@ -221,7 +223,7 @@
                         } else {
                             info = response.data.filter(data =>{if(data.sheriffId == sheriffId ) return true})
                         }
-                        console.log(info)
+                        //console.log(info)
                         this.extractTeamScheduleInfo(info);                        
                     }                                   
                 },err => {
@@ -283,8 +285,8 @@
                     Sat: sheriffSchedule.conflicts.filter(conflict=>{if(conflict.dayOffset ==6) return true})
                 })
             }          
-           
-            this.isDistributeDataMounted = true;
+            this.splitSheriffPages()
+            this.isDistributeDataMounted = true;            
             this.updateTable++;
         }
 
@@ -476,6 +478,22 @@
 
             return schedules
         } 
+
+        sheriffPages: any[]=[]
+        marginToLastPageRows = '0rem'
+        public splitSheriffPages(){
+            this.sheriffPages =[]
+            const PAGE_ITEMS=16
+            const len = this.sheriffSchedules.length
+            for(let page=1; page<=(Math.ceil(len/PAGE_ITEMS)); page++){
+                this.sheriffPages.push({
+                    start:(page-1)*PAGE_ITEMS,
+                    end:Math.min(len, page*PAGE_ITEMS)
+                })
+            }  
+            const mod = this.sheriffSchedules.length % PAGE_ITEMS
+            this.marginToLastPageRows = (mod==0)? '0rem' :((PAGE_ITEMS-mod)*2.1)+'rem'
+        }
 
     }
 </script>
