@@ -53,6 +53,9 @@
                         <col style="width:10rem !important">
                         <col>
                     </template>
+                    <template v-slot:head(name)="data" >
+                        <div class="bg-info border border-info">{{data.label}}</div>
+                    </template>
                     <template v-slot:cell(name)="data" >
                         <div                                                                                                                    
                             style="height:2rem; font-size:14px; line-height: 1rem; text-transform: capitalize; margin:0; padding:0.5rem 0 0 0.25rem"
@@ -114,6 +117,7 @@ import "@store/modules/DutyRosterInformation";
 const dutyState = namespace("DutyRosterInformation");
 
 import * as _ from 'underscore';
+const bootstrapCss = require('!!raw-loader!@/styles/bootstrapMIN.css').default;
 
 @Component({
     components:{        
@@ -141,7 +145,7 @@ export default class DutyPDFView extends Vue {
 
        
     gaugeFields = [
-        {key:'name', label:'Sheriff Name', stickyColumn: true, thClass:'text-center text-white', tdClass:'border-bottom py-0 my-0', thStyle:'margin:0; padding:0; background-color:#156077;'},
+        {key:'name', label:'Sheriff Name', stickyColumn: true, thClass:'text-center text-white', tdClass:'border-bottom py-0 my-0', thStyle:'margin:0; padding:0;'},
         {key:'availability', label:'', thClass:'', tdClass:'p-0 m-0 bg-white', thStyle:'margin:0; padding:0;'},        
     ]
 
@@ -154,9 +158,6 @@ export default class DutyPDFView extends Vue {
         return _.sortBy(this.myTeamMembers, function(member){return member.name.toLowerCase()})
     }
 
-    // get myTeamMembers(){
-    //     return [...this.myTeamMembers,...this.myTeamMembers,  ...this.myTeamMembers, ...this.myTeamMembers, ...this.myTeamMembers ]
-    // }
 
     public splitSheriffPages(){
         const PAGE_ITEMS=16
@@ -174,10 +175,10 @@ export default class DutyPDFView extends Vue {
     public print(){
         const pdfPage: Printd = new Printd()
         const styles = [				
-            "https://unpkg.com/bootstrap/dist/css/bootstrap.min.css",
+            bootstrapCss,
             `@media print {
                 @page {
-                    size:11in 8.5in;
+                    size:11in 8.5in !important;
                     font-size: 10pt !important;                                 
                 }                            
 				.new-page{

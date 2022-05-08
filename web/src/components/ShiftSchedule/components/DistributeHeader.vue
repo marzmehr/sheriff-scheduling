@@ -82,26 +82,8 @@
 	import { locationInfoType, userInfoType } from '../../../types/common';
 
 	import { Printd } from 'printd'
+	const bootstrapCss = require('!!raw-loader!@/styles/bootstrapMIN.css').default;
 
-// 	import VueHtmlToPaper from 'vue-html-to-paper';
-// 	const options = {
-// 		name: '_blank',
-// 		specs: [
-// 			'fullscreen=yes',
-// 			'titlebar=yes',
-// 			'scrollbars=yes'
-// 		],
-// 		styles: [
-// 			"https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css",
-// 				`@media print {
-// 					@page {
-// 						size: landscape
-// 					}
-// 				}`
-// 		]
-// 	}
-// 	Vue.use(VueHtmlToPaper, options);
-	//import z from 'node_modules/'
 	@Component
 	export default class DistributeHeader extends Vue {	
 
@@ -156,16 +138,20 @@
 		}
 
 		public printSchedule() { 
+			// console.log(css)
 			//console.log('print')
 			//this.$htmlToPaper('pdf');
 			const pdfPage: Printd = new Printd()
-			const styles = [				
-				"https://unpkg.com/bootstrap/dist/css/bootstrap.min.css",
+			const styles = [								
 				`@media print {
 					@page {
-						size:16.5in 11.7in;
+						size:16.5in 11.7in !important;
 					}
-				}`,
+					.new-page{
+						page-break-before: always;
+						position: relative; top: 8em;
+					}
+				}`,bootstrapCss,
 				`.card {border: white;}`,
 				`.table{border: 3px solid;}`,
 				`tr {border: 3px solid;}`,
