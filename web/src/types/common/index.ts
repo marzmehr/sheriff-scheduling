@@ -43,3 +43,11 @@ export interface localTimeInfoType {
     dayOfWeek: number;
     isTodayInView: boolean;
 }
+
+export interface reportInfoType {
+    startDate: string;
+    endDate: string;
+    reportType: string;
+    location: string;
+    sheriffName: string;
+}
