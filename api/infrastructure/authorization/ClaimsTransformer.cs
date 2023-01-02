@@ -18,7 +18,7 @@ namespace SS.Api.infrastructure.authorization
         private TimeSpan ClaimCachePeriod { get; }
         private bool _isTransformed;
 
-        public ClaimsTransformer(IMemoryCache cache,  ClaimsService claimsService, IConfiguration configuration)
+        public ClaimsTransformer(IMemoryCache cache, ClaimsService claimsService, IConfiguration configuration)
         {
             Cache = cache;
             ClaimsService = claimsService;
@@ -26,15 +26,15 @@ namespace SS.Api.infrastructure.authorization
         }
 
         /// <summary>
-        /// Note these claims don't get saved in the cookie. 
+        /// Note these claims don't get saved in the cookie.
         /// </summary>
         public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
         {
             if (!principal.Identity.IsAuthenticated || _isTransformed) return await Task.FromResult(principal);
             var currentPrincipal = (ClaimsIdentity)principal.Identity;
             var currentClaims = currentPrincipal.Claims.ToList();
-
-            var nameIdentifier = Guid.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier));
+                        
+            var nameIdentifier = Guid.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier).Replace("@idir", ""));
             if (!Cache.TryGetValue(nameIdentifier, out List<Claim> claims))
             {
                 claims = await ClaimsService.GenerateClaims(currentClaims);
@@ -46,9 +46,9 @@ namespace SS.Api.infrastructure.authorization
         }
 
         /// <summary>
-        /// This is so we can filter out the keycloak claims, as they're saved in the cookies and can be quite long. 
+        /// This is so we can filter out the keycloak claims, as they're saved in the cookies and can be quite long.
         /// </summary>
-        public static List<string> UsedProviderClaimTypes => 
+        public static List<string> UsedProviderClaimTypes =>
             new List<string> { ClaimTypes.NameIdentifier, CustomClaimTypes.IdirUserName, CustomClaimTypes.FullName, CustomClaimTypes.IdirId };
     }
 }
