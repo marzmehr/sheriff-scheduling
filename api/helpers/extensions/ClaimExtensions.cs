@@ -12,13 +12,13 @@ namespace SS.Api.helpers.extensions
             claims.FirstOrDefault(c => c.Type == type)?.Value;
 
         public static string GetIdirUserName(this IEnumerable<Claim> claims) => 
-            claims.GetValueByType(CustomClaimTypes.IdirUserName).Replace("@idir", "");
+            claims.GetValueByType(CustomClaimTypes.IdirUserName).Replace("@idir", "").ToLower();
 
         public static Guid GetIdirId(this IEnumerable<Claim> claims) =>
             Guid.Parse(claims.GetValueByType(CustomClaimTypes.IdirId));
 
         public static Guid GetKeyCloakId(this IEnumerable<Claim> claims) =>
-            Guid.Parse(claims.GetValueByType(ClaimTypes.NameIdentifier));
+            Guid.Parse(claims.GetValueByType(ClaimTypes.NameIdentifier).Replace("@idir", ""));
 
         public static bool HasPermissions(this ClaimsPrincipal user, params string[] permissions) =>
             user.HasClaim(c => c.Type == CustomClaimTypes.Permission) && permissions.All(perm => user.HasClaim(CustomClaimTypes.Permission, perm));
