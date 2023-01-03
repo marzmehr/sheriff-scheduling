@@ -1,5 +1,6 @@
 import {} from '../common';
 import {} from '../DutyRoster/jsonTypes/index';
+import { actingRankJsontype } from '../MyTeam/jsonTypes';
 
 export interface shiftInfoType {
     id: number;
@@ -25,6 +26,7 @@ export interface editedShiftInfoType {
 export interface distributeTeamMemberInfoType {        
     sheriffId: string;
     name: string;
+    email: string;
 }
 
 export interface weekShiftInfoType {
@@ -128,6 +130,9 @@ export interface distributeScheduleInfoType {
     conflicts: scheduleInfoType[];
     name: string;
     homeLocation: string;
+    rank: string;
+    badgeNumber: string;
+    actingRank: actingRankJsontype[];
 }
 
 export interface scheduleInfoType {
@@ -141,4 +146,23 @@ export interface scheduleInfoType {
     subType?: string;
     workSection: string; 
     workSectionColor: string;
+}
+
+export interface actingRankInfoType {    
+    startTime:string;
+    endTime:string;
+    rank: string;
+}
+
+export interface sheriffPagesInfoType {    
+    start:number;
+    end:number;
+}
+
+export interface sentEmailContentInfoType {
+    attachments: string;
+    body: string;
+    from: string;
+    subject: string;
+    to: string;
 }

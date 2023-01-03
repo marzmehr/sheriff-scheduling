@@ -6,7 +6,7 @@
 					<h3 style="width:15rem; margin-bottom: 0px;" class="text-white ml-2 font-weight-normal">Distribute Schedule</h3>
 				</b-navbar-nav>
 
-				<b-navbar-nav class="custom-navbar">
+				<b-navbar-nav v-if="showWeekViewChecked" class="custom-navbar">
 					<b-button style="max-height: 40px;" size="sm" variant="secondary" @click="previousDateRange" class="my-2"><b-icon-chevron-left /></b-button>
 					<b-form-datepicker
 							class="my-2 p-1"
@@ -24,6 +24,32 @@
 					<b-button style="max-height: 40px;" size="sm" variant="secondary" @click="nextDateRange" class="my-2"><b-icon-chevron-right/></b-button>
 				</b-navbar-nav>
 
+				<b-navbar-nav v-else class="custom-navbar">
+                    <b-col class="my-1">
+                        <b-row style="width:17.75rem">
+                            <b-button style=" height: 2rem;" size="sm" variant="secondary" @click="previousDateRange" class="my-0 mx-1"><b-icon-chevron-left /></b-button>
+                            
+							<div class="m-0 bg-white" style="padding:0.2rem 0.52rem; border-radius:3px; font-weight:bold;">{{selectedDate | beautify-date-weekday}}</div>
+							
+							<b-form-datepicker
+                                    class="my-0 py-0 mx-1"
+                                    size = "sm"
+                                    style="height: 2rem;"
+                                    v-model="selectedDate"
+                                    @context="dateChanged"
+                                    @shown="datePickerOpened = true"
+                                    @hidden="datePickerOpened = false"
+                                    button-only
+									today-button
+									close-button
+                                    locale="en-US">
+                            </b-form-datepicker>
+                            <b-button style="height: 2rem;" size="sm" variant="secondary" @click="nextDateRange" class="my-0"><b-icon-chevron-right/></b-button>
+                        </b-row>
+                        
+                    </b-col>
+                </b-navbar-nav>
+
 				<b-navbar-nav class="mr-2">
 					<b-input-group class="mr-2 my-0" style="height: 40px">
 						<b-input-group-prepend is-text>
@@ -32,9 +58,8 @@
 						<b-form-select
 							style="height: 100%;"
 							v-model="selectedTeamMember"
-							@change="getSchedule()"                
-							>
-							<b-form-select-option :value="{sheriffId: '', name: 'All'}">All</b-form-select-option>
+							@change="getSchedule()">
+							<b-form-select-option :value="{sheriffId: '', name: 'All', email: ''}">All</b-form-select-option>
 							<b-form-select-option
 								v-for="member in teamMemberList"
 								:key="member.id"                  
@@ -45,10 +70,10 @@
 				</b-navbar-nav>
 
 				<b-navbar-nav class="mr-2">
-					<b-nav-form>
-						<div v-if="hasPermissionToViewDutyRoster" :class="showWorkSectionChecked?'bg-success':''" :style="'border:1px solid green;border-radius:5px;'+(showWorkSectionChecked?'width: 8rem;':'width: 8rem;')">
-							<b-form-checkbox class="ml-2 my-1" v-model="showWorkSectionChecked" @change="getSchedule()" size="lg" switch>
-								<div class="text-white">{{viewStatus}}</div>
+					<b-nav-form>						
+						<div :class="showWeekViewChecked?'bg-success':''" style="border:1px solid green;border-radius:5px; margin-left: 15px; width: 8.5rem;">
+							<b-form-checkbox class="mx-1 my-1" v-model="showWeekViewChecked" @change="getSchedule()" size="lg" switch>
+								<div style="font-size: 16px;" class="text-white">{{viewRange}}</div>
 							</b-form-checkbox>
 						</div>
 						<div v-b-tooltip.hover.noninteractive
@@ -62,10 +87,94 @@
 								<b-icon icon="printer-fill" font-scale="2.0" variant="white"/>
 							</b-button>
 						</div>
+						<div v-b-tooltip.hover.noninteractive
+							title="Email Schedule">
+							<b-button 
+								style="max-height: 40px;" 
+								size="sm"
+								variant="white"		
+								@click="emailSchedule()" 
+								class="my-0 ml-2">
+								<b-icon icon="envelope-fill" font-scale="2.0" variant="white"/>
+							</b-button>
+						</div>
 					</b-nav-form>
 				</b-navbar-nav>
 			</b-navbar>
-		</header>		
+		</header>	
+
+		<b-modal size="xl" v-model="showEmailWindow" header-class="bg-primary text-light" title-class="h1" title="Prepare Schedule Email">
+			
+			<b-card style="border:none" bg-variant="white" class="my-4 container">   
+
+				<b-row>
+					<b-col>				
+						<b-form-group class="mr-1"><label>To<span class="text-danger">*</span></label>
+							<b-form-input v-model="emailContent.to" placeholder="Enter Recipients" :state="recipientState?null:false"></b-form-input>
+						</b-form-group>        
+					</b-col>	
+					<b-col cols="3">
+						<b-dropdown
+							class="recipientList bg-danger"
+							variant="primary"
+							text="Recipients"		
+							style="width: 100%; margin-top: 2rem;"
+							allow-focus>
+							<b-form-checkbox	
+								@change="toggleAllEmails"															
+								v-model="allSelected">All
+							</b-form-checkbox>
+							<b-form-checkbox-group
+								@change="updateRecipientEmails()"
+								v-model="recipients">
+								<b-form-checkbox
+									v-for="member in teamMemberList"
+									:key="member.id"                  
+									:value="member.email">{{member.name}}								
+								</b-form-checkbox>
+							</b-form-checkbox-group>
+						</b-dropdown>
+					</b-col>
+									
+				</b-row>
+				<b-row>					
+					<b-col>				
+						<b-form-group class="mr-1"><label>Subject<span class="text-danger">*</span></label>
+							<b-form-input v-model="emailContent.subject" placeholder="Enter Subject" :state = "subjectState?null:false"></b-form-input>
+						</b-form-group>        
+					</b-col>					
+				</b-row>
+				<b-row>					
+					<b-col>				
+						<b-form-group class="mr-1"><label>Content<span class="text-danger">*</span></label>
+							<b-form-textarea 
+								v-model="emailContent.body" 
+								placeholder="Enter Content"
+								rows="6" 
+								:state = "contentState?null:false"></b-form-textarea>
+						</b-form-group>        
+					</b-col>					
+				</b-row>				
+			</b-card>
+
+			<template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="showEmailWindow=false"
+                >&times;</b-button>
+            </template>
+
+			<template v-slot:modal-footer>
+				<button-bar
+					:pdfType="pdfType"
+					:emailingPdf="emailingPdf" 
+					@emailSchedulePdf="emailSchedulePdf" 
+					@closeEmail="showEmailWindow=false" />
+			</template>
+		</b-modal>
+
+		<b-modal size="xl" v-model="showSentEmail" title-class="h1 text-success" ok-only title="Email Sent Successfully">
+			<sent-email-content :emailContent="emailContent" />                
+		</b-modal> 
+
 	</div>
 </template>
 
@@ -74,17 +183,28 @@
 	import { Component, Vue, Watch } from 'vue-property-decorator';
 	import { namespace } from "vuex-class";
 	import moment from 'moment-timezone';
+
 	import "@store/modules/ShiftScheduleInformation";
 	const shiftState = namespace("ShiftScheduleInformation");
+
 	import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-	import { distributeTeamMemberInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
+
+	import { distributeTeamMemberInfoType, sentEmailContentInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
 	import { locationInfoType, userInfoType } from '../../../types/common';
+
+	import ButtonBar from './ButtonBar.vue';
+	import SentEmailContent from './SentEmailContent.vue';
 
 	import { Printd } from 'printd'
 	const bootstrapCss = require('!!raw-loader!@/styles/bootstrapMIN.css').default;
 
-	@Component
+	@Component({
+		components:{        
+			ButtonBar,
+			SentEmailContent
+		}
+	})
 	export default class DistributeHeader extends Vue {	
 
 		@commonState.State
@@ -102,27 +222,51 @@
 		@shiftState.Action
 		public UpdateShiftRangeInfo!: (newShiftRangeInfo: shiftRangeInfoType) => void	
 
-		selectedDate = '';
-		datePickerOpened = false;
-		showWorkSectionChecked = false;		
-		hasPermissionToViewDutyRoster = false;
+		@shiftState.State
+		public dailyShiftRangeInfo!: shiftRangeInfoType;
 
-		selectedTeamMember = {sheriffId: '', name: 'All'} as distributeTeamMemberInfoType;
+		@shiftState.Action
+		public UpdateDailyShiftRangeInfo!: (newDailyShiftRangeInfo: shiftRangeInfoType) => void	
+
+		selectedDate = '';
+		datePickerOpened = false;		
+		showWeekViewChecked = true;
+		hasPermissionToViewDutyRoster = false;
+		pdfType=''
+		errorMsg = ''
+		showEmailWindow = false;
+		emailingPdf = false;
+		emailContent = {} as sentEmailContentInfoType;
+		showSentEmail = false;
+		recipients: string[] = [];
+		teamMemberEmailList: string[] = [];
+		recipientState = true;
+		subjectState = true;
+		contentState = true;
+		allSelected = false;
+
+		selectedTeamMember = {sheriffId: '', name: 'All', email: ''} as distributeTeamMemberInfoType;
 
 		@Watch('location.id', { immediate: true })
         locationChange()
         {
-			this.selectedTeamMember = {sheriffId: '', name: 'All'};
-			this.showWorkSectionChecked = false;            
+			this.selectedTeamMember = {sheriffId: '', name: 'All', email: ''};
+			this.showWeekViewChecked = true;       
+        }
+
+		@Watch('recipients', { immediate: true })
+        recipientChange()
+        {
+			this.emailContent.to = this.recipients.toString();
         }
 
 		mounted() {
-
-			this.showWorkSectionChecked = false;
-			this.hasPermissionToViewDutyRoster = this.userDetails.permissions.includes("ViewDutyRoster");
 			
+			this.showWeekViewChecked = true;
+			this.hasPermissionToViewDutyRoster = this.userDetails.permissions.includes("ViewDutyRoster");		
+			this.teamMemberEmailList = this.teamMemberList.map(member => member.email);	
 			
-			if(!this.shiftRangeInfo.startDate){
+			if(!this.shiftRangeInfo.startDate || !this.dailyShiftRangeInfo.startDate){
 				this.selectedDate = moment().format().substring(0,10);
 				this.loadNewDateRange();
 			} else {
@@ -130,11 +274,26 @@
 				this.getSchedule();
 			}			
 		}		
+
+		public updateRecipientEmails(){
+			Vue.nextTick(()=>console.log('adding emails: ' + this.recipients))		
+			
+		}
+
+		public toggleAllEmails(checked){			
+			this.recipients = checked?this.teamMemberList.map(member => member.email).slice(): [];
+		}
 		
-		public getSchedule() {
-			// console.log(this.showWorkSectionChecked);
-			// console.log(this.selectedTeamMember);
-			Vue.nextTick(()=>this.$emit('change', this.showWorkSectionChecked, this.selectedTeamMember.sheriffId))
+		public getSchedule() {			
+			Vue.nextTick(()=>this.$emit('change', this.showWeekViewChecked, this.selectedTeamMember.sheriffId))
+		}
+
+		public emailSchedule(){
+			
+			this.errorMsg = "";
+			this.pdfType = this.showWeekViewChecked?'Weekly Schedule': 'Daily Schedule';
+			this.showEmailWindow = true;
+			this.emailContent = {} as sentEmailContentInfoType;
 		}
 
 		public printSchedule() { 
@@ -172,30 +331,115 @@
 			const pageToPrint = document.getElementById("pdf")
 			if(pageToPrint) pdfPage.print(pageToPrint, styles)
         }
+
+		public emailSchedulePdf() {
+
+			let requiredError = false;
+
+			if (!this.emailContent.to){
+				this.recipientState = false;
+				requiredError = true;
+			} else {
+				this.recipientState = true;
+			}
+
+			if (!this.emailContent.subject){
+				this.subjectState = false;
+				requiredError = true;
+			} else {
+				this.subjectState = true;
+			}
+
+			if (!this.emailContent.body){
+				this.contentState = false;
+				requiredError = true;
+			} else {
+				this.contentState = true;
+			}
+
+			this.showSentEmail = false;
+
+			if (!requiredError){
+				this.sendEmail();
+			}			
+		}
+
+		public sendEmail(){
+
+			this.emailingPdf=true;
+			const el= document.getElementById("pdf");
+			const bottomLeftText = `" ADM 322 ";`;
+			const bottomRightText = `" "`;
+			const url = '/adm/pdf?email=true';
+			const pdfhtml = Vue.filter('printPdf')(el.innerHTML, bottomLeftText, bottomRightText );
+			const body = {
+				'html':pdfhtml
+			}      
+			
+			const options = {
+				responseType: "blob",
+				headers: {
+				"Content-Type": "application/json",
+				}
+			}  
+			this.$http.post(url,body, options)
+			.then(res => { 
+				
+				const reader = new FileReader();
+				reader.readAsText(res.data)
+				reader.onload = ()=> {
+					this.emailContent=JSON.parse(String(reader.result))
+					console.log(this.emailContent)
+					this.showSentEmail = true
+				}
+				this.emailingPdf=false;				
+				
+				this.showEmailWindow=false 
+			},err => {
+				// console.error(err);
+				this.showEmailWindow=false
+				this.emailingPdf=false 
+				const reader = new FileReader();
+				reader.readAsText(err.response.data)
+				reader.onload = ()=> this.errorMsg = JSON.parse(String(reader.result))["detail"];
+				Vue.filter('scrollToLocation')('alert-msg')                   
+			});
+
+		}
 		
-		get viewStatus() {
-            if(this.showWorkSectionChecked) return 'WS';else return 'No WS'
-        }		
+		get viewRange() {
+            if(this.showWeekViewChecked) return 'Week View';else return 'Day View'
+        }
 		
 		public dateChanged(event) {
 			if(this.datePickerOpened)this.loadNewDateRange();
 		}
 
-		public nextDateRange() {			
-			this.selectedDate = moment(this.selectedDate).add(7, 'days').format().substring(0,10);
+		public nextDateRange() {
+			const days =(this.showWeekViewChecked)? 7 :1;		
+			this.selectedDate = moment(this.selectedDate).add(days, 'days').format().substring(0,10);
 			this.loadNewDateRange(); 
 		}
 
 		public previousDateRange() {
-			this.selectedDate = moment(this.selectedDate).subtract(7, 'days').format().substring(0,10);
+			const days =(this.showWeekViewChecked)? 7 :1;
+			this.selectedDate = moment(this.selectedDate).subtract(days, 'days').format().substring(0,10);
 			this.loadNewDateRange();
 		}
 
 		public loadNewDateRange() {
 			const firstDayOfWeek = moment(this.selectedDate).startOf('week').format()
 			const lastDayOfWeek = moment(this.selectedDate).endOf('week').format();
-			const dateRange = {startDate: firstDayOfWeek.substring(0,10), endDate: lastDayOfWeek.substring(0,10)}
-			this.UpdateShiftRangeInfo(dateRange);
+			let weeklyDateRange = {} as  shiftRangeInfoType;			
+			
+			weeklyDateRange = {startDate: firstDayOfWeek.substring(0,10), endDate: lastDayOfWeek.substring(0,10)}
+			this.UpdateShiftRangeInfo(weeklyDateRange);
+
+			let dailyDateRange = {} as  shiftRangeInfoType;
+			
+			dailyDateRange = {startDate: moment(this.selectedDate).startOf('day').format(), endDate: moment(this.selectedDate).endOf('day').format()}
+			this.UpdateDailyShiftRangeInfo(dailyDateRange);
+						
 			this.getSchedule(); 
 		}
 	}
@@ -218,6 +462,10 @@
 			display: inline-block;
 			float:none;
 	}
-	
+
+	.recipientList /deep/ .dropdown-menu {
+		max-height: 100px;
+		overflow-y: auto;
+	}	
 
 </style>
