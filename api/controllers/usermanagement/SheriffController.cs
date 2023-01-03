@@ -270,6 +270,15 @@ namespace SS.Api.controllers.usermanagement
 
         #region SheriffTraining
 
+        [HttpGet]
+        [Route("training")]
+        [PermissionClaimAuthorize(perm: Permission.GenerateReports)]
+        public async Task<ActionResult<SheriffDto>> GetSheriffsTraining()
+        {
+            var sheriffs = await SheriffService.GetSheriffsTraining();
+            return Ok(sheriffs.Adapt<List<SheriffDto>>());
+        }
+
         [HttpPost]
         [Route("training")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]

@@ -45,7 +45,8 @@ namespace SS.Db.configuration
                 new Permission { Id = 39, Name = Permission.RemovePastTraining, Description = "Remove Past Training" },
                 new Permission { Id = 40, Name = Permission.ViewDutyRosterInFuture, Description = "View DutyRoster in the future" },
                 new Permission { Id = 41, Name = Permission.ViewAllFutureShifts, Description = "View Shifts in the future (not time constrained)" },
-                new Permission { Id = 42, Name = Permission.ViewOtherProfiles, Description = "View other profiles (beside their own)" }
+                new Permission { Id = 42, Name = Permission.ViewOtherProfiles, Description = "View other profiles (beside their own)" },
+                new Permission { Id = 43, Name = Permission.GenerateReports, Description = "Generate Reports based on Sheriff's activity" }
             );
             base.Configure(builder);
         }

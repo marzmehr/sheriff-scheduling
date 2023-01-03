@@ -151,18 +151,18 @@
                             '&location='+location+
                             '&reportType='+this.reportParameters.reportType;
                 
-                // this.$http.get(url)
-                // .then((response) => {            
-                //     if(response?.data){
-                //         this.results = response.data;
-                        this.generateExcel();                                          
+                this.$http.get("api/sheriff/training")
+                .then((response) => {            
+                    // if(response?.data){
+                    //     this.results = response.data;
+                    //     this.generateExcel();                                          
                     // }
                     this.searching = false;
                     
-                // },(err) => {
-                //     this.searching = false;
-                //     this.error = err.response.data           
-                // });  
+                },(err) => {
+                    this.searching = false;
+                    this.error = err.response.data           
+                });  
 
             }           
             
