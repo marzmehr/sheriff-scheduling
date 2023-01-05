@@ -23,7 +23,7 @@
     "export-to-csv": "^0.2.1",
     "intersection-observer": "^0.10.0",
     "jquery": "^3.5.1",
-    "moment-timezone": "^0.5.31",
+    "moment-timezone": "^0.5.35",
     "printd": "^1.4.2",
     "regenerator-runtime": "^0.13.5",
     "save": "^2.4.0",
