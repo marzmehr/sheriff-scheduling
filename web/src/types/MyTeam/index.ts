@@ -106,3 +106,11 @@ export interface userLeaveInfoType{
     startDate: string;
     endDate: string;    
 }
+
+export interface trainingReportInfoType {
+    name: string;
+    trainingType: string;
+    start: string;
+    end: string;
+    expiryDate: string;
+}

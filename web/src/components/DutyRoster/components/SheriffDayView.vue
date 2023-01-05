@@ -53,8 +53,8 @@
                     <div
                         style="width:3.8rem;"
                         class="m-0 p-0"
-                        v-for="color in dutyColors" 
-                        :key="color.colorCode"> 
+                        v-for="color in dutyColors"
+                        :key="color.colorCode">
                         <div :style="{backgroundColor:color.colorCode, width:'.65rem', height:'.65rem', borderRadius:'15px', margin:'.2rem .2rem 0 0', float:'left'}"/>
                         <div style="font-size:9px; text-transform: capitalize; margin:0 0 0 0; padding:0">{{color.name}}</div>
                     </div>
@@ -138,7 +138,7 @@
         dutyColors = [
             {name:'court' , colorCode:'#189fd4'},
             {name:'jail' ,  colorCode:'#A22BB9'},
-            {name:'escort', colorCode:'#ffb007'},
+            {name:'transport', colorCode:'#ffb007'},
             {name:'other',  colorCode:'#7a4528'},
             {name:'overtime',colorCode:'#e85a0e'},
             {name:'free',   colorCode:'#e6d9e2'}            

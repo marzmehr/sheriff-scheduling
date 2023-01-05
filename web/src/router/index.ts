@@ -140,9 +140,9 @@ const routes: Array<RouteConfig> = [
 	{
 		path: '/reports',
 		name: 'ViewReports',
-		// beforeEnter: checkPermission,
+		beforeEnter: checkPermission,
 		component: ViewReports,
-		// meta:{requiredPermission: 'ViewReports'}  
+		meta:{requiredPermission: 'GenerateReports'}  
 	},
 	{    
 		path: '/assignment-types',
