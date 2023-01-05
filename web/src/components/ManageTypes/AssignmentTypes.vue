@@ -218,7 +218,7 @@
             {name:'CourtRoom', label:'Court Room'},
             {name:'CourtRole', label:'Court Assignment'},
             {name:'JailRole', label:'Jail Assignment'},
-            {name:'EscortRun', label:'Escort Assignment'},
+            {name:'EscortRun', label:'Transport Assignment'},
             {name:'OtherAssignment', label:'Other Assignment'},
         ]
 

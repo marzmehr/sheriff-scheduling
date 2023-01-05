@@ -9,6 +9,7 @@ import ManageSchedule from '@components/ShiftSchedule/ManageSchedule.vue'
 import DistributeSchedule from '@components/ShiftSchedule/DistributeSchedule.vue'
 import MyTeamMembers from '@components/MyTeam/MyTeamMembers.vue'
 import DefineRolesAccess from '@components/MyTeam/DefineRolesAccess.vue'
+import ViewReports from '@components/MyTeam/ViewReports.vue'
 import AssignmentTypes from '@components/ManageTypes/AssignmentTypes.vue'
 import LeaveTrainingTypes from '@components/ManageTypes/LeaveTrainingTypes.vue'
 import store from "@/store";
@@ -135,6 +136,13 @@ const routes: Array<RouteConfig> = [
 		beforeEnter: checkPermission,
 		component: DefineRolesAccess,
 		meta:{requiredPermission: 'ViewRoles'}  
+	},
+	{
+		path: '/reports',
+		name: 'ViewReports',
+		beforeEnter: checkPermission,
+		component: ViewReports,
+		meta:{requiredPermission: 'GenerateReports'}  
 	},
 	{    
 		path: '/assignment-types',
