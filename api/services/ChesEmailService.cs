@@ -81,7 +81,7 @@ namespace SS.Api.services
                     cc = new List<string>(),
                     delayTS = 0,
                     encoding = "utf-8",
-                    from = $@"{_chesEmailOptions.SenderName} <{_chesEmailOptions.SenderEmail}>", //This isn't clear in their documentation. 
+                    from = $@"{_chesEmailOptions.SenderName} <{_chesEmailOptions.SenderEmail}>", //This isn't clear in their documentation.
                     priority = "normal",
                     subject,
                     to,
@@ -103,6 +103,64 @@ namespace SS.Api.services
                 Logger.LogError(e, "Error happened while trying to send email.");
             }
         }
+
+        public async Task SendEmailWithPdfAttachment(string body, string subject, string from, string recipientEmail, byte[] pdfContent)
+        {
+            body.ThrowIfNullOrEmpty(nameof(body));
+            subject.ThrowIfNullOrEmpty(nameof(subject));
+            from.ThrowIfNullOrEmpty(nameof(from));
+            recipientEmail.ThrowIfNullOrEmpty(nameof(recipientEmail));
+            var attachments = new List<ChesEmailAttachment>();
+            attachments.Add(
+                new ChesEmailAttachment
+                {
+                    content = Convert.ToBase64String(pdfContent),
+                    contentType = "application/pdf",
+                    encoding = "base64",
+                    filename = "Shift_Schedule.pdf"
+                }
+            );
+
+            var to = recipientEmail.Split(",").ToList();
+            var emailServiceToken = await GetEmailServiceToken();
+            emailServiceToken.ThrowIfNullOrEmpty(nameof(emailServiceToken));
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, _chesEmailOptions.EmailUrl);
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", emailServiceToken);
+
+            Logger.LogDebug($"Attempting to Send email to {recipientEmail}.");
+            try
+            {
+                var email = new
+                {
+                    bcc = new List<string>(),
+                    bodyType = "text",
+                    body,
+                    cc = new List<string>(),
+                    delayTS = 0,
+                    encoding = "utf-8",
+                    from,
+                    priority = "normal",
+                    subject,
+                    to,
+                    tag = Guid.NewGuid(),
+                    attachments
+                };
+
+                requestMessage.Content =
+                    new StringContent(JsonConvert.SerializeObject(email), Encoding.UTF8, "application/json");
+
+                var response = await HttpClient.SendAsync(requestMessage);
+                var contents = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                    throw new BadRequestException($"While sending email - Received status code: {response.StatusCode} : {contents}");
+
+                Logger.LogInformation($"Email sent to {recipientEmail} successfully.");
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Error happened while trying to send email.");
+            }
+        }
     }
 }
-

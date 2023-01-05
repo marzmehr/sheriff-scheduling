@@ -3,192 +3,194 @@
 
         <distribute-header v-on:change="loadScheduleInformation" />
 
-        <div id="pdf" v-if="isDistributeDataMounted">
-            <div v-for="page,inx in sheriffPages" :key="'pdf-'+inx">
-                <b-row class="mt-0 mb-0 mx-4">
-                    <b-col>
-                        <b-row class="mt-1">
-                            <div style="width:20%"  class="mr-0">
-                                <b-img 
-                                    class="img-fluid"
-                                    width="100rem"
-                                    height="100rem"
-                                    :src="require('../../../public/images/bcss-crest.png')" 
-                                alt="B.C. Government Logo">
-                                </b-img>
+        <div id="pdf" v-if="isDistributeDataMounted" class="container">
+            
+                <div class="ss-header">
+                    <div class="row m-0">
+                        <div style="width:45%" >
+                            <div class="row m-0">                           
+                                <div style="width:20%;"  class="mr-0">
+                                    <img style="width:80%;" 
+                                        :src="src"                                                         
+                                        alt="B.C. Gov"/>                                                                   
+                                </div>                                
+                                <div style="width:70%; margin-top:1rem;">
+                                    <div style="font-size:13pt;"><b>B.C. Sheriff Service</b></div>
+                                    <div style="font-size:12pt;" class="text-secondary font-italic"><b>Honour - Integrity - Commitment</b></div>
+                                </div>
                             </div>
-                            <div style="width:70%"  class="mr-0 mt-5">
-                                <h2>B.C. Sheriff Service</h2>
-                                <h3 class="mt-n2 text-secondary font-italic">Honour - Integrity - Commitment</h3>
-                            </div>
-                        </b-row>
-                    </b-col>
+                        </div>
                     
-                    <b-col>
-                        <b-card class="mt-3 mx-5 border border-dark text-center" body-class="p-3">
-                            <b-card-sub-title class="mb-2 h4">{{location.name}} Schedule</b-card-sub-title>
-                            <b-card-title v-if="weekView" class="h3">{{shiftRangeInfo.startDate | beautify-full-date}} - {{shiftRangeInfo.endDate | beautify-full-date}}</b-card-title>
-                            <b-card-title v-else class="h3">{{dailyShiftRangeInfo.startDate | beautify-full-date}}</b-card-title>                            
-                            <b-card-text class="text-secondary h5">Summary as of: <i class="h6">{{today | beautify-date-time-weekday}}</i></b-card-text>
-                        </b-card>
-                    </b-col>            
+                        <div style="width:52%" >
+                            <div class="card m-0 border border-dark text-center">
+                                <div class="mt-1">{{location.name}} Schedule</div>
+                                <div v-if="weekView" style="font-size:12pt;"><b>{{shiftRangeInfo.startDate | beautify-full-date}} - {{shiftRangeInfo.endDate | beautify-full-date}}</b></div>
+                                <div v-else style="font-size:12pt;"><b>{{dailyShiftRangeInfo.startDate | beautify-full-date}}</b></div>                            
+                                <div class="text-secondary" style="margin-bottom:0.5rem;">Summary as of: <b><i>{{today | beautify-date-time-weekday}}</i></b></div>                                
+                            </div>
+                        </div>            
 
-                </b-row>
+                    </div>
+                </div>
 
+                
                 <b-overlay opacity="0.6" :show="!isDistributeDataMounted">
                     <template #overlay>
                         <loading-spinner :inline="true"/>
-                    </template>    
-                    <b-table
-                        :key="updateTable"
-                        :items="weekView?sheriffSchedules.slice(page.start,page.end):dailySheriffSchedules.slice(page.start,page.end)" 
-                        :fields="weekView?fields:dailyFields"
-                        small
-                        fixed>
+                    </template> 
+                    
+                    <div v-for="page,inx in sheriffPages" :key="'pdf-'+inx" class="ss-body">   
+                        <b-table
+                            :key="updateTable"
+                            :items="weekView?sheriffSchedules.slice(page.start,page.end):dailySheriffSchedules.slice(page.start,page.end)" 
+                            :fields="weekView?fields:dailyFields"
+                            small
+                            fixed>
 
-                        <template v-slot:table-colgroup>
-                            <col style="width:20rem">                            
-                        </template>
-                            
-                            <template v-if="weekView" v-slot:head() = "data" >
-                                <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
+                            <template v-slot:table-colgroup>
+                                <col style="width:20rem">                            
                             </template>
-
-                            <template v-if="weekView" v-slot:head(myteam) = "data" >  
-                                <span>{{data.label}}</span>
-                            </template>
-
-                            <template v-if="weekView" v-slot:cell(myteam) = "data" >  
-                                <td class="m-0 p-0" style="border:none;">
-                                    <span style="font-size: 1.2rem;">{{data.value.name}}</span>
-                                    <div style="height:1rem;"                    
-                                        v-if="data.value.homeLocation != location.name">
-                                        <div class="m-0 p-0 text-jail"> 
-                                            <b-icon-box-arrow-in-right style="float:left;margin:0 .2rem 0 0;"/>
-                                            <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">Loaned in from </div>
-                                        </div> 
-                                        <div class="m-0 p-0 text-jail" style="font-size:10px"> {{data.value.homeLocation|truncate(35)}} </div>
-                                    </div>
                                 
-                                    <div style="height:1rem;">
-                                        <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">
-                                            {{data.value.rank}}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="m-0 p-0" style="border:none;">
-                                    <div style="height:1rem; margin:0.5rem;">
-                                        <div class=" m-0 p-0" style="font-size:10px;"> #{{data.value.badgeNumber}} </div>
-                                    </div>
-                                    <div style="height:1rem; margin:0.5rem;">
-                                        <div v-if="data.value.actingRank.length>0" style="font-size:10px; font-weight: 700;"> 
-                                            <span class="dot">A</span> <span style="font-weight: 500;">{{data.value.actingRank[0].rank}}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                            </template>
+                                <template v-if="weekView" v-slot:head() = "data" >
+                                    <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
+                                </template>
 
-                            <template v-else v-slot:cell(name) = "data" >  
-                                <td class="m-0 p-0" style="border:none;">
-                                    <span style="font-size: 1.2rem;">{{data.value}}</span>
-                                    <div style="height:1rem;"                    
-                                        v-if="data.item.homeLocation != location.name">
-                                        <div class="m-0 p-0 text-jail"> 
-                                            <b-icon-box-arrow-in-right style="float:left;margin:0 .2rem 0 0;"/>
-                                            <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">Loaned in from </div>
-                                        </div> 
-                                        <div class="m-0 p-0 text-jail" style="font-size:10px"> {{data.item.homeLocation|truncate(35)}} </div>
-                                    </div>
-                                
-                                    <div style="height:1rem;">
-                                        <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">
-                                            {{data.item.rank}}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="m-0 p-0" style="border:none;">
-                                    <div style="height:1rem; margin:0.5rem;">
-                                        <div class=" m-0 p-0" style="font-size:10px;"> #{{data.item.badgeNumber}} </div>
-                                    </div>
-                                    <div style="height:1rem; margin:0.5rem;">
-                                        <div v-if="data.item.actingRank.length>0" style="font-size:10px; font-weight: 700;"> 
-                                            <span class="dot">A</span> <span style="font-weight: 500;">{{data.item.actingRank[0].rank}}</span>                                        
-                                        </div>
-                                    </div>
-                                </td>
-                                
-                            </template>
-                            
-                            <template v-if="weekView" v-slot:cell() = "data">                   
-                                <b-card style="font-size: 1.1rem;" class="ml-auto" body-class="p-1" v-for="event in sortEvents(data.item[data.field.key])" :key="event.id + event.date + event.location">
-                                    <div v-if="event.type == 'Shift'">
-                                        <div v-if="event.workSection" :style="{float:'left',backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
-                                        <div v-else style="float:left; background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0; height:25px; "></div>
-                                        <div style=" text-align: center; " class="m-0 p-0">{{event.startTime}} - {{event.endTime}}</div>
-                                    </div>
-                                    <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</div>
-                                    <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
-                                    <div class="text-center" v-else>
-                                        <div style="display:inline;" class="text-white" v-if="event.type == 'Leave'">
-                                            <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('A/L')" class="bg-a-l-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('MED/DENTAL')" class="bg-med-dental-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge">Leave</div>
-                                            <div v-else  class="bg-primary badge">Leave</div>
-                                        </div>                                    
-                                            
-                                        <b-badge v-if="event.type == 'Training'" class="bg-primary" >Training</b-badge> <span v-if="event.subType">({{ event.subType }})</span>
-                                        <b-badge class="bg-primary"><b-icon-box-arrow-left v-if="event.type == 'Loaned'" font-scale="1.5"/></b-badge>
-                                        <span v-if="event.startTime"> {{event.startTime}} - {{event.endTime}}</span>
-                                        <span v-else > FullDay </span>   
-                                        <div v-if="event.type == 'Loaned'" style="display:block;">{{event.location}}</div>                               
-                                    </div>                          
-                                </b-card>
-                            </template>
+                                <template v-if="weekView" v-slot:head(myteam) = "data" >  
+                                    <span>{{data.label}}</span>
+                                </template>
 
-                            <template v-else v-slot:cell(shifts) = "data">                                                   
-                                <b-card style="font-size: 1.1rem;" class="ml-auto" body-class="p-1" v-for="event in sortEvents(data.item.conflicts)" :key="event.id + event.date + event.location">
-                                    <div v-if="event.type == 'Shift'">
-                                        <div v-if="event.workSection" :style="{float:'left',backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
-                                        <div v-else style="float:left; background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0; height:25px; "></div>
-                                        <div style=" text-align: center; " class="m-0 p-0">{{event.startTime}} - {{event.endTime}}</div>
-                                    </div>
-                                    <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</div>
-                                    <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
-                                    <div class="text-center" v-else>
-                                        <div style="display:inline;" class="text-white" v-if="event.type == 'Leave'">
-                                            <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('A/L')" class="bg-a-l-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('MED/DENTAL')" class="bg-med-dental-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge">Leave</div>
-                                            <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge">Leave</div>
-                                            <div v-else  class="bg-primary badge">Leave</div>
-                                        </div>                                    
-                                            
-                                        <b-badge v-if="event.type == 'Training'" class="bg-primary" >Training</b-badge> <span v-if="event.subType">({{ event.subType }})</span>
-                                        <b-badge class="bg-primary"><b-icon-box-arrow-left v-if="event.type == 'Loaned'" font-scale="1.5"/></b-badge>
-                                        <span v-if="event.startTime"> {{event.startTime}} - {{event.endTime}}</span>
-                                        <span v-else > FullDay </span>   
-                                        <div v-if="event.type == 'Loaned'" style="display:block;">{{event.location}}</div>                               
-                                    </div>                          
-                                </b-card>
-                            </template>
-                            
-                    </b-table>
-                    <div v-if="!isDistributeDataMounted && sheriffSchedules.length == 0" style="min-height:115.6px;">
+                                <template v-if="weekView" v-slot:cell(myteam) = "data" >  
+                                    <td class="m-0 p-0" style="border:none;">
+                                        <span style="font-size: 1.2rem;">{{data.value.name}}</span>
+                                        <div style="height:1rem;"                    
+                                            v-if="data.value.homeLocation != location.name">
+                                            <div class="m-0 p-0 text-jail"> 
+                                                <b-icon-box-arrow-in-right style="float:left;margin:0 .2rem 0 0;"/>
+                                                <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">Loaned in from </div>
+                                            </div> 
+                                            <div class="m-0 p-0 text-jail" style="font-size:10px"> {{data.value.homeLocation|truncate(35)}} </div>
+                                        </div>
+                                    
+                                        <div style="height:1rem;">
+                                            <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">
+                                                {{data.value.rank}}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="m-0 p-0" style="border:none;">
+                                        <div style="height:1rem; margin:0.5rem;">
+                                            <div class=" m-0 p-0" style="font-size:10px;"> #{{data.value.badgeNumber}} </div>
+                                        </div>
+                                        <div style="height:1rem; margin:0.5rem;">
+                                            <div v-if="data.value.actingRank.length>0" style="font-size:10px; font-weight: 700;"> 
+                                                <span class="dot">A</span> <span style="font-weight: 500;">{{data.value.actingRank[0].rank}}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </template>
+
+                                <template v-else v-slot:cell(name) = "data" >  
+                                    <td class="m-0 p-0" style="border:none;">
+                                        <span style="font-size: 1.2rem;">{{data.value}}</span>
+                                        <div style="height:1rem;"                    
+                                            v-if="data.item.homeLocation != location.name">
+                                            <div class="m-0 p-0 text-jail"> 
+                                                <b-icon-box-arrow-in-right style="float:left;margin:0 .2rem 0 0;"/>
+                                                <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">Loaned in from </div>
+                                            </div> 
+                                            <div class="m-0 p-0 text-jail" style="font-size:10px"> {{data.item.homeLocation|truncate(35)}} </div>
+                                        </div>
+                                    
+                                        <div style="height:1rem;">
+                                            <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">
+                                                {{data.item.rank}}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="m-0 p-0" style="border:none;">
+                                        <div style="height:1rem; margin:0.5rem;">
+                                            <div class=" m-0 p-0" style="font-size:10px;"> #{{data.item.badgeNumber}} </div>
+                                        </div>
+                                        <div style="height:1rem; margin:0.5rem;">
+                                            <div v-if="data.item.actingRank.length>0" style="font-size:10px; font-weight: 700;"> 
+                                                <span class="dot">A</span> <span style="font-weight: 500;">{{data.item.actingRank[0].rank}}</span>                                        
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
+                                </template>
+                                
+                                <template v-if="weekView" v-slot:cell() = "data">                   
+                                    <b-card style="font-size: 1.1rem;" class="ml-auto" body-class="p-1" v-for="event in sortEvents(data.item[data.field.key])" :key="event.id + event.date + event.location">
+                                        <div v-if="event.type == 'Shift'">
+                                            <div v-if="event.workSection" :style="{float:'left',backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
+                                            <div v-else style="float:left; background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0; height:25px; "></div>
+                                            <div style=" text-align: center; " class="m-0 p-0">{{event.startTime}} - {{event.endTime}}</div>
+                                        </div>
+                                        <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</div>
+                                        <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
+                                        <div class="text-center" v-else>
+                                            <div style="display:inline;" class="text-white" v-if="event.type == 'Leave'">
+                                                <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('A/L')" class="bg-a-l-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('MED/DENTAL')" class="bg-med-dental-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge">Leave</div>
+                                                <div v-else  class="bg-primary badge">Leave</div>
+                                            </div>                                    
+                                                
+                                            <b-badge v-if="event.type == 'Training'" class="bg-primary" >Training</b-badge> <span v-if="event.subType">({{ event.subType }})</span>
+                                            <b-badge class="bg-primary"><b-icon-box-arrow-left v-if="event.type == 'Loaned'" font-scale="1.5"/></b-badge>
+                                            <span v-if="event.startTime"> {{event.startTime}} - {{event.endTime}}</span>
+                                            <span v-else > FullDay </span>   
+                                            <div v-if="event.type == 'Loaned'" style="display:block;">{{event.location}}</div>                               
+                                        </div>                          
+                                    </b-card>
+                                </template>
+
+                                <template v-else v-slot:cell(shifts) = "data">                                                   
+                                    <b-card style="font-size: 1.1rem;" class="ml-auto" body-class="p-1" v-for="event in sortEvents(data.item.conflicts)" :key="event.id + event.date + event.location">
+                                        <div v-if="event.type == 'Shift'">
+                                            <div v-if="event.workSection" :style="{float:'left',backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
+                                            <div v-else style="float:left; background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0; height:25px; "></div>
+                                            <div style=" text-align: center; " class="m-0 p-0">{{event.startTime}} - {{event.endTime}}</div>
+                                        </div>
+                                        <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</div>
+                                        <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
+                                        <div class="text-center" v-else>
+                                            <div style="display:inline;" class="text-white" v-if="event.type == 'Leave'">
+                                                <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('A/L')" class="bg-a-l-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('MED/DENTAL')" class="bg-med-dental-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge">Leave</div>
+                                                <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge">Leave</div>
+                                                <div v-else  class="bg-primary badge">Leave</div>
+                                            </div>                                    
+                                                
+                                            <b-badge v-if="event.type == 'Training'" class="bg-primary" >Training</b-badge> <span v-if="event.subType">({{ event.subType }})</span>
+                                            <b-badge class="bg-primary"><b-icon-box-arrow-left v-if="event.type == 'Loaned'" font-scale="1.5"/></b-badge>
+                                            <span v-if="event.startTime"> {{event.startTime}} - {{event.endTime}}</span>
+                                            <span v-else > FullDay </span>   
+                                            <div v-if="event.type == 'Loaned'" style="display:block;">{{event.location}}</div>                               
+                                        </div>                          
+                                    </b-card>
+                                </template>
+                                
+                        </b-table>
+                        <div v-if="!isDistributeDataMounted && sheriffSchedules.length == 0" style="min-height:115.6px;">
+                        </div>
+                    
+                        <div v-if="(inx+1)<sheriffPages.length" class="new-page" />
                     </div>
                 </b-overlay>
-                <div v-if="(inx+1)<sheriffPages.length" class="new-page" />
-            </div>
 
         </div>
 
@@ -220,6 +222,7 @@
     import { sheriffsAvailabilityJsonType, conflictJsonType } from '../../types/ShiftSchedule/jsonTypes';
     import moment from 'moment-timezone';
     import * as _ from 'underscore';
+    import {srcFile} from "./components/Logo";
 
     @Component({
         components: {
@@ -277,6 +280,8 @@
             'O':'#7a4528'
         }
 
+        src=""
+
         sheriffSchedules: weekScheduleInfoType[] =[];
         dailySheriffSchedules: distributeScheduleInfoType[] = [];
 
@@ -293,6 +298,7 @@
         }
 
         mounted() {
+            this.src = srcFile;
             this.isDistributeDataMounted=false;			
 			//this.loadScheduleInformation(false, '');
             this.today = moment().tz(this.location.timezone).format();
@@ -354,7 +360,7 @@
             
             for(const sheriffJson of teamJson) {
                 const sheriff = {} as distributeTeamMemberInfoType;
-                console.log(sheriffJson)
+                //console.log(sheriffJson)
                 sheriff.sheriffId = sheriffJson.sheriffId;           
                 sheriff.email = sheriffJson.sheriff.email;     
                 sheriff.name = Vue.filter('capitalize')(sheriffJson.sheriff.lastName) 
@@ -379,7 +385,7 @@
             this.sheriffSchedules = [];
             
             for(const sheriffScheduleJson of sheriffsScheduleJson) {
-                console.log(sheriffScheduleJson)
+                //console.log(sheriffScheduleJson)
                 const sheriffSchedule = {} as distributeScheduleInfoType;
                 sheriffSchedule.sheriffId = sheriffScheduleJson.sheriffId;                
                 sheriffSchedule.name = Vue.filter('capitalizefirst')(sheriffScheduleJson.sheriff.lastName) 
@@ -625,7 +631,7 @@
         
         public splitSheriffPages(){
             this.sheriffPages =[]
-            const PAGE_ITEMS=16
+            const PAGE_ITEMS=10
             const len = this.sheriffSchedules.length
             for(let page=1; page<=(Math.ceil(len/PAGE_ITEMS)); page++){
                 this.sheriffPages.push({
@@ -654,7 +660,19 @@
     }
 </script>
 
-<style scoped>    
+<style scoped>
+
+.container {
+    padding: 4px 4px !important; 
+    margin-right: auto !important;
+    margin-left: auto !important;
+    width: 100% !important;
+    max-width: 870px !important;
+    min-width: 870px !important;   
+    font-size: 10pt !important;
+    font-family: BCSans;
+    color: #313132 !important;
+}
     .card {
         border: white;
     }

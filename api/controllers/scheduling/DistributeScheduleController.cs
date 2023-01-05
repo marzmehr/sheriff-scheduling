@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using SS.Api.helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
+using SS.Api.models.dto;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
 using SS.Common.helpers.extensions;
@@ -17,6 +18,7 @@ using SS.Db.models.auth;
 namespace SS.Api.controllers.scheduling
 {
     [Route("api/[controller]")]
+    [ApiController]
     public class DistributeScheduleController : ControllerBase
     {
         private DistributeScheduleService DistributeScheduleService { get; }
@@ -24,7 +26,7 @@ namespace SS.Api.controllers.scheduling
         private SheriffDbContext Db { get; }
         private IConfiguration Configuration { get; }
 
-        public DistributeScheduleController(DistributeScheduleService distributeSchedule, ShiftService shiftService,  SheriffDbContext db, IConfiguration configuration)
+        public DistributeScheduleController(DistributeScheduleService distributeSchedule, ShiftService shiftService, SheriffDbContext db, IConfiguration configuration)
         {
             DistributeScheduleService = distributeSchedule;
             ShiftService = shiftService;
@@ -72,6 +74,26 @@ namespace SS.Api.controllers.scheduling
             }
 
             return Ok(shiftsWithDuties.Adapt<List<ShiftAvailabilityDto>>());
+        }
+
+        [HttpPost("print")]
+        [PermissionClaimAuthorize(perm: Permission.ViewDistributeSchedule)]
+        public async Task<FileContentResult> Print(PdfHtml pdfhtml)
+        {
+            var pdfContent = await DistributeScheduleService.PrintService(pdfhtml.html);
+            return new FileContentResult(pdfContent, "application/pdf");
+        }
+
+        [HttpPost("email")]
+        [PermissionClaimAuthorize(perm: Permission.ViewDistributeSchedule)]
+        public async Task<ActionResult> Email(PdfHtml pdfhtml)
+        {
+            var pdfContent = await DistributeScheduleService.PrintService(pdfhtml.html);
+
+            var senderEmail = $"{User.FullName()} <{ User.Email()}>";
+            await DistributeScheduleService.EmailService(senderEmail, pdfhtml.recipients, pdfhtml.emailSubject, pdfhtml.emailContent, pdfContent);
+
+            return Ok("Email Sent.");
         }
     }
 }
