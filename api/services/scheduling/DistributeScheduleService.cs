@@ -83,8 +83,12 @@ namespace SS.Api.services.scheduling
         private List<ShiftAvailabilityConflict> DetermineWorkSections(List<ShiftAvailabilityConflict> availabilityConflicts, List<Shift> shifts)
         {
             foreach (var availabilityConflict in availabilityConflicts)
+            {
                 availabilityConflict.WorkSection =
                     shifts.FirstOrDefault(s => s.Id == availabilityConflict.ShiftId)?.WorkSection;
+                availabilityConflict.DutySlots =
+                    shifts.FirstOrDefault(s => s.Id == availabilityConflict.ShiftId)?.DutySlots;
+            }
 
             return availabilityConflicts;
         }

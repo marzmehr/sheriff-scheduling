@@ -20,6 +20,8 @@ namespace SS.Api.models.dto.generated
         public bool IsOvertime { get; set; }
         public bool IsClosed { get; set; }
         public LookupCodeDto AssignmentLookupCode { get; set; }
+        public string DutyComment { get; set; }
+        public string AssignmentComment { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }
