@@ -225,9 +225,10 @@
                         const trainingInfo = {} as trainingReportInfoType;
                         trainingInfo.name = sheriffData.firstName + ' ' + sheriffData.lastName;
                         trainingInfo.trainingType = trainingData.trainingType.description;
-                        trainingInfo.start = Vue.filter('beautify-date-time')(moment(trainingData.startDate).tz(trainingData.timezone).format());
-                        trainingInfo.end = Vue.filter('beautify-date-time')(moment(trainingData.endDate).tz(trainingData.timezone).format());
-                        trainingInfo.expiryDate = trainingData.trainingCertificationExpiry?Vue.filter('beautify-date-time')(moment(trainingData.trainingCertificationExpiry).tz(trainingData.timezone).format()):'';
+                        const timezone = trainingData.timezone?trainingData.timezone:'America/Vancouver';
+                        trainingInfo.start = Vue.filter('beautify-date-time')(moment(trainingData.startDate).tz(timezone).format());
+                        trainingInfo.end = Vue.filter('beautify-date-time')(moment(trainingData.endDate).tz(timezone).format());
+                        trainingInfo.expiryDate = trainingData.trainingCertificationExpiry?Vue.filter('beautify-date-time')(moment(trainingData.trainingCertificationExpiry).tz(timezone).format()):'';
                         this.trainingReportData.push(trainingInfo);
                     }
                 }
