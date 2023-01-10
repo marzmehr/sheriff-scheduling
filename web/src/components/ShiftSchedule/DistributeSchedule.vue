@@ -3,196 +3,53 @@
 
         <distribute-header v-on:change="loadScheduleInformation" />
 
-        <div id="pdf" v-if="isDistributeDataMounted" class="container">
+        <b-card id="pdf" v-if="isDistributeDataMounted" class="container" no-body>
             
-                <div class="ss-header">
-                    <div class="row m-0">
-                        <div style="width:45%" >
-                            <div class="row m-0">                           
-                                <div style="width:20%;"  class="mr-0">
-                                    <img style="width:80%;" 
-                                        :src="src"                                                         
-                                        alt="B.C. Gov"/>                                                                   
-                                </div>                                
-                                <div style="width:70%; margin-top:1rem;">
-                                    <div style="font-size:13pt;"><b>B.C. Sheriff Service</b></div>
-                                    <div style="font-size:12pt;" class="text-secondary font-italic"><b>Honour - Integrity - Commitment</b></div>
-                                </div>
+            <div class="ss-header">
+                <div class="row m-0">
+                    <div style="width:45%" >
+                        <div class="row m-0">                           
+                            <div style="width:20%;"  class="mr-0">
+                                <img style="width:80%;" 
+                                    :src="src"                                                         
+                                    alt="B.C. Gov"/>                                                                   
+                            </div>                                
+                            <div style="width:70%; margin-top:1rem;">
+                                <div style="font-size:13pt;"><b>B.C. Sheriff Service</b></div>
+                                <div style="font-size:12pt;" class="text-secondary font-italic"><b>Honour - Integrity - Commitment</b></div>
                             </div>
                         </div>
-                    
-                        <div style="width:52%" >
-                            <div class="card m-0 border border-dark text-center">
-                                <div class="mt-1">{{location.name}} Schedule</div>
-                                <div v-if="weekView" style="font-size:12pt;"><b>{{shiftRangeInfo.startDate | beautify-full-date}} - {{shiftRangeInfo.endDate | beautify-full-date}}</b></div>
-                                <div v-else style="font-size:12pt;"><b>{{dailyShiftRangeInfo.startDate | beautify-full-date}}</b></div>                            
-                                <div class="text-secondary" style="margin-bottom:0.5rem;">Summary as of: <b><i>{{today | beautify-date-time-weekday}}</i></b></div>                                
-                            </div>
-                        </div>            
-
                     </div>
-                </div>
-
                 
-                <b-overlay opacity="0.6" :show="!isDistributeDataMounted">
-                    <template #overlay>
-                        <loading-spinner :inline="true"/>
-                    </template> 
-                    
-                    <div v-for="page,inx in sheriffPages" :key="'pdf-'+inx" class="ss-body">   
-                        <b-table
-                            :key="updateTable"
-                            :items="weekView?sheriffSchedules.slice(page.start,page.end):dailySheriffSchedules.slice(page.start,page.end)" 
-                            :fields="weekView?fields:dailyFields"
-                            small
-                            fixed>
-
-                            <template v-slot:table-colgroup>
-                                <col style="width:20rem">                            
-                            </template>
-                                
-                                <template v-if="weekView" v-slot:head() = "data" >
-                                    <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
-                                </template>
-
-                                <template v-if="weekView" v-slot:head(myteam) = "data" >  
-                                    <span>{{data.label}}</span>
-                                </template>
-
-                                <template v-if="weekView" v-slot:cell(myteam) = "data" >  
-                                    <td class="m-0 p-0" style="border:none;">
-                                        <span style="font-size: 1.2rem;">{{data.value.name}}</span>
-                                        <div style="height:1rem;"                    
-                                            v-if="data.value.homeLocation != location.name">
-                                            <div class="m-0 p-0 text-jail"> 
-                                                <b-icon-box-arrow-in-right style="float:left;margin:0 .2rem 0 0;"/>
-                                                <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">Loaned in from </div>
-                                            </div> 
-                                            <div class="m-0 p-0 text-jail" style="font-size:10px"> {{data.value.homeLocation|truncate(35)}} </div>
-                                        </div>
-                                    
-                                        <div style="height:1rem;">
-                                            <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">
-                                                {{data.value.rank}}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="m-0 p-0" style="border:none;">
-                                        <div style="height:1rem; margin:0.5rem;">
-                                            <div class=" m-0 p-0" style="font-size:10px;"> #{{data.value.badgeNumber}} </div>
-                                        </div>
-                                        <div style="height:1rem; margin:0.5rem;">
-                                            <div v-if="data.value.actingRank.length>0" style="font-size:10px; font-weight: 700;"> 
-                                                <span class="dot">A</span> <span style="font-weight: 500;">{{data.value.actingRank[0].rank}}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </template>
-
-                                <template v-else v-slot:cell(name) = "data" >  
-                                    <td class="m-0 p-0" style="border:none;">
-                                        <span style="font-size: 1.2rem;">{{data.value}}</span>
-                                        <div style="height:1rem;"                    
-                                            v-if="data.item.homeLocation != location.name">
-                                            <div class="m-0 p-0 text-jail"> 
-                                                <b-icon-box-arrow-in-right style="float:left;margin:0 .2rem 0 0;"/>
-                                                <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">Loaned in from </div>
-                                            </div> 
-                                            <div class="m-0 p-0 text-jail" style="font-size:10px"> {{data.item.homeLocation|truncate(35)}} </div>
-                                        </div>
-                                    
-                                        <div style="height:1rem;">
-                                            <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">
-                                                {{data.item.rank}}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="m-0 p-0" style="border:none;">
-                                        <div style="height:1rem; margin:0.5rem;">
-                                            <div class=" m-0 p-0" style="font-size:10px;"> #{{data.item.badgeNumber}} </div>
-                                        </div>
-                                        <div style="height:1rem; margin:0.5rem;">
-                                            <div v-if="data.item.actingRank.length>0" style="font-size:10px; font-weight: 700;"> 
-                                                <span class="dot">A</span> <span style="font-weight: 500;">{{data.item.actingRank[0].rank}}</span>                                        
-                                            </div>
-                                        </div>
-                                    </td>
-                                    
-                                </template>
-                                
-                                <template v-if="weekView" v-slot:cell() = "data">                   
-                                    <b-card style="font-size: 1.1rem;" class="ml-auto" body-class="p-1" v-for="event in sortEvents(data.item[data.field.key])" :key="event.id + event.date + event.location">
-                                        <div v-if="event.type == 'Shift'">
-                                            <div v-if="event.workSection" :style="{float:'left',backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
-                                            <div v-else style="float:left; background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0; height:25px; "></div>
-                                            <div style=" text-align: center; " class="m-0 p-0">{{event.startTime}} - {{event.endTime}}</div>
-                                        </div>
-                                        <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</div>
-                                        <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
-                                        <div class="text-center" v-else>
-                                            <div style="display:inline;" class="text-white" v-if="event.type == 'Leave'">
-                                                <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('A/L')" class="bg-a-l-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('MED/DENTAL')" class="bg-med-dental-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge">Leave</div>
-                                                <div v-else  class="bg-primary badge">Leave</div>
-                                            </div>                                    
-                                                
-                                            <b-badge v-if="event.type == 'Training'" class="bg-primary" >Training</b-badge> <span v-if="event.subType">({{ event.subType }})</span>
-                                            <b-badge class="bg-primary"><b-icon-box-arrow-left v-if="event.type == 'Loaned'" font-scale="1.5"/></b-badge>
-                                            <span v-if="event.startTime"> {{event.startTime}} - {{event.endTime}}</span>
-                                            <span v-else > FullDay </span>   
-                                            <div v-if="event.type == 'Loaned'" style="display:block;">{{event.location}}</div>                               
-                                        </div>                          
-                                    </b-card>
-                                </template>
-
-                                <template v-else v-slot:cell(shifts) = "data">                                                   
-                                    <b-card style="font-size: 1.1rem;" class="ml-auto" body-class="p-1" v-for="event in sortEvents(data.item.conflicts)" :key="event.id + event.date + event.location">
-                                        <div v-if="event.type == 'Shift'">
-                                            <div v-if="event.workSection" :style="{float:'left',backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
-                                            <div v-else style="float:left; background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0; height:25px; "></div>
-                                            <div style=" text-align: center; " class="m-0 p-0">{{event.startTime}} - {{event.endTime}}</div>
-                                        </div>
-                                        <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</div>
-                                        <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
-                                        <div class="text-center" v-else>
-                                            <div style="display:inline;" class="text-white" v-if="event.type == 'Leave'">
-                                                <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('A/L')" class="bg-a-l-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('MED/DENTAL')" class="bg-med-dental-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge">Leave</div>
-                                                <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge">Leave</div>
-                                                <div v-else  class="bg-primary badge">Leave</div>
-                                            </div>                                    
-                                                
-                                            <b-badge v-if="event.type == 'Training'" class="bg-primary" >Training</b-badge> <span v-if="event.subType">({{ event.subType }})</span>
-                                            <b-badge class="bg-primary"><b-icon-box-arrow-left v-if="event.type == 'Loaned'" font-scale="1.5"/></b-badge>
-                                            <span v-if="event.startTime"> {{event.startTime}} - {{event.endTime}}</span>
-                                            <span v-else > FullDay </span>   
-                                            <div v-if="event.type == 'Loaned'" style="display:block;">{{event.location}}</div>                               
-                                        </div>                          
-                                    </b-card>
-                                </template>
-                                
-                        </b-table>
-                        <div v-if="!isDistributeDataMounted && sheriffSchedules.length == 0" style="min-height:115.6px;">
+                    <div style="width:52%" >
+                        <div class="card m-0 border border-dark text-center">
+                            <div class="mt-1">{{location.name}} Schedule</div>
+                            <div v-if="weekView" style="font-size:12pt;"><b>{{shiftRangeInfo.startDate | beautify-full-date}} - {{shiftRangeInfo.endDate | beautify-full-date}}</b></div>
+                            <div v-else style="font-size:12pt;"><b>{{dailyShiftRangeInfo.startDate | beautify-full-date}}</b></div>                            
+                            <div class="text-secondary" style="margin-bottom:0.5rem;">Summary as of: <b><i>{{today | beautify-date-time-weekday}}</i></b></div>                                
                         </div>
-                    
-                        <div v-if="(inx+1)<sheriffPages.length" class="new-page" />
-                    </div>
-                </b-overlay>
+                    </div>            
 
-        </div>
+                </div>
+            </div>
+                
+            <b-overlay opacity="0.6" :show="!isDistributeDataMounted">
+                <template #overlay>
+                    <loading-spinner :inline="true"/>
+                </template> 
+                
+                <div v-for="page,inx in sheriffPages" :key="'pdf-'+inx" class="ss-body">   
+                    <weekly-schedule :key="updateTable" :fields="fields"  :sheriffSchedules="sheriffSchedules.slice(page.start,page.end)" v-if="weekView" />
+                    <daily-schedule :key="updateDailyTable" :dailySheriffSchedules="dailySheriffSchedules.slice(page.start,page.end)" v-else/>
+
+                    <div v-if="!isDistributeDataMounted && sheriffSchedules.length == 0" style="min-height:115.6px;">
+                    </div>
+                
+                    <div v-if="(inx+1)<sheriffPages.length" class="new-page" />
+                </div>
+            </b-overlay>
+
+        </b-card>
 
         <b-modal v-model="openErrorModal" header-class="bg-warning text-light">
             <b-card class="h4 mx-2 py-2">
@@ -212,13 +69,15 @@
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class'
-    import DistributeHeader from './components/DistributeHeader.vue'
+    import DistributeHeader from './components/DistributeHeader.vue';
+    import DailySchedule from './components/DailySchedule.vue';
+    import WeeklySchedule from './components/WeeklySchedule.vue';
     import "@store/modules/ShiftScheduleInformation";   
     const shiftState = namespace("ShiftScheduleInformation");
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");    
     import { locationInfoType } from '../../types/common';
-    import { shiftRangeInfoType, scheduleInfoType, weekScheduleInfoType, distributeScheduleInfoType, distributeTeamMemberInfoType, sheriffPagesInfoType } from '../../types/ShiftSchedule/index'
+    import { shiftRangeInfoType, scheduleInfoType, weekScheduleInfoType, distributeScheduleInfoType, distributeTeamMemberInfoType, sheriffPagesInfoType, distributeScheduleDutyInfoType } from '../../types/ShiftSchedule/index'
     import { sheriffsAvailabilityJsonType, conflictJsonType } from '../../types/ShiftSchedule/jsonTypes';
     import moment from 'moment-timezone';
     import * as _ from 'underscore';
@@ -226,7 +85,9 @@
 
     @Component({
         components: {
-            DistributeHeader
+            DistributeHeader,
+            WeeklySchedule,
+            DailySchedule
         }
     })
     export default class DistributeSchedule extends Vue {
@@ -249,38 +110,33 @@
         today = '';
         numberOfheaderDates = 7;
         updateTable=0;
+        updateDailyTable=0;
 
-        errorText=''
+        errorText='';
 		openErrorModal=false;
 
         teamMembers: distributeTeamMemberInfoType[] = [];
 
-        fields=[
-            {key:'myteam', label:'Name', tdClass:'px-1 mx-0 align-middle', thClass:'text-center'},
-            {key:'Sun', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Mon', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Tue', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Wed', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Thu', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Fri', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Sat', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'}
-        ]
-
-        dailyFields=[
-            {key:'name',        label:'Name',            tdClass:'px-1 mx-0 align-middle', thClass:'text-center'},
-            {key:'shifts',      label:'Scheduled Shift', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'duties',      label:'Assignments',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'notes',       label:'Notes',           tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'}
+        fields = [
+            {key:'myteam',  label:'Name', tdClass:'px-1 mx-0 align-middle my-team', thStyle:'text-align: center; font-size: 8pt; width: 11rem;'},
+            {key:'Sun',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Mon',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Tue',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Wed',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Thu',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Fri',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Sat',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'}
         ]
 
         WSColors = {
-            'C':'#189fd4',
-            'J':'#A22BB9',
-            'E':'#ffb007',
-            'O':'#7a4528'
+            'CourtRole':'#189fd4',
+            'CourtRoom':'#189fd4',
+            'JailRole':'#A22BB9',
+            'EscortRun':'#ffb007',
+            'OtherAssignment':'#7a4528'
         }
 
-        src=""
+        src="";
 
         sheriffSchedules: weekScheduleInfoType[] =[];
         dailySheriffSchedules: distributeScheduleInfoType[] = [];
@@ -292,8 +148,7 @@
         locationChange()
         {
             if (this.isDistributeDataMounted) {
-                this.loadScheduleInformation(true, ''); 
-                // console.log('watch')               
+                this.loadScheduleInformation(true, '');
             }            
         }
 
@@ -304,25 +159,22 @@
             this.today = moment().tz(this.location.timezone).format();
         }
 
-        public loadScheduleInformation(weekView: boolean, sheriffId: string) {
-            console.log(weekView)
-            console.log(this.dailyShiftRangeInfo)
-            //TODO: remove once the api is updated
-            const includeWS = true;
+        public loadScheduleInformation(weekView: boolean, sheriffId: string) {                       
             
             this.isDistributeDataMounted=false;
             this.weekView = weekView;
             this.headerDate();
-
-            const endDate = moment(this.shiftRangeInfo.endDate).endOf('day').format();
+            
             let url = '';
 
             if (weekView){
+                const endDate = moment(this.shiftRangeInfo.endDate).endOf('day').format();
                 url = 'api/distributeschedule/location?locationId='
-                        +this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+endDate + '&includeWorkSection='+includeWS;
-            } else {                
+                        +this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+endDate + '&includeWorkSection=true';
+            } else { 
+                const endDate = moment(this.dailyShiftRangeInfo.endDate).endOf('day').format();               
                 url = 'api/distributeschedule/location?locationId='
-                        +this.location.id+'&start='+this.dailyShiftRangeInfo.startDate+'&end='+this.dailyShiftRangeInfo.endDate + '&includeWorkSection='+includeWS;
+                        +this.location.id+'&start='+this.dailyShiftRangeInfo.startDate+'&end='+endDate + '&includeWorkSection=true';
             }            
             
             this.$http.get(url)
@@ -371,13 +223,21 @@
         }
 
         public headerDate() {
+
             this.headerDates = [];
-            for(let dayOffset=0; dayOffset<this.numberOfheaderDates; dayOffset++)
-            {
-                const date= moment(this.shiftRangeInfo.startDate).add(dayOffset,'days').format();
+            if (this.weekView){
+                for(let dayOffset=0; dayOffset<this.numberOfheaderDates; dayOffset++) {
+                    const date= moment(this.shiftRangeInfo.startDate).add(dayOffset,'days').format();
+                    this.headerDates.push(date);
+                    this.fields[dayOffset+1].label = ' ' + Vue.filter('beautify-date')(date);
+                }
+
+            } else {
+
+                const date= moment(this.dailyShiftRangeInfo.startDate).format();
                 this.headerDates.push(date);
-                this.fields[dayOffset+1].label = ' ' + Vue.filter('beautify-date')(date);
             }
+            
         }
 
         public extractTeamScheduleInfo(sheriffsScheduleJson: sheriffsAvailabilityJsonType[]) {
@@ -418,8 +278,7 @@
             
             this.dailySheriffSchedules = [];
             
-            for(const sheriffScheduleJson of sheriffsScheduleJson) {
-                console.log(sheriffScheduleJson)
+            for(const sheriffScheduleJson of sheriffsScheduleJson) {                
                 const sheriffSchedule = {} as distributeScheduleInfoType;
                 sheriffSchedule.sheriffId = sheriffScheduleJson.sheriffId;                
                 sheriffSchedule.name = Vue.filter('capitalizefirst')(sheriffScheduleJson.sheriff.lastName) 
@@ -429,15 +288,12 @@
                 sheriffSchedule.actingRank = sheriffScheduleJson.sheriff.actingRank;
                 sheriffSchedule.badgeNumber = sheriffScheduleJson.sheriff.badgeNumber;                                                     
                 const isInLoanLocation = (sheriffScheduleJson.sheriff.homeLocation.id !=this.location.id)
-                sheriffSchedule.conflicts =isInLoanLocation? this.extractInLoanLocationConflicts(sheriffScheduleJson.conflicts) :this.extractSchedules(sheriffScheduleJson.conflicts, false);        
-                
-                console.log(sheriffSchedule)
-                
+                sheriffSchedule.conflicts =isInLoanLocation? this.extractInLoanLocationConflicts(sheriffScheduleJson.conflicts) :this.extractSchedules(sheriffScheduleJson.conflicts, false);
                 this.dailySheriffSchedules.push(sheriffSchedule)
             }          
             this.splitDailySheriffPages();
             this.isDistributeDataMounted = true;            
-            this.updateTable++;
+            this.updateDailyTable++;
         }
 
         public extractInLoanLocationConflicts(conflictsJson: conflictJsonType[]){
@@ -530,15 +386,7 @@
             if(conflict.conflict =='AwayLocation') return 'Loaned'
             else if(conflict.conflict =='Scheduled') return 'Shift'
             else return conflict.conflict
-        }
-
-        public getWorkSection(conflict){
-            if(conflict.conflict =='Scheduled') {
-                const WS = conflict.workSection?conflict.workSection: '';
-                return {WS:WS, color:this.WSColors[WS]};
-            } 
-            else return {WS:'', color:''};
-        }
+        }       
 
         public sortEvents (events: any) {            
             return _.sortBy(events, "startTime");
@@ -548,79 +396,181 @@
 
             const schedules: scheduleInfoType[] = []
 
-            for(const conflict of conflictsJson){
+            for(const conflict of conflictsJson){                
                 if (conflict.conflict=="Scheduled" && conflict.locationId != this.location.id) continue;
                 if (conflict.conflict!="Scheduled" && onlyShedules) continue;
                 conflict.start = moment(conflict.start).tz(this.location.timezone).format();
-                conflict.end = moment(conflict.end).tz(this.location.timezone).format();               
+                conflict.end = moment(conflict.end).tz(this.location.timezone).format();    
+                         
                 if(Vue.filter('isDateFullday')(conflict.start,conflict.end))
-                {               
+                {                                  
                     for(const dateIndex in this.headerDates){
                         const date = this.headerDates[dateIndex]
                         if(date>=conflict.start && date<=conflict.end)
                         {
-                            schedules.push({
-                                id:conflict.shiftId? conflict.shiftId:0,
-                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                dayOffset: Number(dateIndex), 
-                                date:date, 
-                                startTime:'', 
-                                endTime:'',
-                                type:this.getConflictsType(conflict),
-                                subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'',
-                                workSection: this.getWorkSection(conflict).WS,
-                                workSectionColor: this.getWorkSection(conflict).color
-                            })        
+                            if (conflict.conflict =='Scheduled'){
+
+                                if (conflict.dutySlots?.length > 0){
+
+                                    const duties = this.extractDutyInfo(conflict.dutySlots);
+                                    
+                                    schedules.push({
+                                            id:conflict.shiftId? conflict.shiftId:0,
+                                            location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                            dayOffset: Number(dateIndex), 
+                                            date:date, 
+                                            startTime:'', 
+                                            endTime:'',
+                                            type:this.getConflictsType(conflict),
+                                            subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'',
+                                            duties: duties,
+                                            workSection: '',
+                                            workSectionColor: ''
+                                        })
+
+                                } else {
+
+                                    schedules.push({
+                                        id:conflict.shiftId? conflict.shiftId:0,
+                                        location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                        dayOffset: Number(dateIndex), 
+                                        date:date, 
+                                        startTime:'', 
+                                        endTime:'',
+                                        duties: [],
+                                        type:this.getConflictsType(conflict),
+                                        subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'',
+                                        workSection: '',
+                                        workSectionColor: ''
+                                    }) 
+
+                                }
+
+                                
+                            } else {
+                                schedules.push({
+                                    id:conflict.shiftId? conflict.shiftId:0,
+                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                    dayOffset: Number(dateIndex), 
+                                    date:date, 
+                                    startTime:'', 
+                                    endTime:'',
+                                    type:this.getConflictsType(conflict),
+                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'',
+                                    duties: [],
+                                    workSection: '',
+                                    workSectionColor: ''
+                                }) 
+
+                            }
+                                   
                         }                       
                     }
-                }
-                else{
+                } else {
                     
                     for(const dateIndex in this.headerDates){
                         const date = this.headerDates[dateIndex].substring(0,10);
                         const nextDate = moment(this.headerDates[dateIndex]).add(1,'days').format().substring(0,10);
-                        if(date == conflict.start.substring(0,10) && date == conflict.end.substring(0,10))
-                        {  
-                                                                                  
-                            schedules.push({
-                                id:conflict.shiftId? conflict.shiftId:0,
-                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                dayOffset: Number(dateIndex), 
-                                date:this.headerDates[dateIndex], 
-                                startTime:Vue.filter('beautify-time')(conflict.start), 
-                                endTime:Vue.filter('beautify-time')(conflict.end), 
-                                type:this.getConflictsType(conflict),                                
-                                subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
-                                workSection:this.getWorkSection(conflict).WS,
-                                workSectionColor: this.getWorkSection(conflict).color
-                            })        
-                        } else if(date == conflict.start.substring(0,10) && nextDate == conflict.end.substring(0,10))
-                        {  
-                            const midnight = moment(conflict.start).endOf('day');                                                        
-                            schedules.push({
-                                id:conflict.shiftId? conflict.shiftId:0,
-                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                dayOffset: Number(dateIndex), 
-                                date:this.headerDates[dateIndex], 
-                                startTime:Vue.filter('beautify-time')(conflict.start), 
-                                endTime:Vue.filter('beautify-time')(midnight.format()),
-                                type:this.getConflictsType(conflict),
-                                subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
-                                workSection:this.getWorkSection(conflict).WS,
-                                workSectionColor: this.getWorkSection(conflict).color
-                            })
-                            schedules.push({
-                                id:conflict.shiftId? conflict.shiftId:0,
-                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                dayOffset: Number(dateIndex)+1, 
-                                date:moment(this.headerDates[dateIndex]).add(1,'day').format(), 
-                                startTime:'00:00', 
-                                endTime:Vue.filter('beautify-time')(conflict.end),
-                                type:this.getConflictsType(conflict),
-                                subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
-                                workSection:this.getWorkSection(conflict).WS,
-                                workSectionColor: this.getWorkSection(conflict).color
-                            })        
+                        if(date == conflict.start.substring(0,10) && date == conflict.end.substring(0,10)) {  
+
+                            if (conflict.dutySlots?.length > 0){
+
+                                const duties = this.extractDutyInfo(conflict.dutySlots);
+                                schedules.push({
+                                    id:conflict.shiftId? conflict.shiftId:0,
+                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                    dayOffset: Number(dateIndex), 
+                                    date:this.headerDates[dateIndex], 
+                                    startTime:Vue.filter('beautify-time')(conflict.start), 
+                                    endTime:Vue.filter('beautify-time')(conflict.end), 
+                                    type:this.getConflictsType(conflict),                                
+                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
+                                    duties: duties,
+                                    workSection:'',
+                                    workSectionColor: ''
+                                })  
+
+                            } else {
+
+                                schedules.push({
+                                    id:conflict.shiftId? conflict.shiftId:0,
+                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                    dayOffset: Number(dateIndex), 
+                                    date:this.headerDates[dateIndex], 
+                                    startTime:Vue.filter('beautify-time')(conflict.start), 
+                                    endTime:Vue.filter('beautify-time')(conflict.end), 
+                                    type:this.getConflictsType(conflict),                                
+                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
+                                    duties: [],
+                                    workSection: '',
+                                    workSectionColor: ''
+                                })  
+
+                            }
+
+                        } else if(date == conflict.start.substring(0,10) && nextDate == conflict.end.substring(0,10)) {  
+                            const midnight = moment(conflict.start).endOf('day');  
+                            if (conflict.dutySlots?.length > 0){
+
+                                const duties = this.extractDutyInfo(conflict.dutySlots);
+
+                                schedules.push({
+                                    id:conflict.shiftId? conflict.shiftId:0,
+                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                    dayOffset: Number(dateIndex), 
+                                    date:this.headerDates[dateIndex], 
+                                    startTime:Vue.filter('beautify-time')(conflict.start), 
+                                    endTime:Vue.filter('beautify-time')(midnight.format()),
+                                    type:this.getConflictsType(conflict),
+                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
+                                    duties: duties,
+                                    workSection: '',
+                                    workSectionColor: ''
+                                })
+
+                                schedules.push({
+                                    id:conflict.shiftId? conflict.shiftId:0,
+                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                    dayOffset: Number(dateIndex)+1, 
+                                    date:moment(this.headerDates[dateIndex]).add(1,'day').format(), 
+                                    startTime:'00:00', 
+                                    endTime:Vue.filter('beautify-time')(conflict.end),
+                                    type:this.getConflictsType(conflict),
+                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
+                                    duties: duties,
+                                    workSection: '',
+                                    workSectionColor: ''
+                                }) 
+
+                            } else {
+                                                                                
+                                schedules.push({
+                                    id:conflict.shiftId? conflict.shiftId:0,
+                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                    dayOffset: Number(dateIndex), 
+                                    date:this.headerDates[dateIndex], 
+                                    startTime:Vue.filter('beautify-time')(conflict.start), 
+                                    endTime:Vue.filter('beautify-time')(midnight.format()),
+                                    type:this.getConflictsType(conflict),
+                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
+                                    duties: [],
+                                    workSection:'',
+                                    workSectionColor: ''
+                                })
+                                schedules.push({
+                                    id:conflict.shiftId? conflict.shiftId:0,
+                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                    dayOffset: Number(dateIndex)+1, 
+                                    date:moment(this.headerDates[dateIndex]).add(1,'day').format(), 
+                                    startTime:'00:00', 
+                                    endTime:Vue.filter('beautify-time')(conflict.end),
+                                    type:this.getConflictsType(conflict),
+                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
+                                    duties: [],
+                                    workSection:'',
+                                    workSectionColor: ''
+                                })   
+                            }     
                         }                       
                     }
                 } 
@@ -643,6 +593,26 @@
             this.marginToLastPageRows = (mod==0)? '0rem' :((PAGE_ITEMS-mod)*2.1)+'rem'
         }
 
+        public extractDutyInfo(dutySlots){
+
+            const duties: distributeScheduleDutyInfoType[] = [];
+
+            for (const duty of dutySlots){
+                const dutyData = {} as distributeScheduleDutyInfoType;
+                dutyData.startTime = Vue.filter('beautify-time')(moment(duty.startDate).tz(duty.timezone).format());
+                dutyData.endTime = Vue.filter('beautify-time')(moment(duty.endDate).tz(duty.timezone).format());
+                dutyData.dutyType = (duty.assignmentLookupCode?.type)?duty.assignmentLookupCode.type:'';
+                dutyData.dutySubType = (duty.assignmentLookupCode?.code)?duty.assignmentLookupCode.code:'';
+                dutyData.dutyNotes = (duty.dutyComment)?(duty.dutyComment + ' (' +dutyData.startTime + '-' + dutyData.endTime + ')'):'';
+                dutyData.assignmentNotes = (duty.assignmentComment)?(duty.assignmentComment + ' (' +dutyData.dutySubType+ ')'):'';
+                dutyData.color = this.WSColors[duty.assignmentLookupCode.type]?this.WSColors[duty.assignmentLookupCode.type]:'';
+                duties.push(dutyData);                                            
+            }
+
+            return duties;
+
+        }
+
         public splitDailySheriffPages(){
             this.sheriffPages =[]
             const PAGE_ITEMS=16
@@ -660,49 +630,6 @@
     }
 </script>
 
-<style scoped>
-
-.container {
-    padding: 4px 4px !important; 
-    margin-right: auto !important;
-    margin-left: auto !important;
-    width: 100% !important;
-    max-width: 870px !important;
-    min-width: 870px !important;   
-    font-size: 10pt !important;
-    font-family: BCSans;
-    color: #313132 !important;
-}
-    .card {
-        border: white;
-    }
-
-    .table{
-        border: 2px solid;
-    }
-
-    .table >>> tr {
-       border: 3px solid;       
-    } 
-
-    .table >>> th {
-        border: 3px solid;
-        background-color: rgb(190, 211, 233);
-    }  
-    .table >>> td {
-        height: 2.5rem;
-        border: 3px solid;
-    }   
-
-    .dot {
-        height: 20px;
-        width: 20px;
-        background-color: black;
-        color: white;
-        padding: 0.05rem 0.3rem 0.75rem 0.35rem;
-        font-size: 0.75rem;
-        border-radius: 50%;
-        display: inline-block;
-    }
+<style scoped lang="scss" src="@/styles/_pdf.scss">
 
 </style>

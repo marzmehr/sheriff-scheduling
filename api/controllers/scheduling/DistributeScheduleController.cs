@@ -90,7 +90,7 @@ namespace SS.Api.controllers.scheduling
         {
             var pdfContent = await DistributeScheduleService.PrintService(pdfhtml.html);
 
-            var senderEmail = $"{User.FullName()} <{ User.Email()}>";
+            var senderEmail = $"{User.Email()}";
             await DistributeScheduleService.EmailService(senderEmail, pdfhtml.recipients, pdfhtml.emailSubject, pdfhtml.emailContent, pdfContent);
 
             return Ok("Email Sent.");

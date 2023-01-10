@@ -129,6 +129,7 @@ Vue.filter('printPdf', function(html, pageFooterLeft, pageFooterRight){
                 div.ss-header {
 					position: fixed;
 					top: 0in;
+                    bottom: 1.5in;
 					width:100%; 
 					display:inline-block;
 				}
@@ -143,10 +144,12 @@ Vue.filter('printPdf', function(html, pageFooterLeft, pageFooterRight){
             `@page label{font-size: 9pt;}            
             `+
             `.card {border: white;}`+
-            `.table{border: 3px solid;}`+
+            `.table{border: 3px solid;width: 100%;}`+
             `tr {border: 3px solid;}`+
             `th {border: 3px solid black;}`+
-            `td {height: 2.5rem;border: 3px solid;}`+
+            `td {height: 2.5rem;border: 3px solid; width: 6.5rem;}`+
+            `td.my-team {height: 2.5rem;border: 3px solid; width: 11rem !important;}`+
+            `td.my-notes {height: 2.5rem;border: 3px solid; width: 17rem !important;}`+
             `.bg-spl-leave {background-color: #ffee07;}`+
             `.bg-a-l-leave {background-color: #007bff;}`+
             `.bg-med-dental-leave {background-color: #fd7e14;}`+
@@ -157,7 +160,13 @@ Vue.filter('printPdf', function(html, pageFooterLeft, pageFooterRight){
             `.bg-training-leave {background-color: #b46d47;}`+
             `.bg-overtime-leave {background-color: #ced4da;}`+
             `.bg-primary {background-color: #1b4f86;}`+
-                        
+            `.dot {height: 20px; width: 20px; background-color: black;
+                color: white;
+                padding: 0.25rem 0.3rem 0.75rem 0.35rem;
+                font-size: 0.75rem;
+                border-radius: 50%;
+                display: inline-block;
+            }` +                        
             `
             body{				
                 font-family: BCSans;

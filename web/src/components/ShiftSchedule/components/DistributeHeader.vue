@@ -196,9 +196,6 @@
     import ButtonBar from './ButtonBar.vue';
     import SentEmailContent from './SentEmailContent.vue';
 
-    import { Printd } from 'printd'
-    const bootstrapCss = require('!!raw-loader!@/styles/bootstrapMIN.css').default;
-
     @Component({
         components:{        
             ButtonBar,
@@ -302,12 +299,9 @@
             const bottomRightText = `" "`;         
             const url = '/api/distributeschedule/print';            
             const pdfhtml = Vue.filter('printPdf')(el?.innerHTML, bottomLeftText, bottomRightText );
-            
+
             const body = {
-                html: pdfhtml,
-                recipients: "",
-                emailContent: "",
-                emailSubject: ""
+                html: pdfhtml               
             }
             
             const options = {
@@ -358,6 +352,7 @@
             this.showSentEmail = false;
 
             if (!requiredError){
+                this.emailContent.from = Vue.filter('capitalizefirst')(this.userDetails.firstName) + ' ' + Vue.filter('capitalizefirst')(this.userDetails.lastName);
                 this.sendEmail();
             }			
         }
@@ -365,53 +360,38 @@
         public sendEmail(){
 
             this.emailingPdf=true;
-            const el= document.getElementById("pdf");
-            // console.log(el)
+            const el= document.getElementById("pdf");            
             const bottomLeftText = `" SS ";`;
             const bottomRightText = `" "`;
-            const url = '/api/distributeschedule/print';            
-            const pdfhtml = Vue.filter('printPdf')(el?.innerHTML, bottomLeftText, bottomRightText );
-            // const pdfhtml = Vue.filter('printPdf')("<div class='row bg-danger' ><h1>Hello</h1></div>", bottomLeftText, bottomRightText );
+            const url = '/api/distributeschedule/email';            
+            const pdfhtml = Vue.filter('printPdf')(el?.innerHTML, bottomLeftText, bottomRightText );            
             const body = {
                 html: pdfhtml,
-                recipients: "",
-                emailContent: "",
-                emailSubject: ""
+                recipients: this.emailContent.to.replace(/ /g, ''),
+                emailContent: this.emailContent.body,
+                emailSubject: this.emailContent.subject
             }
             
-            const options = {
-                responseType: "blob",
+            const options = {                
                 headers: {
                 "Content-Type": "application/json",
                 }
             }  
+
             this.$http.post(url,body, options)
-            .then(res => { 
-                const blob = res.data;
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                document.body.appendChild(link);
-                link.download = "SS.pdf";
-                link.click();
-                setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-                // const reader = new FileReader();
-                // reader.readAsText(res.data)
-                // reader.onload = ()=> {
-                // 	this.emailContent=JSON.parse(String(reader.result))
-                // 	console.log(this.emailContent)
-                // 	this.showSentEmail = true
-                // }
-                this.emailingPdf=false;				
+            .then(res => {
                 
-                this.showEmailWindow=false 
+                if (res.status == 200){
+                    this.emailingPdf=false;
+                    this.showEmailWindow=false; 
+                    this.showSentEmail = true;
+                }
+                
             },err => {
-                // console.error(err);
-                this.showEmailWindow=false
-                this.emailingPdf=false 
-                // const reader = new FileReader();
-                // reader.readAsText(err.response.data)
-                // reader.onload = ()=> this.errorMsg = JSON.parse(String(reader.result))["detail"];
-                // Vue.filter('scrollToLocation')('alert-msg')                   
+                console.error(err);
+                this.showEmailWindow=false;
+                this.emailingPdf=false;    
+                this.showSentEmail = false;                            
             });
 
         }
@@ -446,7 +426,11 @@
 
             let dailyDateRange = {} as  shiftRangeInfoType;
             
-            dailyDateRange = {startDate: moment(this.selectedDate).startOf('day').format(), endDate: moment(this.selectedDate).endOf('day').format()}
+            dailyDateRange = {
+                startDate: moment(this.selectedDate).startOf('day').format().substring(0,10), 
+                endDate: moment(this.selectedDate).endOf('day').format().substring(0,10)
+            }
+
             this.UpdateDailyShiftRangeInfo(dailyDateRange);
                         
             this.getSchedule(); 
@@ -457,19 +441,19 @@
 <style scoped>
 
     .card {
-                border: white;
-        }
+            border: white;
+    }
 
     .custom-navbar {
-            float:none;
-            margin:0 auto 0 auto;
-            display: block;
-            text-align: center;
+        float:none;
+        margin:0 auto 0 auto;
+        display: block;
+        text-align: center;
     }
 
     .custom-navbar > li {
-            display: inline-block;
-            float:none;
+        display: inline-block;
+        float:none;
     }
 
     .recipientList /deep/ .dropdown-menu {

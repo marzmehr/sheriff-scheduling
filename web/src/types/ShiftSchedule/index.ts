@@ -132,7 +132,7 @@ export interface distributeScheduleInfoType {
     homeLocation: string;
     rank: string;
     badgeNumber: string;
-    actingRank: actingRankJsontype[];
+    actingRank: actingRankJsontype[];    
 }
 
 export interface scheduleInfoType {
@@ -143,9 +143,20 @@ export interface scheduleInfoType {
     startTime:string;
     endTime:string;
     type: string;
-    subType?: string;
+    subType?: string;    
+    duties?: distributeScheduleDutyInfoType[];
     workSection: string; 
     workSectionColor: string;
+}
+
+export interface distributeScheduleDutyInfoType {    
+    startTime?: string;
+    endTime?: string;
+    dutyType: string;
+    dutySubType: string;
+    color: string;
+    dutyNotes?: string; 
+    assignmentNotes?: string;   
 }
 
 export interface actingRankInfoType {    
