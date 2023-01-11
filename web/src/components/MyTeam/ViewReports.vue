@@ -340,8 +340,21 @@
                 headers: ['Name', 'Training Type', 'Start Date', 'End Date', 'Expiry Date']
             };
 
+            const reportData: trainingReportInfoType[] = [];
+
+            for (const trainingData of this.trainingReportData){
+
+                const trainingInfo = {} as trainingReportInfoType;
+                trainingInfo.name = trainingData.name;
+                trainingInfo.trainingType = trainingData.trainingType;
+                trainingInfo.start = trainingData.start?.length>0?Vue.filter('beautify-date')(trainingData.start):'';
+                trainingInfo.end = trainingData.end?.length>0?Vue.filter('beautify-date')(trainingData.end):'';
+                trainingInfo.expiryDate = trainingData.expiryDate?.length>0?Vue.filter('beautify-date')(trainingData.expiryDate):''; 
+                reportData.push(trainingInfo)                
+            }
+
             const csvExporter = new ExportToCsv(options);
-            csvExporter.generateCsv(this.trainingReportData);
+            csvExporter.generateCsv(reportData);
             this.generatingReport = false;
         }
 
