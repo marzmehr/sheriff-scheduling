@@ -411,9 +411,16 @@
         }
 
         public getDutyName(){
-            if (this.dutyRosterInfo)
-                return Vue.filter('capitalize')(this.dutyRosterInfo.type.name +' - '+this.dutyRosterInfo.code) +' ('+this.dutyRosterInfo.name+')'; 
-            else return '';
+
+            let assignmentName = '';
+            if (this.dutyRosterInfo){                
+                if (this.dutyRosterInfo.name){
+                    assignmentName = Vue.filter('capitalize')(this.dutyRosterInfo.code) +' ('+this.dutyRosterInfo.name+')';
+                } else {
+                    assignmentName = Vue.filter('capitalize')(this.dutyRosterInfo.code);
+                }                
+            } 
+            return assignmentName;
         }
 
         
