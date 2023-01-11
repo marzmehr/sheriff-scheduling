@@ -1,11 +1,18 @@
 export interface locationInfoType {
     name: string;
     id: number;
-    regionId: number| null;
+    regionId: number| string| null;
     agencyId?: string;
     concurrencyToken?: number;
     justinCode?: string;
     timezone: string;
+}
+
+export interface regionInfoType {
+    name: string;
+    id: string;
+    concurrencyToken?: number;
+    justinId?: number;
 }
 
 export interface leaveInfoType {
@@ -48,6 +55,8 @@ export interface reportInfoType {
     startDate: string;
     endDate: string;
     reportType: string;
+    reportSubtype: string;
+    region: string;
     location: string;
     sheriffName: string;
 }

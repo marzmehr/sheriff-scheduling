@@ -1,4 +1,4 @@
-import {localTimeInfoType, commonInfoType, locationInfoType, userInfoType} from '../../types/common';
+import {localTimeInfoType, commonInfoType, locationInfoType, userInfoType, regionInfoType} from '../../types/common';
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 
 
@@ -9,7 +9,9 @@ class CommonInformation extends VuexModule {
 
   public commonInfo: commonInfoType = {sheriffRankList: []};
 
-  public location: locationInfoType = {name: '', id: 0, regionId:0, timezone:''};
+  public regionList: regionInfoType[] = [];
+
+  public location: locationInfoType = {name: '', id: 0, regionId:0, timezone:''};  
 
   public locationList: locationInfoType[] = [];
 
@@ -67,6 +69,16 @@ class CommonInformation extends VuexModule {
   public UpdateCommonInfo(newCommonInfo): void {
     this.context.commit('setCommonInfo', newCommonInfo)
   } 
+
+  @Mutation
+  public setRegionList(regionList): void {   
+    this.regionList = regionList
+  }
+
+  @Action
+  public UpdateRegionList(newRegionList): void {
+    this.context.commit('setRegionList', newRegionList)
+  }
 
   @Mutation
   public setLocationList(locationList): void {   

@@ -1,5 +1,5 @@
 <template>
-    <b-card bg-variant="white">
+    <b-card v-if="dataReady" bg-variant="white">
         <b-row>
             <b-col cols="12">
                 <page-header pageHeaderText="Reports"></page-header>
@@ -39,6 +39,24 @@
                 </b-col> -->
                 <b-col>
                     <b-form-group style="margin: 0.05rem 0 0 0.5rem; height: 2rem;">
+                        <label class="h4 mb-2 p-0 float-left">Region</label> 
+                        <b-form-select                                                                                                           
+                            v-model="reportParameters.region"
+                            @change="updateRegion()">
+                            <b-form-select-option value="All">
+                                All Regions
+                            </b-form-select-option>							
+                            <b-form-select-option
+                                v-for="homeRegion in regionList" 
+                                :key="homeRegion.id"
+                                :value="homeRegion.id">
+                                    {{homeRegion.name}}
+                            </b-form-select-option>    
+                        </b-form-select>
+                    </b-form-group>
+                </b-col>
+                <b-col>
+                    <b-form-group :key="updateRegionId" style="margin: 0.05rem 0 0 0.5rem; height: 2rem;">
                         <label class="h4 mb-2 p-0 float-left">Location</label> 
                         <b-form-select                                                                                                           
                             v-model="reportParameters.location">
@@ -46,7 +64,7 @@
                                 All Locations
                             </b-form-select-option>							
                             <b-form-select-option
-                                v-for="homelocation in locationList" 
+                                v-for="homelocation in locationOptionsList" 
                                 :key="homelocation.id"
                                 :value="homelocation.id">
                                     {{homelocation.name}}
@@ -66,6 +84,31 @@
                                     :key="reportType"
                                     :value="reportType">
                                         {{reportType}}
+                                </b-form-select-option>     
+                        </b-form-select>
+                    </b-form-group>
+                </b-col>
+            </b-row>
+            <b-row v-if="reportParameters.reportType && reportParameters.reportType == 'Training'"  class="ml-1 mt-3">
+                <b-col>                    
+                </b-col> 
+                <b-col>                    
+                </b-col>   
+                <b-col>
+                    <b-form-group style="margin: 0.05rem 0 0 0.5rem;"> 
+                        <label class="h4 mb-2 p-0 float-left"> Training Type: </label>
+                        <b-form-select                          
+                            v-model="reportParameters.reportSubtype"
+                            :state = "reportSubTypeState?null:false">
+                                <b-form-select-option value="All">
+                                    All Training Types
+                                </b-form-select-option>
+                                <b-form-select-option
+                                    state=true
+                                    v-for="trainingType in trainingTypeOptions" 
+                                    :key="trainingType.id"
+                                    :value="trainingType.id">
+                                        {{trainingType.code}}
                                 </b-form-select-option>     
                         </b-form-select>
                     </b-form-group>
@@ -98,10 +141,14 @@
 
             <b-table            
                 :items="trainingReportData"
-                :fields="trainingFields"            
+                :fields="trainingFields"     
+                sort-by="start"       
                 bordered            
                 small 
                 responsive="sm">
+                <template v-slot:cell(start) ="data">{{data.value | beautify-date}}</template>
+                <template v-slot:cell(end) ="data">{{data.value | beautify-date}}</template>
+                <template v-slot:cell(expiryDate) ="data">{{data.value | beautify-date}}</template>
             </b-table>
 
             <b-row class="mt-5">
@@ -135,8 +182,9 @@
     const commonState = namespace("CommonInformation");      
     import PageHeader from "@components/common/PageHeader.vue";
     import Spinner from "@components/Spinner.vue";
-    import {reportInfoType, locationInfoType} from '../../types/common';
+    import {reportInfoType, locationInfoType, regionInfoType} from '../../types/common';
     import { trainingReportInfoType } from '@/types/MyTeam';
+    import { leaveTrainingTypeInfoType } from '@/types/ManageTypes';
 
     @Component({
         components: {
@@ -149,39 +197,55 @@
         @commonState.State
         public locationList!: locationInfoType[]; 
 
+        @commonState.State
+        public regionList!: regionInfoType[]; 
+
+        dataReady = false;
         dataLoaded = false;    
         error = '';
-        updated = 0;
+        updateRegionId = 0;
         printReady = false;
-        reportParameters = {location: 'All'} as reportInfoType;        
+        reportParameters = {region: 'All', location: 'All', reportSubtype: 'All'} as reportInfoType;        
         trainingReportData: trainingReportInfoType[] = []
         searching = false;
         generatingReport = false;
         reportTypeOptions = ['Training']
         reportTypeState = true;        
+        trainingTypeOptions: leaveTrainingTypeInfoType[] = [];
+        reportSubTypeState = true; 
+
+        locationOptionsList: locationInfoType[] = []; 
 
         trainingFields = [
-            {key:"name",         label:"Name",                      thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center'},
-            {key:"trainingType", label:"Training Type",             thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center'},
-            {key:"start",        label:"Start",                     thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center'},
-            {key:"end",          label:"End",                       thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center'},
-            {key:"expiryDate",   label:"Certification Expiry Date", thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center'}            
+            {key:"name",         label:"Name",                      thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true},
+            {key:"trainingType", label:"Training Type",             thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true},
+            {key:"start",        label:"Start",                     thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true},
+            {key:"end",          label:"End",                       thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true},
+            {key:"expiryDate",   label:"Certification Expiry Date", thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true}            
         ];
         
         mounted() {   
-            this.trainingReportData = [];      
-            this.reportParameters.location = 'All';     
-            this.searching = false;
-            this.dataLoaded = false;    
+            this.dataReady = false;
+            this.trainingReportData = [];  
+            this.reportParameters.region = 'All';     
+            this.reportParameters.location = 'All';  
+            this.reportParameters.reportSubtype = 'All';   
+            this.searching = false;              
+            this.dataLoaded = false;            
             this.generatingReport = false;     
+            this.locationOptionsList = this.locationList;
+            this.getTrainingTypes();
         }
         
         public find(){ 
 
             this.trainingReportData = [];
             this.reportTypeState = true;
+            this.reportSubTypeState = true;
             if (!this.reportParameters.reportType){
                 this.reportTypeState = false;
+            } else if (!this.reportParameters.reportSubtype){
+                this.reportSubTypeState = false;
             } else {
 
                 this.dataLoaded = false;
@@ -203,39 +267,58 @@
         public extractData(data){ 
 
             if (this.reportParameters.reportType == 'Training'){
-                this.gathertrainingReportData(data)
+                this.gatherTrainingReportData(data)
             }             
         }
 
-        public gathertrainingReportData(data: any[]){
+        public updateRegion(){
+            
+            if (this.reportParameters.region != 'All'){
+                this.locationOptionsList = this.locationList.filter(location=>{if(location.regionId == this.reportParameters.region)return true;});                
+            } else {
+                this.locationOptionsList = this.locationList;
+            }
+            this.updateRegionId ++; 
+        }
 
-            let reportInfo: any[] = [];            
+        public gatherTrainingReportData(data: any[]){
+
+            let reportInfo: any[] = [];               
             
             if (this.reportParameters.location && this.reportParameters.location != 'All'){
-                reportInfo = data.filter(sheriff=>(sheriff.homeLocationId == this.reportParameters.location))
+                reportInfo = data.filter(sheriff=>(sheriff.homeLocationId == this.reportParameters.location));               
+                
             } else {
-                reportInfo = data;
+                reportInfo = data.filter(sheriff=>(this.locationOptionsList.some(location => sheriff.homeLocationId == location.id)))
             }
 
             for (const sheriffData of reportInfo){
 
                 if (sheriffData.training){
                     for (const trainingData of sheriffData.training){
-
-                        const trainingInfo = {} as trainingReportInfoType;
-                        trainingInfo.name = sheriffData.firstName + ' ' + sheriffData.lastName;
-                        trainingInfo.trainingType = trainingData.trainingType.description;
-                        const timezone = trainingData.timezone?trainingData.timezone:'America/Vancouver';
-                        trainingInfo.start = Vue.filter('beautify-date-time')(moment(trainingData.startDate).tz(timezone).format());
-                        trainingInfo.end = Vue.filter('beautify-date-time')(moment(trainingData.endDate).tz(timezone).format());
-                        trainingInfo.expiryDate = trainingData.trainingCertificationExpiry?Vue.filter('beautify-date-time')(moment(trainingData.trainingCertificationExpiry).tz(timezone).format()):'';
-                        this.trainingReportData.push(trainingInfo);
+                        if (this.reportParameters.reportSubtype != 'All' && this.reportParameters.reportSubtype == trainingData.trainingType.id){
+                            this.addTrainingToReport(sheriffData, trainingData);
+                        } else if (this.reportParameters.reportSubtype == 'All') {
+                            this.addTrainingToReport(sheriffData, trainingData);
+                        }
                     }
                 }
             } 
             
             this.searching = false;
             this.dataLoaded = true;            
+        }
+
+        public addTrainingToReport(sheriffData, trainingData){
+
+            const trainingInfo = {} as trainingReportInfoType;
+            trainingInfo.name = sheriffData.firstName + ' ' + sheriffData.lastName;
+            trainingInfo.trainingType = trainingData.trainingType.description;
+            const timezone = trainingData.timezone?trainingData.timezone:'America/Vancouver';
+            trainingInfo.start = moment(trainingData.startDate).tz(timezone).format();
+            trainingInfo.end = moment(trainingData.endDate).tz(timezone).format();
+            trainingInfo.expiryDate = trainingData.trainingCertificationExpiry?moment(trainingData.trainingCertificationExpiry).tz(timezone).format():'';
+            this.trainingReportData.push(trainingInfo);
         }
 
         public downloadReport(){ 
@@ -257,9 +340,62 @@
                 headers: ['Name', 'Training Type', 'Start Date', 'End Date', 'Expiry Date']
             };
 
+            const reportData: trainingReportInfoType[] = [];
+
+            for (const trainingData of this.trainingReportData){
+
+                const trainingInfo = {} as trainingReportInfoType;
+                trainingInfo.name = trainingData.name;
+                trainingInfo.trainingType = trainingData.trainingType;
+                trainingInfo.start = trainingData.start?.length>0?Vue.filter('beautify-date')(trainingData.start):'';
+                trainingInfo.end = trainingData.end?.length>0?Vue.filter('beautify-date')(trainingData.end):'';
+                trainingInfo.expiryDate = trainingData.expiryDate?.length>0?Vue.filter('beautify-date')(trainingData.expiryDate):''; 
+                reportData.push(trainingInfo)                
+            }
+
             const csvExporter = new ExportToCsv(options);
-            csvExporter.generateCsv(this.trainingReportData);
+            csvExporter.generateCsv(reportData);
             this.generatingReport = false;
+        }
+
+        public getTrainingTypes() {                      
+                
+            const url = 'api/managetypes?codeType=TrainingType&showExpired=false';
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        this.extractTrainingTypes(response.data);                        
+                    }
+                   
+                },err => {
+                    console.log(err.response)
+                    this.dataLoaded = true; 
+                }) 
+                  
+        }
+
+        public extractTrainingTypes(trainingTypesJson) {
+
+            this.trainingTypeOptions = [];
+            let sortIndex = trainingTypesJson.length? 5000+trainingTypesJson.length : 0;
+            for(const trainingJson of trainingTypesJson)
+            {                
+                const leaveTraining = {} as leaveTrainingTypeInfoType;
+                leaveTraining.id = trainingJson.id;
+                leaveTraining.code = trainingJson.code;
+                
+                leaveTraining['_rowVariant'] = '';
+                let sortOrderOffset = 0;
+                if(trainingJson.expiryDate){
+                    leaveTraining['_rowVariant'] = 'info';
+                    sortOrderOffset = 10000;
+                }
+                leaveTraining.sortOrder = trainingJson.sortOrderForLocation?trainingJson.sortOrderForLocation.sortOrder:(sortOrderOffset+sortIndex++);
+                leaveTraining.type = trainingJson.type;
+                this.trainingTypeOptions.push(leaveTraining)                
+            }
+            this.dataReady = true;
+           
         }
 
 }
