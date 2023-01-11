@@ -294,7 +294,7 @@
 
             for (const sheriffData of reportInfo){
 
-                if (sheriffData.training){
+                if (sheriffData.training && sheriffData.isEnabled){
                     for (const trainingData of sheriffData.training){
                         if (this.reportParameters.reportSubtype != 'All' && this.reportParameters.reportSubtype == trainingData.trainingType.id){
                             this.addTrainingToReport(sheriffData, trainingData);
