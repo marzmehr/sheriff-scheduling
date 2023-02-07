@@ -62,7 +62,7 @@
                             <b-form-select-option :value="{sheriffId: '', name: 'All', email: ''}">All</b-form-select-option>
                             <b-form-select-option
                                 v-for="member in teamMemberList"
-                                :key="member.id"                  
+                                :key="member.sheriffId"                  
                                 :value="member">{{member.name}}
                             </b-form-select-option>                  
                         </b-form-select>
@@ -129,7 +129,7 @@
                                 v-model="recipients">
                                 <b-form-checkbox
                                     v-for="member in teamMemberList"
-                                    :key="member.id"                  
+                                    :key="member.sheriffId"                  
                                     :value="member.email">{{member.name}}								
                                 </b-form-checkbox>
                             </b-form-checkbox-group>
@@ -190,8 +190,8 @@
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
-    import { distributeTeamMemberInfoType, sentEmailContentInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
-    import { locationInfoType, userInfoType } from '../../../types/common';
+    import { distributeTeamMemberInfoType, sentEmailContentInfoType, shiftRangeInfoType } from '@/types/ShiftSchedule';
+    import { locationInfoType, userInfoType } from '@/types/common';
 
     import ButtonBar from './ButtonBar.vue';
     import SentEmailContent from './SentEmailContent.vue';

@@ -68,19 +68,24 @@
 
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
-    import { namespace } from 'vuex-class'
+    import { namespace } from 'vuex-class';
+    import moment from 'moment-timezone';
+    import * as _ from 'underscore';
+
     import DistributeHeader from './components/DistributeHeader.vue';
     import DailySchedule from './components/DailySchedule.vue';
     import WeeklySchedule from './components/WeeklySchedule.vue';
+
     import "@store/modules/ShiftScheduleInformation";   
     const shiftState = namespace("ShiftScheduleInformation");
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");    
-    import { locationInfoType } from '../../types/common';
-    import { shiftRangeInfoType, scheduleInfoType, weekScheduleInfoType, distributeScheduleInfoType, distributeTeamMemberInfoType, sheriffPagesInfoType, distributeScheduleDutyInfoType } from '../../types/ShiftSchedule/index'
-    import { sheriffsAvailabilityJsonType, conflictJsonType } from '../../types/ShiftSchedule/jsonTypes';
-    import moment from 'moment-timezone';
-    import * as _ from 'underscore';
+
+    import { locationInfoType } from '@/types/common';
+    import { shiftRangeInfoType, scheduleInfoType, weekScheduleInfoType, distributeScheduleInfoType, distributeTeamMemberInfoType, sheriffPagesInfoType, distributeScheduleDutyInfoType } from '@/types/ShiftSchedule/index'
+    import { sheriffsAvailabilityJsonType, conflictJsonType } from '@/types/ShiftSchedule/jsonTypes';
+
     import {srcFile} from "./components/Logo";
 
     @Component({

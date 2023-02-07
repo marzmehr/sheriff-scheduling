@@ -57,8 +57,7 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import moment from 'moment-timezone';
-    import { conflictsInfoType } from '../../../types/ShiftSchedule';
+    import { conflictsInfoType } from '@/types/ShiftSchedule';
 
     @Component
     export default class ConflictsIcon extends Vue {        

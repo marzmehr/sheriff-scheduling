@@ -142,15 +142,18 @@
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
     import moment from 'moment-timezone';
+    import * as _ from 'underscore';
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
     import "@store/modules/ManageTypesInformation";
     const manageTypesState = namespace("ManageTypesInformation");
+
     import PageHeader from "@components/common/PageHeader.vue"; 
-    import AddLeaveTrainingForm from "../ManageTypes/AddLeaveTrainingForm.vue"
-    import {locationInfoType, userInfoType} from '../../types/common'; 
-    import {leaveTrainingTypeInfoType}  from '../../types/ManageTypes/index'
-    import * as _ from 'underscore';
+    import AddLeaveTrainingForm from "../ManageTypes/AddLeaveTrainingForm.vue";
+    import {locationInfoType, userInfoType} from '@/types/common'; 
+    import {leaveTrainingTypeInfoType}  from '@/types/ManageTypes/index';
+
     import sortLeaveTrainingType from './utils/sortLeaveTrainingType';
     
     @Component({

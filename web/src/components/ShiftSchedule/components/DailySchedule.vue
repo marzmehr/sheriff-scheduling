@@ -133,14 +133,14 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import { namespace } from 'vuex-class'
+    import { namespace } from 'vuex-class';
+    import * as _ from 'underscore';
 
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");    
-    import { locationInfoType } from '../../../types/common';
-    import { distributeScheduleInfoType, distributeTeamMemberInfoType } from '../../../types/ShiftSchedule/index';
-   
-    import * as _ from 'underscore';
+
+    import { locationInfoType } from '@/types/common';
+    import { distributeScheduleInfoType, distributeTeamMemberInfoType } from '@/types/ShiftSchedule/index';       
 
     @Component
     export default class DailySchedule extends Vue {

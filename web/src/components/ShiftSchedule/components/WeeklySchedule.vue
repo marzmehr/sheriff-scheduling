@@ -117,12 +117,13 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
-    import "@store/modules/CommonInformation";
-    const commonState = namespace("CommonInformation");    
-    import { locationInfoType } from '../../../types/common';
-    import { weekScheduleInfoType } from '../../../types/ShiftSchedule/index'
-
     import * as _ from 'underscore';
+
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");   
+
+    import { locationInfoType } from '@/types/common';
+    import { weekScheduleInfoType } from '@/types/ShiftSchedule/index';    
 
     @Component
     export default class WeeklySchedule extends Vue {

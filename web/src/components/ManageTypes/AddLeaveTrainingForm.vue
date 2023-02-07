@@ -72,10 +72,11 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {leaveTrainingTypeInfoType}  from '../../types/ManageTypes/index';
-    import {locationInfoType} from '../../types/common'; 
-    
     import { namespace } from 'vuex-class';
+    
+    import {leaveTrainingTypeInfoType}  from '@/types/ManageTypes/index';
+    import {locationInfoType} from '@/types/common';     
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
