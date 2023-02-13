@@ -30,7 +30,7 @@
 
         <loading-spinner v-if= "!isLeaveTrainingDataMounted" />
 
-        <b-card v-else no-body style="width: 50rem; margin: 0 auto 8rem auto">                                        
+        <b-card v-else no-body style="width: 85%; margin: 0 auto 8rem auto">                                        
             <b-card id="LeaveTrainingError" no-body>
                 <h2 v-if="leaveTrainingError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="leaveTrainingErrorMsgDesc"  variant="danger"> {{leaveTrainingErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveTrainingError = false" /></b-badge></h2>
             </b-card>
@@ -46,15 +46,15 @@
             </div>
 
             <div>
-                <b-card no-body border-variant="white" bg-variant="white" v-if="!leaveTrainingList.length" style="width: 50rem; margin: 0 auto 8rem auto">
+                <b-card no-body border-variant="white" bg-variant="white" v-if="!leaveTrainingList.length" style="margin: 0 auto 8rem auto">
                     <span class="text-muted ml-4 my-5">No {{selectedLeaveTrainingType.label}}s exist.</span>
                 </b-card>
 
-                <b-card v-else  no-body border-variant="light" bg-variant="white" style="width: 50rem; margin: 0 auto 8rem auto">
+                <b-card v-else  no-body border-variant="light" bg-variant="white" style="margin: 0 auto 8rem auto">
                     <b-table
                         :key="updateTable"
                         :items="leaveTrainingList"
-                        :fields="fields"                        
+                        :fields="selectedLeaveTrainingType.label == 'Training'?trainingFields:leaveFields"                        
                         sort-icon-left
                         head-row-variant="primary"
                         :striped="!expiredViewChecked"
@@ -65,6 +65,9 @@
 
                             <template v-slot:table-colgroup>
                                 <col style="width:4rem">
+                                <col>
+                                <col>
+                                <col>
                                 <col>
                                 <col style="width:6rem">
                             </template>
@@ -214,11 +217,19 @@
             {name:'TrainingType', label:'Training'}
         ]
 
-        fields =  
-        [     
+        leaveFields = [     
             {key:'sortOrder', label:'', sortable:false, tdClass: 'border-top' },       
-            {key:'code', label:'', sortable:false, tdClass: 'border-top'  },
+            {key:'code', label:'Leave', sortable:false, tdClass: 'border-top'  },
             {key:'edit', label:'',  sortable:false, tdClass: 'border-top', thClass:'',},       
+        ];
+
+        trainingFields = [     
+            {key:'sortOrder',      label:'',                sortable:false, tdClass: 'border-top' },       
+            {key:'code',           label:'Training',        sortable:false, tdClass: 'border-top'  },
+            {key:'frequency',      label:'Frequency',       sortable:false, tdClass: 'border-top'  },
+            {key:'trainingType',   label:'Training Type',   sortable:false, tdClass: 'border-top'  },
+            {key:'deliveryMethod', label:'Delivery Method', sortable:false, tdClass: 'border-top'  },
+            {key:'edit',           label:'',                sortable:false, tdClass: 'border-top', thClass:'',},       
         ];
 
         @Watch('sortingLeaveTrainingInfo', { immediate: true })
