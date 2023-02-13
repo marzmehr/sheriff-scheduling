@@ -16,6 +16,7 @@ export interface myTeamShiftInfoType {
     firstName: string;
     lastName: string;
     rank: string;
+    rankOrder?: number;
     availability: number[];
     duties: number[];
     dutiesDetail: dutiesDetailInfoType[];
@@ -70,7 +71,8 @@ export interface assignmentCardInfoType {
     code: string;
     name: string;
     totalFTE: number;
-    type: assignmentCardTypeInfoType;    
+    type: assignmentCardTypeInfoType;
+    fullname?: string;    
 }
 
 export interface assignmentCardWeekInfoType {
@@ -174,6 +176,7 @@ export interface dutyBlockInfoType {
     shiftId: number|null;
     dutySlotId: number|null;
     note: string;
+    border: string;
 }
 
 export interface viewDutyInfoType {       
@@ -214,6 +217,7 @@ export interface dutyBlockWeekInfoType {
     borderLeft: string;
     borderRight: string;
     comment: string;
+    border: string;
 }
 
 export interface assignDutySlotsInfoType{
@@ -221,4 +225,15 @@ export interface assignDutySlotsInfoType{
     endDate: string;
     isOvertime:boolean;
     dutySlotId: number|null;    
+}
+
+export interface selectedDutyCardInfoType {
+    blockId: string;
+    assignment: string;
+    dutyBlock?: dutyBlockWeekInfoType[];   
+}
+
+export interface allEditingDutySlotsInfoType{
+    selectedDuty: null | assignmentCardInfoType;
+    editedDutySlot:  assignDutySlotsInfoType;    
 }

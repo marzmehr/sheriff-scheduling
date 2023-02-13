@@ -18,7 +18,7 @@
     import NavigationFooter from "@components/NavigationFooter.vue";
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
-    import {commonInfoType, locationInfoType, sheriffRankInfoType, userInfoType} from './types/common';
+    import {commonInfoType, locationInfoType, sheriffRankInfoType, userInfoType, regionInfoType} from './types/common';
     import {sheriffRankJsonType} from './types/common/jsonTypes'
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
@@ -51,6 +51,9 @@
 
         @commonState.Action
         public UpdateUser!: (newUser: userInfoType) => void
+
+        @commonState.Action
+        public UpdateRegionList!: (newRegionList: regionInfoType[]) => void
 
         @commonState.State
         public locationList!: locationInfoType[];
@@ -128,6 +131,7 @@
                             if(this.$route.name == 'Home')
                                 this.$router.push({path:'/manage-duty-roster'})
                         }
+                        this.getRegions();
                     }                   
                 },err => {
                     this.errorText = err + '  - ' + moment().format();
@@ -165,6 +169,21 @@
                     
                 })  
         }
+
+        public getRegions() {
+            const url = 'api/region'
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        this.extractRegionInfo(response.data);                        
+                    }                   
+                },err => {
+                    this.errorText = err + '  - ' + moment().format();
+                    if (this.errorText.indexOf('401') == -1) {                        
+                        this.displayError = true;
+                    }                    
+                }) 
+        }
         
         public getLocations() {
             const url = 'api/location'
@@ -193,6 +212,21 @@
             } else {
                 this.UpdateLocationList(_.sortBy(locations,'name'));
             }                       
+            
+        }
+
+        public extractRegionInfo(regionListJson){ 
+                      
+            const regions: regionInfoType[] = regionListJson.filter(region=>(region.justinId > 0)); 
+            // for(const regionJson of regionListJson){                
+            //     const regionInfo: regionInfoType = {
+            //         id: regionJson.id, 
+            //         name: regionJson.name, regionId: regionJson.regionId, timezone: locationJson.timezone}
+            //     regions.push(regionInfo)
+            // }
+            
+            this.UpdateRegionList(_.sortBy(regions,'name'));
+                                  
             
         }
         

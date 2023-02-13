@@ -5,12 +5,31 @@
 				<b-navbar-nav>
 					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal">Duty Roster</h3>
 				</b-navbar-nav>
+				<b-navbar-nav v-if="activetab =='Day'">
+					<b-tabs nav-wrapper-class = "bg-primary text-dark"
+							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
+							pills							
+							no-body
+							class="mx-3"> 
+						<b-tab 
+							v-for="(tabMapping, index) in tabsMyTeamToggle" 
+							:key="'toggle-myteam-'+index"                 
+							:title="tabMapping"
+							v-on:click="tabMyTeamChanged(tabMapping)" 
+							v-bind:class="[ activeMyTeamTab === tabMapping ? 'active p-0 my-0' : 'p-0 my-0' ]"
+							/>
+					</b-tabs>
+				</b-navbar-nav>
+				<b-navbar-nav>
+					<b-button class="mr-1 text-white" @click="zoomInOut(10)" variant="transparant"><b-icon-zoom-in /></b-button>
+					<b-button class="text-white" @click="zoomInOut(-10)" variant="transparant"><b-icon-zoom-out /></b-button>
+				</b-navbar-nav>
 				<b-navbar-nav v-if="activetab!='Day'">
 					<h3 style="width:8rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal"></h3>
 				</b-navbar-nav>
-				<b-navbar-nav class="custom-navbar">
-                    <b-col>
-                        <b-row  :style="activetab=='Day'?'width:17.5rem':'width:25rem'">
+				<b-navbar-nav :class="{'custom-navbar':true, 'full-view':sheriffFullview}">
+                    <b-col class="my-1">
+                        <b-row :style="activetab=='Day'?'width:17.75rem':'width:25.6rem'">
                             <b-button style=" height: 2rem;" size="sm" variant="secondary" @click="previousDateRange" class="my-0 mx-1"><b-icon-chevron-left /></b-button>
                             
 							<div v-if="activetab=='Day'" class="m-0 bg-white" style="padding:0.2rem 0.52rem; border-radius:3px; font-weight:bold;">{{selectedDate|beautify-date-weekday}}</div>
@@ -42,14 +61,14 @@
 							class="mx-3">
 						<b-tab 
 							v-for="(tabMapping, index) in tabs12h24h" 
-							:key="index"                 
+							:key="'tab-24h-'+index"                 
 							:title="tabMapping"
 							v-on:click="tab12h24hChanged(tabMapping)" 
 							v-bind:class="[ active24htab === tabMapping ? 'active p-0 my-0' : 'p-0 my-0' ]"
 							/>
 					</b-tabs>
 				</b-navbar-nav>
-				<b-navbar-nav >
+				<b-navbar-nav v-if="!sheriffFullview">
 					<b-tabs nav-wrapper-class = "bg-primary text-dark my-1 p-0"
 							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
 							pills							
@@ -57,12 +76,24 @@
 							class="mx-3">
 						<b-tab 
 							v-for="(tabMapping, index) in tabs" 
-							:key="index"                 
+							:key="'tab-day'+index"                 
 							:title="tabMapping"                 
 							v-on:click="tabChanged(tabMapping)" 
 							v-bind:class="[ activetab === tabMapping ? 'active p-0 my-0' : 'p-0 my-0' ]"
 							/>
 					</b-tabs>
+				</b-navbar-nav>
+				<b-navbar-nav v-if="sheriffFullview">
+					<b-button
+						v-b-tooltip.hover.noninteractive
+						title="Print Sheriff Duties"							
+						style="max-height: 40px;" 
+						size="sm"
+						variant="white"						
+						@click="printSheriffDuties()" 
+						class="my-1 mr-3">
+						<b-icon icon="printer-fill" font-scale="2.0" variant="white"/>
+					</b-button>						
 				</b-navbar-nav>
 			</b-navbar>
 		</header>
@@ -336,6 +367,24 @@
 
 		@commonState.State
 		public userDetails!: userInfoType;
+
+		@dutyState.State
+        public sheriffFullview!: boolean;
+		
+		@dutyState.Action
+        public UpdateDisplayFuelGauge!: (newDisplayFuelGauge: boolean) => void
+        
+        @dutyState.Action
+        public UpdateSheriffFullview!: (newSheriffFullview) => void
+
+		@dutyState.Action
+        public UpdatePrintSheriffFullview!: (newPrintSheriffFullview: boolean) => void;
+
+		@dutyState.State
+        public zoomLevel!: number;
+
+		@dutyState.Action
+		public UpdateZoomLevel!: (newZoomLevel: number) => void;
 		
 		@Prop({required: true})
 		runMethod!: any
@@ -345,6 +394,9 @@
 
 		activetab = 'Day';
 		tabs =['Day', 'Week']
+
+		activeMyTeamTab = 'Assignments View'
+		tabsMyTeamToggle = ['Assignments View', 'My Team View']
 		
 		selectedDate = '';
 		selectedDateBegin = '';
@@ -396,7 +448,7 @@
 			{name:'CourtRoom', label:'Court Room'},
 			{name:'CourtRole', label:'Court Assignment'},
 			{name:'JailRole', label:'Jail Assignment'},
-			{name:'EscortRun', label:'Escort Assignment'},
+			{name:'EscortRun', label:'Transport Assignment'},
 			{name:'OtherAssignment', label:'Other Assignment'}
 		]
 
@@ -724,6 +776,17 @@
 			this.$emit('change',this.activetab);			
 		}
 
+		public tabMyTeamChanged(tabInfo){
+			this.activeMyTeamTab = tabInfo;
+			if(tabInfo == this.tabsMyTeamToggle[0]){                
+                this.UpdateSheriffFullview(false)
+			}			
+			else{
+                this.UpdateSheriffFullview(true)
+				this.UpdateDisplayFuelGauge(false)
+			}			
+		}
+
         
         public dateChanged(event) {
 			if(this.datePickerOpened)this.loadNewDateRange();
@@ -781,26 +844,40 @@
 			return value.slice(0,100);
 		}
 
+		public printSheriffDuties(){
+			this.UpdatePrintSheriffFullview(true);
+		}
+
+		public zoomInOut(percent){
+			let zoom = this.zoomLevel + percent
+			if(zoom>130) zoom = 130
+			if(zoom<60) zoom = 60
+			document.body.style.zoom = zoom +"%";
+			Vue.nextTick(()=>this.UpdateZoomLevel(zoom))
+		}
     }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 
 	.card {
-				border: white;
-		}
+		border: white;
+	}
 
 	.custom-navbar {
-			float: none;
-			margin:0 auto 0 auto;
-			display: block;
-			text-align: center;
-			width:20rem
+		float: none;
+		margin:0 auto 0 auto;
+		display: block;
+		text-align: center;
+		width:20rem;
+		&.full-view{
+			margin:0 auto 0 18rem;
+		}
 	}
 
 	.custom-navbar > li {
-			display: inline-block;
-			float:none;
+		display: inline-block;
+		float:none;
 	}
 
 </style>

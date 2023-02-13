@@ -1,13 +1,13 @@
 <template>
     <b-card bg-variant="white" class="home" no-body>
-        <b-row  class="mx-0 mt-0 mb-5 p-0" cols="2" >
-            <b-col class="m-0 p-0" cols="11" >
+        <b-row  class="mx-0 mt-0 mb-0 p-0" cols="2" >
+            <b-col  class="m-0 p-0" :cols="(sheriffFullview && !weekView)? 12: 11" >
                 <duty-roster-header v-on:change="reloadDutyRosters" :runMethod="headerAddAssignment" />
                 <duty-roster-week-view :runMethod="dutyRosterWeekViewMethods" v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
-                <duty-roster-day-view :runMethod="dutyRosterDayViewMethods" v-if="!weekView&&headerReady" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()"/>
+                <duty-roster-day-view id="duty-pdf" :runMethod="dutyRosterDayViewMethods" v-if="!weekView&&headerReady" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()"/>
                 
             </b-col>
-            <b-col class="p-0 " cols="1"  style="overflow: auto;">
+            <b-col v-if="!sheriffFullview || weekView" class="p-0 " cols="1"  style="overflow: auto;">
                 <b-card
                     v-if="isDutyRosterDataMounted"
                     :key="updateMyTeam"                     
@@ -25,14 +25,14 @@
                                 style="font-size:10px; width:1.1rem; margin:0 0 0 .2rem; padding:0; background-color:white; color:#189fd4;" 
                                 size="sm">
                                     <b-icon-bar-chart-steps /> 
-                            </b-button>
+                            </b-button>                           
                         </b-card-header>
                         <duty-roster-team-member-card :sheriffInfo="memberNotRequired" :weekView="weekView"/>
                         <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/>
                         <duty-roster-team-member-card :sheriffInfo="memberIsClosed" :weekView="weekView"/>  
                     </div>                   
                     <div id="dutyrosterteammember" :style="{overflowX: 'hidden', overflowY: 'auto', height: getHeight}">
-                        <duty-roster-team-member-card v-on:change="updateDutyRosterPage()" v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
+                        <duty-roster-team-member-card v-on:change="updateDutyRosterPage()" v-for="member in sortedShiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
                     </div>
                 </b-card>
             </b-col>
@@ -44,7 +44,8 @@
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import DutyRosterHeader from './components/DutyRosterHeader.vue'
     import DutyRosterTeamMemberCard from './components/DutyRosterTeamMemberCard.vue'
-
+    import * as _ from 'underscore';
+    
     import DutyRosterDayView from './DutyRosterDayView.vue';
     import DutyRosterWeekView from './DutyRosterWeekView.vue'
 
@@ -57,7 +58,7 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import { localTimeInfoType } from '../../types/common';
+    import { localTimeInfoType, commonInfoType } from '../../types/common';
     import { dutyRangeInfoType, myTeamShiftInfoType} from '../../types/DutyRoster';
     
     @Component({
@@ -71,6 +72,9 @@
     export default class ManageDutyRoster extends Vue {
 
         @commonState.State
+        public commonInfo!: commonInfoType;
+
+        @commonState.State
         public localTime!: localTimeInfoType;
 
         @commonState.Action
@@ -79,14 +83,24 @@
         @dutyState.State
         public dutyRangeInfo!: dutyRangeInfoType;
 
-        @commonState.State
-        public displayFooter!: boolean;
+        @dutyState.State
+        public displayFuelGauge!: boolean;
 
-        @commonState.Action
-        public UpdateDisplayFooter!: (newDisplayFooter: boolean) => void
+        @dutyState.Action
+        public UpdateDisplayFuelGauge!: (newDisplayFuelGauge: boolean) => void
+
+        @dutyState.State
+        public sheriffFullview!: boolean;
+        
 
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
+
+        @dutyState.State
+        public zoomLevel!: number;
+
+        @dutyState.Action
+		public UpdateZoomLevel!: (newZoomLevel: number) => void;
 
         memberNotRequired = { sheriffId: '00000-00000-11111' } as myTeamShiftInfoType;
         memberNotAvailable = { sheriffId: '00000-00000-22222' } as myTeamShiftInfoType;
@@ -100,32 +114,46 @@
         headerReady = false;
         windowHeight = 0;
         bottomHeight = 0;
-        gageHeight = 0;
+        gaugeHeight = 0;
         tableHeight = 0;
+
+        maxRank = 1000;
+
+        timeHandle1
+        timeHandle2
 
         headerAddAssignment = new Vue();         
         dutyRosterDayViewMethods = new Vue();
         dutyRosterWeekViewMethods = new Vue();
 
-        @Watch('displayFooter')
+        @Watch('zoomLevel')
+        zoomLevelChange() 
+        {   
+            Vue.nextTick(() =>this.getWindowHeight())
+        }
+
+        @Watch('displayFuelGauge')
         footerChange() 
         {
-            Vue.nextTick(() => 
-            {
-                this.calculateTableHeight()
-            })
+            Vue.nextTick(() => this.calculateTableHeight())
         }
 
         mounted()
         {
+            this.maxRank = this.commonInfo.sheriffRankList.reduce((max, rank) => rank.id > max ? rank.id : max, this.commonInfo.sheriffRankList[0].id);
             this.isDutyRosterDataMounted = false;
-            window.setTimeout(this.updateCurrentTimeCallBack, 1000);
+            this.timeHandle1 = window.setTimeout(this.updateCurrentTimeCallBack, 1000);
             window.addEventListener('resize', this.getWindowHeight);
             this.getWindowHeight()
         }
 
+
         beforeDestroy() {
             window.removeEventListener('resize', this.getWindowHeight);
+            clearTimeout(this.timeHandle1);
+            clearTimeout(this.timeHandle2);
+            document.body.style.zoom = "100%"
+            this.UpdateZoomLevel(100)
         }
         
         public reloadDutyRosters(type){
@@ -133,12 +161,14 @@
             // console.log(type)
             // console.log('reload dutyroster')                
             this.updateCurrentTime();
-            if(type=='Day'){
+            if(type=='Day' && this.sheriffFullview){
                 this.weekView = false
-                this.UpdateDisplayFooter(false)
+
+            }else if(type=='Day'){
+                this.weekView = false
             } else{
                 this.weekView = true
-                this.UpdateDisplayFooter(true)
+                this.UpdateDisplayFuelGauge(false)
             }
 
             this.headerReady = true;
@@ -152,8 +182,8 @@
         }
 
         public getWindowHeight() {
-            this.windowHeight = document.documentElement.clientHeight;   
-            this.calculateTableHeight();     
+            this.windowHeight = Math.ceil(100*document.documentElement.clientHeight/this.zoomLevel);
+            this.calculateTableHeight();  
         }
 
         get getHeight() {
@@ -163,9 +193,9 @@
         public calculateTableHeight() {
             const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
             const myTeamHeader =  document.getElementById("myTeamHeader")?.offsetHeight || 0;
-            const footerHeight = document.getElementById("footer")?.offsetHeight || 0;
-            this.gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
-            this.bottomHeight = this.displayFooter ? footerHeight : this.gageHeight;
+            const footerHeight = 0//document.getElementById("footer")?.offsetHeight || 0;
+            this.gaugeHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
+            this.bottomHeight = !this.displayFuelGauge ? footerHeight : this.gaugeHeight;
             // console.log('My Team - Window: ' + this.windowHeight)
             // console.log('My Team - Top: ' + topHeaderHeight)
             // console.log('My Team - TeamHeader: ' + myTeamHeader)
@@ -175,16 +205,16 @@
         }
 
         public toggleDisplayMyteam(){
-            if(this.displayFooter){
-                this.UpdateDisplayFooter(false)
+            if(!this.displayFuelGauge){
+                this.UpdateDisplayFuelGauge(true)
                 const el = document.getElementsByClassName('b-table-sticky-header') 
                 Vue.nextTick(()=>{            
                     if(el[1]) el[1].scrollLeft = el[0].scrollLeft
                 })
             }
-            else this.UpdateDisplayFooter(true)
-        }        
-
+            else this.UpdateDisplayFuelGauge(false)
+        } 
+        
         public addAssignment(){ 
             this.headerAddAssignment.$emit('addassign');
         }
@@ -205,7 +235,7 @@
 
         public updateCurrentTimeCallBack() {
             this.updateCurrentTime();
-            window.setTimeout(this.updateCurrentTime, 60000);
+            this.timeHandle2 = window.setTimeout(this.updateCurrentTimeCallBack, 60000);
         }
 
         public updateDutyRosterPage() {
@@ -214,6 +244,14 @@
             } else {
                 this.dutyRosterWeekViewMethods.$emit('getData');
             }
+        }
+
+        get sortedShiftAvailabilityInfo() {
+            const teamList = this.shiftAvailabilityInfo        
+            return _.chain(teamList)
+                    .sortBy(member =>{return (member['lastName']? member['lastName'].toUpperCase() : '')})
+                    .sortBy(member =>{return (member['rankOrder']? member['rankOrder'] : this.maxRank + 1)})
+                    .value()
         }
 
     }

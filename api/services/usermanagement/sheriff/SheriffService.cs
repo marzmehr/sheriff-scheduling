@@ -20,13 +20,14 @@ using SS.Db.models.sheriff;
 namespace SS.Api.services.usermanagement
 {
     /// <summary>
-    /// Since the Sheriff is a derived class of User, this should handle the Sheriff side of things. 
+    /// Since the Sheriff is a derived class of User, this should handle the Sheriff side of things.
     /// </summary>
     public class SheriffService
     {
         private ClaimsPrincipal User { get; }
         private SheriffDbContext Db { get; }
         private IConfiguration Configuration { get; }
+
         public SheriffService(SheriffDbContext db, IConfiguration configuration, IHttpContextAccessor httpContextAccessor = null)
         {
             Db = db;
@@ -43,6 +44,7 @@ namespace SS.Api.services.usermanagement
 
             sheriff.IdirName = sheriff.IdirName.ToLower();
             sheriff.AwayLocation = null;
+            sheriff.ActingRank = null;
             sheriff.Training = null;
             sheriff.Leave = null;
             sheriff.HomeLocation = await Db.Location.FindAsync(sheriff.HomeLocationId);
@@ -59,19 +61,20 @@ namespace SS.Api.services.usermanagement
                     (badgeNumber == null && id.HasValue && s.Id == id) ||
                     (!id.HasValue && s.BadgeNumber == badgeNumber));
 
-        //Used for the Shift scheduling screen, while considering a location. 
+        //Used for the Shift scheduling screen, while considering a location.
         public async Task<List<Sheriff>> GetSheriffsForShiftAvailabilityForLocation(int locationId, DateTimeOffset start, DateTimeOffset end, Guid? sheriffId = null)
         {
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
                 .Where(s =>
-                    (sheriffId == null || sheriffId != null && s.Id == sheriffId) && 
+                    (sheriffId == null || sheriffId != null && s.Id == sheriffId) &&
                     s.IsEnabled &&
                     s.HomeLocationId == locationId ||
                     s.AwayLocation.Any(al =>
                         al.LocationId == locationId && !(al.StartDate > end || start > al.EndDate)
                                                     && al.ExpiryDate == null))
-                .IncludeSheriffEventsBetweenDates(start, end);
+                .IncludeSheriffEventsBetweenDates(start, end)
+                .IncludeSheriffActingRank();
 
             return await sheriffQuery.ToListAsync();
         }
@@ -84,8 +87,9 @@ namespace SS.Api.services.usermanagement
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
                 .ApplyPermissionFilters(User, now, sevenDaysFromNow, Db)
-                .IncludeSheriffEventsBetweenDates(now, sevenDaysFromNow);
-         
+                .IncludeSheriffEventsBetweenDates(now, sevenDaysFromNow)
+                .IncludeSheriffActingRank();
+
             return await sheriffQuery.ToListAsync();
         }
 
@@ -97,8 +101,8 @@ namespace SS.Api.services.usermanagement
 
             return await Db.Sheriff.AsNoTracking().AsSingleQuery()
                 .ApplyPermissionFilters(User, minDateForAwayAndTraining, sevenDaysFromNow, Db)
-                .Include(s=> s.HomeLocation)
-                .Include(s => s.AwayLocation.Where (al => al.EndDate >= minDateForAwayAndTraining && al.ExpiryDate == null))
+                .Include(s => s.HomeLocation)
+                .Include(s => s.AwayLocation.Where(al => al.EndDate >= minDateForAwayAndTraining && al.ExpiryDate == null))
                 .ThenInclude(al => al.Location)
                 .Include(s => s.Leave.Where(l => l.EndDate >= minDateForAwayAndTraining && l.ExpiryDate == null))
                 .ThenInclude(l => l.LeaveType)
@@ -106,7 +110,7 @@ namespace SS.Api.services.usermanagement
                 .ThenInclude(t => t.TrainingType)
                 .Include(s => s.UserRoles)
                 .ThenInclude(ur => ur.Role)
-                .Include(s => s.Rank)
+                .Include(s => s.ActingRank.Where(ar => ar.ExpiryDate == null))
                 .SingleOrDefaultAsync(s => s.Id == id);
         }
 
@@ -118,7 +122,6 @@ namespace SS.Api.services.usermanagement
             if (sheriff.BadgeNumber != savedSheriff.BadgeNumber)
                 await CheckForBlankOrDuplicateBadgeNumber(sheriff.BadgeNumber);
 
-      
             if (canEditIdir && savedSheriff.IdirName != sheriff.IdirName)
             {
                 await CheckForBlankOrDuplicateIdirName(sheriff.IdirName, sheriff.Id);
@@ -170,12 +173,14 @@ namespace SS.Api.services.usermanagement
             await Db.SaveChangesAsync();
         }
 
-        #endregion
+        #endregion Sheriff
 
         #region Sheriff Event
+
         public async Task<T> GetSheriffEvent<T>(int id) where T : SheriffEvent =>
             await Db.Set<T>().AsNoTracking().FirstOrDefaultAsync(sal => sal.Id == id);
-        #endregion
+
+        #endregion Sheriff Event
 
         //In the future, we need to move these to their own services.
         #region Sheriff Location
@@ -197,7 +202,7 @@ namespace SS.Api.services.usermanagement
         {
             ValidateStartAndEndDates(awayLocation.StartDate, awayLocation.EndDate);
             await ValidateSheriffExists(awayLocation.SheriffId);
-            
+
             var savedAwayLocation = await Db.SheriffAwayLocation.FindAsync(awayLocation.Id);
             savedAwayLocation.ThrowBusinessExceptionIfNull($"{nameof(SheriffAwayLocation)} with the id: {awayLocation.Id} could not be found. ");
 
@@ -224,7 +229,55 @@ namespace SS.Api.services.usermanagement
             await Db.SaveChangesAsync();
         }
 
-        #endregion
+        #endregion Sheriff Location
+
+        #region Sheriff Acting Rank
+
+        public async Task<SheriffActingRank> AddSheriffActingRank(DutyRosterService dutyRosterService, ShiftService shiftService, SheriffActingRank actingRank, bool overrideConflicts)
+        {
+            ValidateStartAndEndDates(actingRank.StartDate, actingRank.EndDate);
+            await ValidateSheriffExists(actingRank.SheriffId);
+
+            await ValidateSheriffActingRankExists(actingRank);
+
+            actingRank.Sheriff = await Db.Sheriff.FindAsync(actingRank.SheriffId);
+            await Db.SheriffActingRank.AddAsync(actingRank);
+            await Db.SaveChangesAsync();
+            return actingRank;
+        }
+
+        public async Task<SheriffActingRank> UpdateSheriffActingRank(DutyRosterService dutyRosterService, ShiftService shiftService, SheriffActingRank actingRank, bool overrideConflicts)
+        {
+            ValidateStartAndEndDates(actingRank.StartDate, actingRank.EndDate);
+            await ValidateSheriffExists(actingRank.SheriffId);
+
+            var savedActingRank = await Db.SheriffActingRank.FindAsync(actingRank.Id);
+            savedActingRank.ThrowBusinessExceptionIfNull($"{nameof(SheriffActingRank)} with the id: {actingRank.Id} could not be found. ");
+
+            if (savedActingRank.ExpiryDate.HasValue)
+                throw new BusinessLayerException($"{nameof(SheriffActingRank)} with the id: {actingRank.Id} has been expired");
+
+            await ValidateSheriffActingRankExists(actingRank);
+
+            Db.Entry(savedActingRank).CurrentValues.SetValues(actingRank);
+            Db.Entry(savedActingRank).Property(x => x.SheriffId).IsModified = false;
+            Db.Entry(savedActingRank).Property(x => x.ExpiryDate).IsModified = false;
+            Db.Entry(savedActingRank).Property(x => x.ExpiryReason).IsModified = false;
+            await Db.SaveChangesAsync();
+            return savedActingRank;
+        }
+
+        public async Task RemoveSheriffActingRank(int id, string expiryReason)
+        {
+            var sheriffActingRank = await Db.SheriffActingRank.FindAsync(id);
+            sheriffActingRank.ThrowBusinessExceptionIfNull(
+                $"{nameof(SheriffActingRank)} with the id: {id} could not be found. ");
+            sheriffActingRank.ExpiryDate = DateTimeOffset.UtcNow;
+            sheriffActingRank.ExpiryReason = expiryReason;
+            await Db.SaveChangesAsync();
+        }
+
+        #endregion Sheriff Acting Rank
 
         #region Sheriff Leave
 
@@ -259,7 +312,7 @@ namespace SS.Api.services.usermanagement
             Db.Entry(savedLeave).Property(x => x.SheriffId).IsModified = false;
             Db.Entry(savedLeave).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedLeave).Property(x => x.ExpiryReason).IsModified = false;
-      
+
             await Db.SaveChangesAsync();
             return savedLeave;
         }
@@ -274,9 +327,25 @@ namespace SS.Api.services.usermanagement
             await Db.SaveChangesAsync();
         }
 
-        #endregion
+        #endregion Sheriff Leave
 
         #region Sheriff Training
+
+        public async Task<List<Sheriff>> GetSheriffsTraining()
+        {
+            var daysPrevious = int.Parse(Configuration.GetNonEmptyValue("DaysInPastToIncludeAwayLocationAndTraining"));
+            var minDateForAwayAndTraining = DateTimeOffset.UtcNow.AddDays(-daysPrevious);
+            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
+                        
+            var sheriffQuery = Db.Sheriff.AsNoTracking()
+                .AsSplitQuery()
+                .ApplyPermissionFilters(User, minDateForAwayAndTraining, sevenDaysFromNow, Db)
+                .Include(s => s.Training.Where(t => t.ExpiryDate == null))
+                .ThenInclude(t => t.TrainingType)
+                .Where(t => t.Training.Count > 0);
+
+            return await sheriffQuery.ToListAsync();
+        }
 
         public async Task<SheriffTraining> AddSheriffTraining(DutyRosterService dutyRosterService, ShiftService shiftService, SheriffTraining sheriffTraining, bool overrideConflicts)
         {
@@ -295,7 +364,7 @@ namespace SS.Api.services.usermanagement
         {
             ValidateStartAndEndDates(sheriffTraining.StartDate, sheriffTraining.EndDate);
             await ValidateSheriffExists(sheriffTraining.SheriffId);
-            
+
             var savedTraining = await Db.SheriffTraining.FindAsync(sheriffTraining.Id);
             savedTraining.ThrowBusinessExceptionIfNull(
                 $"{nameof(SheriffTraining)} with the id: {sheriffTraining.Id} could not be found. ");
@@ -324,11 +393,12 @@ namespace SS.Api.services.usermanagement
             await Db.SaveChangesAsync();
         }
 
-        #endregion
+        #endregion Sheriff Training
 
         #region Helpers
 
         #region Validation
+
         private async Task CheckForBlankOrDuplicateIdirName(string idirName, Guid? excludeSheriffId = null)
         {
             if (string.IsNullOrEmpty(idirName))
@@ -362,7 +432,24 @@ namespace SS.Api.services.usermanagement
                 throw new BusinessLayerException($"Sheriff with id: {sheriffId} does not exist.");
         }
 
+        private async Task ValidateSheriffActingRankExists(SheriffActingRank actingRank)
+        {
+            var conflictingRanks = await Db.SheriffActingRank.AsNoTracking().Where(sal =>
+                     sal.Id != actingRank.Id &&
+                     sal.SheriffId == actingRank.SheriffId &&
+                    (sal.StartDate < actingRank.EndDate && actingRank.StartDate < sal.EndDate) &&
+                    sal.ExpiryDate == null).ToListAsync();
+            if (conflictingRanks.Count > 0)
+            {
+                var start = actingRank.StartDate.ConvertToTimezone(actingRank.Timezone);
+                var end = actingRank.EndDate.ConvertToTimezone(actingRank.Timezone);
+                throw new BusinessLayerException($"Acting Rank date-range({start.Year}-{start.Month}-{start.Day}" +
+                    $" to {end.Year}-{end.Month}-{end.Day}) has coflict with current acting ranks.");
+            }
+        }
+
         #region Overlap Detection && Override
+
         private async Task ValidateNoOverlapAsync<T>(DutyRosterService dutyRosterService, ShiftService shiftService, T data, bool overrideConflicts, int? updateOnlyId = null) where T : SheriffEvent
         {
             var sheriffEventConflicts = new List<SheriffEvent>
@@ -433,7 +520,7 @@ namespace SS.Api.services.usermanagement
                 }
                 else
                 {
-                    //Calculate the start and end date for the user's home location id. 
+                    //Calculate the start and end date for the user's home location id.
                     var homeLocationId = Db.Sheriff.AsNoTracking().FirstOrDefault(s => s.Id == sheriffId)
                         ?.HomeLocationId;
                     var homeLocationTimezone = Db.Location.AsNoTracking()
@@ -473,11 +560,13 @@ namespace SS.Api.services.usermanagement
                         sheriffAwayLocation.ExpiryDate = DateTimeOffset.UtcNow;
                         sheriffAwayLocation.ExpiryReason = "OVERRIDE";
                         break;
+
                     case SheriffTraining _:
                         var sheriffTraining = Db.SheriffTraining.First(sl => sl.Id == eventConflict.Id);
                         sheriffTraining.ExpiryDate = DateTimeOffset.UtcNow;
                         sheriffTraining.ExpiryReason = "OVERRIDE";
                         break;
+
                     case SheriffLeave _:
                         var sheriffLeave = Db.SheriffLeave.First(sl => sl.Id == eventConflict.Id);
                         sheriffLeave.ExpiryDate = DateTimeOffset.UtcNow;
@@ -490,8 +579,8 @@ namespace SS.Api.services.usermanagement
         }
 
         #endregion Overlap Detection && Override
-        
-        private async Task<T1> LookForSheriffEventConflictAsync<T1,T2>(DbSet<T1> dbSet, T2 data, int? updateOnlyId = null) where T1 : SheriffEvent where T2 : SheriffEvent
+
+        private async Task<T1> LookForSheriffEventConflictAsync<T1, T2>(DbSet<T1> dbSet, T2 data, int? updateOnlyId = null) where T1 : SheriffEvent where T2 : SheriffEvent
         {
             return await dbSet.AsNoTracking().FirstOrDefaultAsync(sal =>
                 sal.SheriffId == data.SheriffId && (sal.StartDate < data.EndDate && data.StartDate < sal.EndDate) &&
@@ -500,8 +589,8 @@ namespace SS.Api.services.usermanagement
                 (typeof(T1) == typeof(T2) && (!updateOnlyId.HasValue || updateOnlyId.HasValue && sal.Id != updateOnlyId))));
         }
 
-        #endregion
+        #endregion Validation
 
-        #endregion
+        #endregion Helpers
     }
 }

@@ -515,6 +515,14 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View other profiles (beside their own)",
                             Name = "ViewOtherProfiles"
+                        },
+                        new
+                        {
+                            Id = 43,
+                            ConcurrencyToken = 0u,
+                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Generate Reports based on Sheriff's activity",
+                            Name = "GenerateReports"
                         });
                 });
 
@@ -1219,6 +1227,71 @@ namespace SS.Db.Migrations
                     b.HasIndex("StartDate", "EndDate");
 
                     b.ToTable("Shift");
+                });
+
+            modelBuilder.Entity("SS.Db.models.sheriff.SheriffActingRank", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .UseIdentityByDefaultColumn();
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<uint>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedOn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTimeOffset>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ExpiryDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExpiryReason")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Rank")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SheriffId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Timezone")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("SheriffId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("StartDate", "EndDate");
+
+                    b.ToTable("SheriffActingRank");
                 });
 
             modelBuilder.Entity("SS.Db.models.sheriff.SheriffAwayLocation", b =>
@@ -2128,6 +2201,31 @@ namespace SS.Db.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
+            modelBuilder.Entity("SS.Db.models.sheriff.SheriffActingRank", b =>
+                {
+                    b.HasOne("SS.Db.models.auth.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SS.Db.models.sheriff.Sheriff", "Sheriff")
+                        .WithMany("ActingRank")
+                        .HasForeignKey("SheriffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Sheriff");
+
+                    b.Navigation("UpdatedBy");
+                });
+
             modelBuilder.Entity("SS.Db.models.sheriff.SheriffAwayLocation", b =>
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
@@ -2298,6 +2396,8 @@ namespace SS.Db.Migrations
 
             modelBuilder.Entity("SS.Db.models.sheriff.Sheriff", b =>
                 {
+                    b.Navigation("ActingRank");
+
                     b.Navigation("AwayLocation");
 
                     b.Navigation("Leave");

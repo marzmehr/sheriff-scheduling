@@ -76,7 +76,7 @@
             <template v-slot:modal-title>
                     <h2 class="mb-0 text-light">Confirm Delete Location</h2>                    
             </template>
-            <h4>Are you sure you want to delete the "{{locationToDelete.locationNm}}" location?</h4>
+            <h4>Are you sure you want to delete the "{{locationToDelete['locationNm']}}" location?</h4>
             <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
                 <b-form-select
                     size = "sm"

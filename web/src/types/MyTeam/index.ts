@@ -1,5 +1,5 @@
 import {leaveInfoType, locationInfoType, trainingInfoType} from '../common';
-import {awayLocationsJsontype, leaveJsontype, trainingJsontype, userRoleJsonType} from './jsonTypes';
+import {actingRankJsontype, awayLocationsJsontype, leaveJsontype, trainingJsontype, userRoleJsonType} from './jsonTypes';
 
 export interface teamMemberInfoType {
 
@@ -20,6 +20,7 @@ export interface teamMemberInfoType {
     homeLocationNm?: string | null;
     homeLocation?: locationInfoType;
     awayLocation?: awayLocationsJsontype[];
+    actingRank: actingRankJsontype[]; 
     training?: trainingJsontype[];
     leave?: leaveJsontype[];
     loanedOut?: awayLocationsJsontype[];
@@ -104,4 +105,12 @@ export interface userLeaveInfoType{
     isFullDay: boolean;
     startDate: string;
     endDate: string;    
+}
+
+export interface trainingReportInfoType {
+    name: string;
+    trainingType: string;
+    start: string;
+    end: string;
+    expiryDate: string;
 }

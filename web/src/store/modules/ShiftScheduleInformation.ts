@@ -7,6 +7,7 @@ import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 class ShiftScheduleInformation extends VuexModule {
 
   public shiftRangeInfo = {} as shiftRangeInfoType;
+  public dailyShiftRangeInfo = {} as shiftRangeInfoType;
   public sheriffsAvailabilityInfo = [] as sheriffAvailabilityInfoType[];
   public selectedShifts = [] as string[];
   public teamMemberList = [] as distributeTeamMemberInfoType[];
@@ -19,6 +20,16 @@ class ShiftScheduleInformation extends VuexModule {
   @Action
   public UpdateShiftRangeInfo(newShiftRangeInfo): void {
     this.context.commit('setShiftRangeInfo', newShiftRangeInfo)
+  }
+
+  @Mutation
+  public setDailyShiftRangeInfo(dailyShiftRangeInfo): void {   
+    this.dailyShiftRangeInfo = dailyShiftRangeInfo
+  }
+
+  @Action
+  public UpdateDailyShiftRangeInfo(newDailyShiftRangeInfo): void {
+    this.context.commit('setDailyShiftRangeInfo', newDailyShiftRangeInfo)
   }
 
   @Mutation

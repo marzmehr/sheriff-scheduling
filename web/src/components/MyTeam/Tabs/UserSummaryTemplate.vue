@@ -21,7 +21,7 @@
 
         <b-card-sub-title class="my-1">{{user.badgeNumber}}</b-card-sub-title>
         <b-card-title>{{user.fullName}}</b-card-title>        
-        <b-card-sub-title class="my-1">{{user.rank}}</b-card-sub-title>
+        <b-card-sub-title class="my-1">{{rank}}</b-card-sub-title>
         <b-card-text 
             style="color: #8a3078; font-size: 0.75rem;" 
             class="my-1">
@@ -51,6 +51,7 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
+    import moment from 'moment-timezone';
     import {teamMemberInfoType} from '../../../types/MyTeam';
     import {locationInfoType} from '../../../types/common';  
 
@@ -82,10 +83,28 @@ Vue.use(VueAuthImage);
 
         photoUpdateKey =0;
 
+        rank='';
+
 
         mounted()
         {
+            const today = moment();
+            
             this.photo = this.user.image;
+            // this.rank =  (this.user?.actingRank?.length>0)?  (this.user?.actingRank[0].rank)+' (A)': this.user.rank;
+            this.rank =  this.user.rank;
+            if (this.user?.actingRank?.length>0){
+
+                for(const actingRankInfo of this.user.actingRank) {
+
+                    const startDate = actingRankInfo.startDate
+                    const endDate = actingRankInfo.endDate
+
+                    if (today.isBetween(startDate, endDate)){
+                        this.rank = actingRankInfo.rank+' (A)'
+                    }                
+                }
+            }
         }
 
         

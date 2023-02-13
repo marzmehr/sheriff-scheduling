@@ -1,7 +1,8 @@
 <template>
-    <div>
+    <div> 
         <loading-spinner v-if="!isDutyRosterDataMounted" />      
-            
+        <sheriff-day-view v-else-if="sheriffFullview" />       
+
         <b-table
             v-else
             :items="dutyRosterAssignments" 
@@ -43,7 +44,19 @@
                     <duty-card v-on:change="getData" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
-        <sheriff-fuel-gauge v-show="isDutyRosterDataMounted && !displayFooter" class="fixed-bottom bg-white"/>
+        <sheriff-fuel-gauge v-show="isDutyRosterDataMounted && displayFuelGauge" class="fixed-bottom bg-white"/>
+        <div id="app-footer-assignment" v-if="!sheriffFullview">
+            <b-row style="margin:0 0 .25rem .25rem; ">
+                <div
+                    style="width:5.2rem;"
+                    class="m-0 p-0"
+                    v-for="color in dutyColorsCode" 
+                    :key="color.colorCode"> 
+                    <div :style="{backgroundColor:color.colorCode, width:'.65rem', height:'.65rem', borderRadius:'15px', margin:'.2rem .2rem 0 0', float:'left'}"/>
+                    <div style="font-size:9px; text-transform: capitalize; margin:0 0 0 0; padding:0">{{color.name}}</div>
+                </div>
+            </b-row>            
+        </div>
 
         <b-modal v-model="openErrorModal" header-class="bg-warning text-light">
             <b-card class="h4 mx-2 py-2">
@@ -67,6 +80,7 @@
     import DutyCard from './components/DutyCard.vue'
     import SheriffFuelGauge from './components/SheriffFuelGauge.vue'
     import DutyRosterAssignment from './components/DutyRosterAssignment.vue'
+    import SheriffDayView from './components/SheriffDayView.vue'
 
     import moment from 'moment-timezone';
 
@@ -77,24 +91,34 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import {locationInfoType, userInfoType } from '../../types/common';
-    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
+    import {locationInfoType, userInfoType, commonInfoType } from '../../types/common';
+    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType, selectedDutyCardInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
     @Component({
         components: {
             DutyCard,
             SheriffFuelGauge,
-            DutyRosterAssignment
+            DutyRosterAssignment,
+            SheriffDayView
         }
     })
     export default class DutyRosterDayView extends Vue {
 
         @commonState.State
-        public location!: locationInfoType;
+        public commonInfo!: commonInfoType;
 
         @commonState.State
-        public displayFooter!: boolean;
+        public location!: locationInfoType;
+
+        @dutyState.State
+        public displayFuelGauge!: boolean;
+
+        @dutyState.State
+        public sheriffFullview!: boolean;
+
+        @dutyState.State
+        public printSheriffFullview!: boolean;
 
         @commonState.State
         public userDetails!: userInfoType;
@@ -108,13 +132,23 @@
         @dutyState.Action
         public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
 
+        @dutyState.State
+        public dutyRosterAssignments!: assignmentCardInfoType[];
+
+        @dutyState.Action
+        public UpdateDutyRosterAssignments!: (newDutyRosterAssignments: assignmentCardInfoType[]) => void
+
+        @dutyState.Action
+        public UpdateSelectedDuties!: (newSelectedDuties: selectedDutyCardInfoType[]) => void
+
+        @dutyState.State
+        public zoomLevel!: number;
+
         @Prop({required: true})
         runMethod!: any;
         
         isDutyRosterDataMounted = false;
         hasPermissionToAddAssignments = false;
-
-        dutyRosterAssignments: assignmentCardInfoType[] = [];
 
         dutyRostersJson: attachedDutyInfoType[] = [];
         dutyRosterAssignmentsJson;
@@ -135,7 +169,7 @@
             {name:'courtroom',  colorCode:'#189fd4'},
             {name:'court',      colorCode:'#189fd4'},
             {name:'jail' ,      colorCode:'#A22BB9'},
-            {name:'escort',     colorCode:'#ffb007'},
+            {name:'transport',  colorCode:'#ffb007'},
             {name:'other',      colorCode:'#7a4528'}, 
             {name:'overtime',   colorCode:'#e85a0e'},
             {name:'free',       colorCode:'#e6d9e2'}                        
@@ -149,20 +183,34 @@
             }            
         } 
 
-        @Watch('displayFooter')
+        @Watch('displayFuelGauge')
         footerChange() 
         {
-            Vue.nextTick(() => 
-            {
-                this.calculateTableHeight()
-            })
+            Vue.nextTick(() => this.calculateTableHeight() )
+        }
+
+        @Watch('sheriffFullview')
+        SheriffFullViewChanged() 
+        {  
+            Vue.nextTick(() => this.scrollAdjustment() );
+        }
+
+        @Watch('printSheriffFullview')
+        printSheriffFullviewChanged(){
+            Vue.nextTick(() => this.scrollAdjustment() );
+        }
+
+        @Watch('zoomLevel')
+        zoomLevelChange() 
+        {   
+            Vue.nextTick(() => this.scrollAdjustment() );
         }
         
         async mounted()
         {
             this.runMethod.$on('getData', this.getData)        
             this.isDutyRosterDataMounted = false;
-            //console.log('dayview dutyroster mounted')
+
             this.getData(this.scrollPositions);
             window.addEventListener('resize', this.getWindowHeight);
             this.getWindowHeight()
@@ -173,7 +221,7 @@
         }
 
         public getWindowHeight() {
-            this.windowHeight = document.documentElement.clientHeight;
+            this.windowHeight = Math.ceil(100*document.documentElement.clientHeight/this.zoomLevel);
             this.calculateTableHeight()
         }
 
@@ -184,15 +232,14 @@
         public calculateTableHeight() {
             const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
             const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
-            const footerHeight = document.getElementById("footer")?.offsetHeight || 0;
-            const gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
-            const bottomHeight = this.displayFooter ? footerHeight : gageHeight;
-            // console.log('DutyRosterDay - Window: ' + this.windowHeight)
-            // console.log('DutyRosterDay - Top: ' + topHeaderHeight)
-            // console.log('DutyRosterDay - SecondHeader: ' + secondHeader)
-            // console.log('DutyRosterDay - BottomHeight: ' + bottomHeight)
-            // console.log('New height: ' + (this.windowHeight - topHeaderHeight - bottomHeight - secondHeader))
+            const footerHeight = 0//document.getElementById("footer")?.offsetHeight || 0;
+            const gaugeHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
+            const bottomHeight = !this.displayFuelGauge ? footerHeight : gaugeHeight;
             this.tableHeight = (topHeaderHeight + bottomHeight + secondHeader)
+        }
+
+        get dutyColorsCode(){
+            return this.dutyColors.filter(color=>(color.name!='courtroom' && color.name!='free'))
         }
 
         public getBeautifyTime(hour: number){
@@ -217,9 +264,7 @@
             this.dutyRosterAssignmentsJson = response[1].data;
             const shiftsData = response[2].data
 
-            //console.log(this.dutyRostersJson)
-            // console.log(this.dutyRosterAssignmentsJson)
-            // console.log(shiftsData)
+            this.UpdateSelectedDuties([])
 
             Vue.nextTick(() => {
                 this.extractTeamShiftInfo(shiftsData);                        
@@ -250,10 +295,8 @@
             for(const dutyRoster of this.dutyRostersJson)            
                 allDutySlots.push(...dutyRoster.dutySlots)              
 
-            // console.log(allDutySlots)
             for(const shiftJson of shiftsJson)
             {
-                //console.log(shiftJson)
                 const availabilityInfo = {} as myTeamShiftInfoType;
                 const shiftInfo = {} as shiftInfoType;
                 shiftInfo.id = shiftJson.id;
@@ -264,28 +307,25 @@
                 shiftInfo.locationId = shiftJson.locationId;
                 shiftInfo.overtimeHours = shiftJson.overtimeHours
                 const rangeBin = this.getTimeRangeBins(shiftInfo.startDate, shiftInfo.endDate, this.location.timezone);
-//console.log(shiftInfo.overtimeHours)
+
                 const dutySlots = allDutySlots.filter(dutyslot=>{if(dutyslot.sheriffId==shiftInfo.sheriffId)return true})
-//console.log(dutySlots)
+
                 let duties = Array(96).fill(0)
                 const dutiesDetail: dutiesDetailInfoType[] = [];
                 const shiftArray = this.fillInArray(Array(96).fill(0), 1 , rangeBin.startBin,rangeBin.endBin)
                 for(const duty of dutySlots){
-                    //console.log(duty)
+
                     const color = this.getType(duty.assignmentLookupCode.type)
                     const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
                     const dutyArray = this.fillInArray(Array(96).fill(0), 1 , dutyRangeBin.startBin,dutyRangeBin.endBin)
 
-                    //console.log(dutyRangeBin)
-                    //console.log(rangeBin)
-                    //console.log(this.unionArrays(dutyArray,shiftArray))
+
                     if( this.sumOfArrayElements(this.unionArrays(dutyArray,shiftArray))>0){
-                        //console.log('__in__')
+
                         if(shiftInfo.overtimeHours>0){
                             const dutyRosterIndex = this.dutyRostersJson.findIndex(dutyroster=>{if(dutyroster.id == duty.dutyId)return true}) 
                             const dutySlotIndex = this.dutyRostersJson[dutyRosterIndex].dutySlots.findIndex(dutyslot=>{if(dutyslot.id == duty.id)return true})
-
-                            //console.log(this.dutyRostersJson[dutyRosterIndex].dutySlots[dutySlotIndex])
+                            
                             this.dutyRostersJson[dutyRosterIndex].dutySlots[dutySlotIndex].isOvertime = true
                         }                        
 
@@ -299,7 +339,7 @@
                             type: duty.assignmentLookupCode.type,
                             code: duty.assignmentLookupCode.code
                         })
-                        //console.log(dutiesDetail)
+
                         duties = this.fillInArray(duties, duty.id , dutyRangeBin.startBin,dutyRangeBin.endBin)
                     }
                 }
@@ -329,29 +369,28 @@
                     availabilityInfo.badgeNumber = shiftJson.sheriff.badgeNumber;
                     availabilityInfo.firstName = shiftJson.sheriff.firstName;
                     availabilityInfo.lastName = shiftJson.sheriff.lastName;
-                    availabilityInfo.rank = shiftJson.sheriff.rank;
+                    availabilityInfo.rank = ( shiftJson.sheriff.actingRank?.length>0)?  ( shiftJson.sheriff.actingRank[0].rank)+' (A)': shiftJson.sheriff.rank;
+                    availabilityInfo.rankOrder = this.getRankOrder(availabilityInfo.rank)[0]?this.getRankOrder(availabilityInfo.rank)[0].id:0;
                     availabilityInfo.availability = availability;
                     availabilityInfo.duties = duties;
                     availabilityInfo.dutiesDetail = dutiesDetail;
                     this.shiftAvailabilityInfo.push(availabilityInfo);
                 }
             }
-            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo); 
-            //console.log(this.shiftAvailabilityInfo)           
+            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);           
         }
 
         public extractAssignmentsInfo(assignments){
 
-            this.dutyRosterAssignments =[]
+            const dutyRosterAssignments: assignmentCardInfoType[] =[]
             let sortOrder = 0;
             for(const assignment of assignments){
                 sortOrder++;
                 const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
-                //console.log(dutyRostersForThisAssignment)
                
                if(dutyRostersForThisAssignment.length>0){
                     for(const rosterInx in dutyRostersForThisAssignment){
-                        this.dutyRosterAssignments.push({
+                        dutyRosterAssignments.push({
                             assignment:('00' + sortOrder).slice(-3)+'FTE'+('0'+ rosterInx).slice(-2) ,
                             assignmentDetail: assignment,
                             name:assignment.name,
@@ -363,7 +402,7 @@
                         })
                     }
                 }else{                
-                    this.dutyRosterAssignments.push({
+                    dutyRosterAssignments.push({
                         assignment:('00' + sortOrder).slice(-3)+'FTE00' ,
                         assignmentDetail: assignment,
                         name:assignment.name,
@@ -376,13 +415,15 @@
                 }
             }
 
+            this.UpdateDutyRosterAssignments(dutyRosterAssignments)
+
             this.isDutyRosterDataMounted = true;
             this.$emit('dataready')
             Vue.nextTick(()=>this.scrollAdjustment())
         }
 
         public scrollAdjustment(){
-            this.calculateTableHeight();
+            this.getWindowHeight();
             const el = document.getElementsByClassName('b-table-sticky-header')                
             const scrollSize = window.innerWidth*0.9173-185
 
@@ -397,7 +438,7 @@
 
             if(el[1]){
                 el[1].scrollLeft = (scrollSize*0.5425);
-                //el[1].scrollTop = this.scrollPositions.scrollGauge;
+
             }
 
             const eltm = document.getElementById('dutyrosterteammember');
@@ -416,10 +457,6 @@
         public fillInArray(array, fillInNum, startBin, endBin){
             return array.map((arr,index) =>{if(index>=startBin && index<endBin) return fillInNum; else return arr;});
         }
-
-        // public addArrays(arrayA, arrayB){
-        //     return arrayA.map((arr,index) =>{return arr+arrayB[index]});
-        // }
 
         public unionArrays(arrayA, arrayB){
             return arrayA.map((arr,index) =>{return arr*arrayB[index]});
@@ -445,10 +482,20 @@
         public addAssignment(){ 
             this.$emit('addAssignmentClicked');            
         }
+
+        public getRankOrder(rankName: string) {
+            if(rankName?.includes(' (A)'))
+                rankName = rankName.replace(' (A)','');
+            return this.commonInfo.sheriffRankList.filter(rank => {
+                if (rank.name == rankName) {
+                    return true;
+                }
+            })
+        }
     }
 </script>
 
-<style scoped>   
+<style scoped lang="scss">   
 
     .card {
         border: white;
@@ -475,5 +522,19 @@
         background-color:   #003366;
         font-size: 12px;
     }
+    #app-footer-assignment {
+        padding: 2px 17px;
+        position: absolute;
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        z-index: 100;    
+    }
+</style>
 
+<style lang="scss">
+    .modal-backdrop{
+        width: 1000vw !important;
+        height: 1000vh !important;
+    }
 </style>

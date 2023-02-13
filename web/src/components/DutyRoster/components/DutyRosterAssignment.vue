@@ -470,7 +470,7 @@
 			{name:'CourtRoom', label:'Court Room'},
 			{name:'CourtRole', label:'Court Assignment'},
 			{name:'JailRole', label:'Jail Assignment'},
-			{name:'EscortRun', label:'Escort Assignment'},
+			{name:'EscortRun', label:'Transport Assignment'},
 			{name:'OtherAssignment', label:'Other Assignment'}
 		]
 
@@ -486,15 +486,15 @@
         deleteErrorMsgDesc = '';
 		deleteError = false;
 
-		errorText=''
+		errorText='';
 		openErrorModal=false;
 
-        mounted()
-        {
+        mounted(){
 			this.hasPermissionToEditAssignment = this.userDetails.permissions.includes("EditAssignments");
             this.hasPermissionToExpireAssignment = this.userDetails.permissions.includes("ExpireAssignments");    
             this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");    
-			this.assignmentTitle = Vue.filter('capitalize')(this.assignment.type.name) +'-' + this.assignment.code;
+			// this.assignmentTitle = Vue.filter('capitalize')(this.assignment.type.name) +'-' + this.assignment.code;
+			this.assignmentTitle = Vue.filter('capitalize')(this.assignment.code);
             this.selectedExipryDate = this.localTime.timeString;
 			this.isDeleted = this.determineExpired();
 		}
@@ -564,7 +564,6 @@
 
 		public startDatePicked(){
 			if(this.initialStartDate){
-				//console.log('startDate')
 				this.initialStartDate=false
 			}else if(!this.initialEndDate){
 				this.toggleAllDays(false);
@@ -581,7 +580,6 @@
 
 		public endDatePicked(){
 			if(this.initialEndDate){
-				//console.log('endDate')
 				this.initialEndDate=false
 			}else if (!this.initialStartDate) {
 				this.toggleAllDays(false);
@@ -752,12 +750,7 @@
 
 		public saveAssignment() {
 			let requiredError = false;
-			// if (!this.assignmentToEdit.name) {
-			// 	this.nameState = false;
-			// 	requiredError = true;
-			// } else {
-			// 	this.nameState = true;
-			// }
+		
 			if (!this.assignmentToEditType) {
 				this.selectedTypeState = false;
 				requiredError = true;

@@ -38,8 +38,7 @@
                                 style="font-size:10px; width:1.15rem; margin:0 0 0 .75rem; padding:0; background-color:white;color:#189fd4;" 
                                 size="sm">
                                     <b-icon-bar-chart-steps /> 
-                            </b-button>
-                            
+                            </b-button>                            
                         </template>
 
                          <template v-slot:cell(name)="data" >
@@ -102,8 +101,8 @@
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
 
-        @commonState.Action
-        public UpdateDisplayFooter!: (newDisplayFooter: boolean) => void
+        @dutyState.Action
+        public UpdateDisplayFuelGauge!: (newDisplayFuelGauge: boolean) => void
        
         @commonState.State
         public userDetails!: userInfoType;
@@ -134,7 +133,7 @@
         dutyColors = [
             {name:'court' , colorCode:'#189fd4'},
             {name:'jail' ,  colorCode:'#A22BB9'},
-            {name:'escort', colorCode:'#ffb007'},
+            {name:'transport', colorCode:'#ffb007'},
             {name:'other',  colorCode:'#7a4528'},
             {name:'overtime',colorCode:'#e85a0e'},
             {name:'free',   colorCode:'#e6d9e2'}            
@@ -196,7 +195,7 @@
         }
 
         public closeDisplayMyteam(){
-            this.UpdateDisplayFooter(true)
+            this.UpdateDisplayFuelGauge(false)
         }
 
         public sumOfArrayElements(arrayA){

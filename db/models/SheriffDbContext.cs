@@ -27,7 +27,6 @@ namespace SS.Db.models
 
         public SheriffDbContext()
         {
-
         }
 
         public SheriffDbContext(DbContextOptions<SheriffDbContext> options, IHttpContextAccessor httpContextAccessor = null)
@@ -43,6 +42,7 @@ namespace SS.Db.models
         public virtual DbSet<Sheriff> Sheriff { get; set; }
         public virtual DbSet<SheriffLeave> SheriffLeave { get; set; }
         public virtual DbSet<SheriffAwayLocation> SheriffAwayLocation { get; set; }
+        public virtual DbSet<SheriffActingRank> SheriffActingRank { get; set; }
         public virtual DbSet<SheriffTraining> SheriffTraining { get; set; }
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<UserRole> UserRole { get; set; }
@@ -51,10 +51,12 @@ namespace SS.Db.models
         public virtual DbSet<SheriffRank> SheriffRank { get;set;}
 
         #region Scheduling
+
         public virtual DbSet<Shift> Shift { get; set; }
         public virtual DbSet<Assignment> Assignment { get; set; }
         public virtual DbSet<Duty> Duty { get; set; }
         public virtual DbSet<DutySlot> DutySlot { get; set; }
+
         #endregion Scheduling
 
         // This maps to the table that stores keys.
@@ -63,6 +65,7 @@ namespace SS.Db.models
         public virtual DbSet<Audit> Audit { get; set; }
 
         public virtual DbSet<JcSynchronization> JcSynchronization { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyAllConfigurations();
@@ -86,7 +89,7 @@ namespace SS.Db.models
             return result;
         }
 
-        //Only used in tests. 
+        //Only used in tests.
         public override int SaveChanges()
         {
             HandleSaveChanges();
@@ -223,7 +226,6 @@ namespace SS.Db.models
                 }
             }
         }
-
 
         private Guid? GetUserIdFromContext()
         {
