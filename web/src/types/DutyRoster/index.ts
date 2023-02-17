@@ -237,3 +237,15 @@ export interface allEditingDutySlotsInfoType{
     selectedDuty: null | assignmentCardInfoType;
     editedDutySlot:  assignDutySlotsInfoType;    
 }
+
+export interface manageAssignmentDutyInfoType {    
+    dutyId?: string;
+    id?: string;
+    startTime?: string;
+    endTime?: string;
+    dutyType: string;
+    dutySubType: string;
+    color: string;
+    dutyNotes?: string; 
+    assignmentNotes?: string;   
+}

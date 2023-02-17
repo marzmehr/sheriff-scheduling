@@ -10,8 +10,8 @@
                     <b-row 
                         style="font-size:12px; line-height: 16px; font-weight: bold; text-transform: Capitalize;" 
                         v-b-tooltip.hover.topleft                                
-                        :title="fullName.length>13?fullName:''">
-                            {{fullName|truncate(11)}}
+                        :title="sheriffInfo.name.length>13?sheriffInfo.name:''">
+                            {{sheriffInfo.name|truncate(11)}}
                     </b-row>
                 </b-col>
                 <b-col cols="3" class="m-0 p-0">                    
@@ -40,7 +40,7 @@
             <template v-slot:modal-title>                
                 <span class="m-0 p-0" > 
                     <h3 class="m-0 p-0" >Creating Shift for </h3>
-                    <h4  class="m-0 pt-2 pb-0 text-warning" style="text-align: center"> {{sheriffInfo.firstName}} {{sheriffInfo.lastName}}</h4>
+                    <h4  class="m-0 pt-2 pb-0 text-warning" style="text-align: center"> {{sheriffInfo.name}}</h4>
                 </span>
             </template>
 
@@ -311,7 +311,7 @@
     import RankTab from '@/components/MyTeam/Tabs/RankTab.vue'
     import UserSummaryTemplate from "@/components/MyTeam/Tabs/UserSummaryTemplate.vue";
     
-    import { dayOptionsInfoType, editedShiftInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '@/types/ShiftSchedule';
+    import { dayOptionsInfoType, editedShiftInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType, distributeScheduleInfoType } from '@/types/ShiftSchedule';
 
     import { locationInfoType, userInfoType } from '@/types/common';
     import { teamMemberInfoType } from '@/types/MyTeam';
@@ -342,7 +342,7 @@
         public userDetails!: userInfoType;
 
         @Prop({required: true})
-        public sheriffInfo!: sheriffAvailabilityInfoType;
+        public sheriffInfo!: distributeScheduleInfoType;
 
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
@@ -404,13 +404,13 @@
 
         
         mounted()
-        {  
+        {   //console.log(this.sheriffInfo)
             this.isDataMounted = false;
             this.hasPermissionToCreateShifts = this.userDetails.permissions.includes("CreateAndAssignShifts");        
             this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");
             this.hasPermissionToAssignRoles = this.userDetails.permissions.includes("CreateAndAssignRoles");
             this.sheriffId = this.sheriffInfo.sheriffId;          
-            this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
+           
 
             this.dayOptions = [
                 {name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], AllShifts:[], Shift:[], overTimeShift:[], Unavailable:[]}},
@@ -426,9 +426,10 @@
 
         public extractConflicts() {
             this.LoanedInDesc = '';
-            if(this.sheriffInfo.homeLocation.id != this.location.id) this.LoanedInDesc =  "Loaned In from " + this.sheriffInfo.homeLocation.name
+            if(this.sheriffInfo.homeLocation != this.location.name) this.LoanedInDesc =  "Loaned In from " + this.sheriffInfo.homeLocation
                       
             for(const conflict of this.sheriffInfo.conflicts){
+                console.log(conflict)
                 this.dayOptions[conflict.dayOffset].conflicts[conflict.type].push(conflict); 
                 this.dayOptions[conflict.dayOffset].fullday = this.dayOptions[conflict.dayOffset].fullday || conflict.fullday               
             }
