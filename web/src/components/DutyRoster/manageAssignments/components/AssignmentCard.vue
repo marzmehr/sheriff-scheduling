@@ -1,20 +1,60 @@
 <template>
-    <div v-if="scheduleInfo.length>0 && isMounted" id="shiftBox" ref="shiftBox" :key="updateBoxes">             
+    <div v-if="scheduleInfo && isMounted" id="shiftBox" ref="shiftBox" :key="updateBoxes">             
        
         <b-card>
             <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="event in sortEvents(scheduleInfo)" :key="event.id + event.date + event.location">
+                
                 <div v-if="event.type == 'Shift'">
                         
-                    <div style="border-bottom: 1px solid #ccc; text-align: center; font-weight: 700;" class="m-0 p-0">
-                        <span @mousedown="cardSelected(event)" @dblclick="selectOnlyCard(event)" style="height:100%">
+                    <div style="border-bottom: 1px solid #ccc; text-align: center; font-weight: 700; display: flex; align-items: center;">
+                        <!-- <span @dblclick="selectOnlyCard(event)" style="height:100%">
                         In: {{event.startTime}} Out: {{event.endTime}}
+                        </span> -->
+                        <b-form-checkbox
+                            class="ml-5"
+                            v-model="checked"
+                            @change="cardSelected(checked, event)">
+                        </b-form-checkbox>
+                        <span>
+                            In: {{event.startTime}} Out: {{event.endTime}}
                         </span>
+                        
                     </div>
 
-                    <span @mousedown="cardDutiesSelected(event)" style="height:100%">                                
-                        <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="duty in sortEvents(event.duties)" :key="duty.startTime">                                
-                            <div :style="'color: ' + duty.color">{{duty.startTime}}-{{duty.endTime}} {{duty.dutySubType}}</div>                            
-                        </div>
+                    <b-row v-if="event.duties && event.duties.length > 0" style="text-align: center;">     
+                        <b-col cols="10">                           
+                            <span style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="duty in sortEvents(event.duties)" :key="duty.startTime">                                
+                                <div :style="'color: ' + duty.color">{{duty.startTime}}-{{duty.endTime}} {{duty.dutySubType}}</div>                            
+                            </span>
+                        </b-col>
+                        <b-col cols="2">
+                            <b-button  
+                                class="mr-1 my-0 py-0" 
+                                size="sm"
+                                variant="transparent" 
+                                @click="cardDutiesSelected(event)"
+                                v-b-tooltip.hover                                
+                                title="Edit"
+                                ><b-icon
+                                    icon="pencil-square" 
+                                    font-scale="1.25" 
+                                    variant="primary" 
+                                    style="transform: translate(-8px,0);"/>
+                            </b-button>
+                        </b-col>
+                    </b-row>
+
+                    <span v-else style="height:100%;">
+                        <b-button block 
+                            class="mx-1 mt-1" 
+                            size="sm"
+                            variant="success" 
+                            @click="cardDutiesSelected(event)">
+                            Assign Duties
+                            <b-icon-plus
+                                font-scale="1.5" 
+                                variant="white"/>
+                        </b-button>                       
                     </span>
                         
                 </div>
@@ -77,18 +117,7 @@
                     
             </template>
 
-			<b-card v-if="isAssignmentDataMounted" no-body style="font-size: 14px;user-select: none;" >
-
-				<b-card id="EditDutyError" no-body>
-					<!-- <h2 v-if="editDutyError" class="mx-1 mt-2"
-						><b-badge v-b-tooltip.hover
-							:title="editDutyErrorMsg"
-							variant="danger"> {{editDutyErrorMsg | truncate(40)}}
-							<b-icon class="ml-3"
-								icon = x-square-fill
-								@click="editDutyError = false"
-					/></b-badge></h2> -->
-				</b-card>
+			<b-card v-if="isAssignmentDataMounted" no-body style="font-size: 14px;user-select: none;" >				
 
                 <div>
                     <b-card no-body border-variant="light" bg-variant="white">
@@ -100,8 +129,23 @@
                             borderless
                             small
                             sort-by="startTimeString"
-                            responsive="sm"
-                            >   
+                            responsive="sm">  
+
+                            <template v-slot:head(duty)="data" >
+                                <div style="">
+                                    <div style="float: left; margin:.15rem .25rem 0  0; font-size:14px">
+                                        {{data.label}}
+                                    </div>
+                                    <b-button
+                                        v-if="hasPermissionToAddAssignDuty && hasPermissionToEditDuty"
+                                        class="ml-1"
+                                        variant="success"
+                                        @click="manageDuties();"
+                                        size="sm"> Assignments
+                                    </b-button>
+                                </div>
+                            </template>
+
                             <template v-slot:cell(duty)="data" >
                                 {{data.item.dutySubType}}
                             </template>
@@ -145,7 +189,8 @@
                                     <add-assignment-slot-form 
                                         :formData="data.item" 
                                         :dutyBlocks="dutyBlocks"     
-                                        :sheriffName="sheriffName"                                    
+                                        :sheriffName="sheriffName" 
+                                        :date="dutyDate"                                   
                                         v-on:submit="assignDutyOverPopup" 
                                         v-on:cancel="closeDutySlotForm" />
                                 </b-card>
@@ -203,9 +248,8 @@
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
-    import { scheduleInfoType } from '@/types/ShiftSchedule/index';
     import { userInfoType } from '@/types/common';
-    import { allEditingDutySlotsInfoType, manageAssignmentDutyInfoType } from '@/types/DutyRoster';
+    import { allEditingDutySlotsInfoType, manageAssignmentDutyInfoType, manageAssignmentsScheduleInfoType } from '@/types/DutyRoster';
 
     import AddAssignmentSlotForm from './AddAssignmentSlotForm.vue';
 
@@ -217,7 +261,7 @@
     export default class AssignmentCard extends Vue {
 
         @Prop({required: true})
-        scheduleInfo!: scheduleInfoType[];
+        scheduleInfo!: manageAssignmentsScheduleInfoType;
 
         @Prop({required: true})
         sheriffId!: string;
@@ -238,7 +282,10 @@
         hasPermissionToEditShifts = false;
         hasPermissionToEditDuty = false;
         hasPermissionToAddAssignDuty = false;
-        isMounted = false;        
+        isMounted = false; 
+        
+        editDutyError = false;
+        editDutyErrorMsg = '';
 
         deleteErrorMsg = '';
         deleteError = false;
@@ -252,6 +299,7 @@
 
         addNewDutySlotForm = false;
         addFormColor = 'secondary';
+        checked = false;
 
         isEditOpen = false;
         latestEditData;
@@ -262,22 +310,23 @@
         shiftStartTime = '';
         shiftEndTime = '';
         shiftDate = '';
+        dutyDate = '';
 
         dutyBlocks: manageAssignmentDutyInfoType[] = [];
 
         fields = [      
-            {key:'duty', label:'Duty',sortable:false, tdClass: 'border-top'  },
-            {key:'startTime', label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},
-            {key:'endTime',   label:'End Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},  
-            {key:'note', label:'Note',sortable:false, tdClass: 'border-top', thClass:'h6 align-middle'  },
-            {key:'editDutySlot', label:'',  sortable:false, tdClass: 'border-top', thClass:'',}       
+            {key:'duty',         label:'Duty',        sortable:false, tdClass: 'border-top'  },
+            {key:'startTime',    label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},
+            {key:'endTime',      label:'End Time',    sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},  
+            {key:'note',         label:'Note',        sortable:false, tdClass: 'border-top', thClass:'h6 align-middle'  },
+            {key:'editDutySlot', label:'',            sortable:false, tdClass: 'border-top', thClass:'',}       
         ];
 
-        mounted() {            
+        mounted() { 
             this.isMounted = false;
             this.hasPermissionToEditShifts = this.userDetails.permissions.includes("EditShifts");
             this.hasPermissionToEditDuty = this.userDetails.permissions.includes("EditDuties");            
-            this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
+            this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");            
             this.isMounted = true; 
         }        
 
@@ -288,9 +337,11 @@
             }
         }
 
-        public cardSelected(block){
+        public cardSelected(checked, block: manageAssignmentsScheduleInfoType){
+            console.log(checked)
+            console.log(block)
             let selectedCards = this.selectedShifts;
-            if(block.type=='Shift'){
+            if(block.type=='Shift' && block.id){
                 if (!selectedCards.includes(block.id))
                     selectedCards.push(block.id);
                 else
@@ -299,28 +350,20 @@
             }
         }
 
-        public cardDutiesSelected(block: scheduleInfoType){
-            console.log(block)
+        public cardDutiesSelected(block: manageAssignmentsScheduleInfoType){            
             this.isAssignmentDataMounted = false;
             this.shiftDate = Vue.filter('beautify-date-weekday')(block.date);
             this.shiftStartTime = block.startTime;
             this.shiftEndTime = block.endTime;
-            this.dutyBlocks = block.duties?block.duties:[];           
+            this.dutyBlocks = block.duties?block.duties:[];  
+            this.dutyDate =  block.date;        
             this.showEditAssignmentsDetails = true;
-            // this.showEditDutySheriffModal = false;
-            this.isAssignmentDataMounted = true;
-            
-            //const dutyRosterInfo = editingDutySlot.selectedDuty? editingDutySlot.selectedDuty : this.dutyRosterInfo;
-            //     const editedDutySlotsInfo = [editingDutySlot.editedDutySlot];
-
-            //     body.push(this.assignDuty(sheriffId, editedDutySlotsInfo, unassignSheriff, dutyRosterInfo ));
+            this.isAssignmentDataMounted = true;            
         }
 
         public closeEditDutyWindow(){
             this.closeDutySlotForm();
-            // this.UpdateDutyToBeEdited('');
-            // this.selectedComment.comment= (this.dutyRosterInfo.attachedDuty && this.dutyRosterInfo.attachedDuty.comment)? this.dutyRosterInfo.attachedDuty.comment: ''
-			this.showEditAssignmentsDetails = false;
+            this.showEditAssignmentsDetails = false;
 		}
 
         public closeDutySlotForm() {                     
@@ -370,16 +413,20 @@
                 location.href = '#addDutySlotForm'
                 this.addFormColor = 'danger'
             }else if(this.isEditOpen){
-                location.href = '#Ds-Time-'+this.latestEditData.item.startTimeString.substring(0,10)
+                //location.href = '#Ds-Time-'+this.latestEditData.item.startTimeString.substring(0,10)
                 this.addFormColor = 'danger'               
             }else if(!this.isEditOpen && !data.detailsShowing){
                 data.toggleDetails();
                 this.isEditOpen = true;
                 this.latestEditData = data
-                Vue.nextTick().then(()=>{
-                    location.href = '#Ds-Time-'+this.latestEditData.item.startTimeString.substring(0,10)
-                });
+                // Vue.nextTick().then(()=>{
+                //     location.href = '#Ds-Time-'+this.latestEditData.item.startTimeString.substring(0,10)
+                // });
             }   
+        }
+
+        public manageDuties(){
+            console.log('adding duty')
         }
 
         public sortEvents (events: any) {            

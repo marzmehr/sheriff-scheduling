@@ -1,6 +1,7 @@
 import {} from '../common';
 import { locationJsonType } from '../common/jsonTypes';
 import { lookupCodeJsonType } from '../ManageTypes/jsonTypes';
+import { actingRankJsontype } from '../MyTeam/jsonTypes';
 import { shiftInfoType } from '../ShiftSchedule';
 import {} from './jsonTypes';
 
@@ -239,8 +240,8 @@ export interface allEditingDutySlotsInfoType{
 }
 
 export interface manageAssignmentDutyInfoType {    
-    dutyId?: string;
-    id?: string;
+    dutyId?: number;
+    id?: number;
     startTime?: string;
     endTime?: string;
     dutyType: string;
@@ -248,4 +249,51 @@ export interface manageAssignmentDutyInfoType {
     color: string;
     dutyNotes?: string; 
     assignmentNotes?: string;   
+}
+
+export interface manageAssignmentsInfoType {
+
+    myteam: manageScheduleInfoType;
+    Sun: shiftInfoType | {};
+    Mon: shiftInfoType | {};
+    Tue: shiftInfoType | {};
+    Wed: shiftInfoType | {};
+    Thu: shiftInfoType | {};
+    Fri: shiftInfoType | {};
+    Sat: shiftInfoType | {};    
+}
+
+export interface manageScheduleInfoType {
+    sheriffId: string;
+    conflicts: manageAssignmentsScheduleInfoType[];
+    name: string;
+    homeLocation: string;
+    rank: string;
+    badgeNumber: string;
+    actingRank: actingRankJsontype[];    
+}
+
+export interface manageAssignmentsScheduleInfoType {
+    id?: string;
+    location: string;
+    dayOffset:number; 
+    date:string; 
+    startTime:string;
+    endTime:string;
+    type: string;
+    subType?: string;    
+    fullday: boolean;
+    duties?: manageAssignmentDutyInfoType[];
+    workSection: string; 
+    workSectionColor: string;
+}
+
+export interface conflictsJsonAwayLocationInfoType {
+    sheriffId: string;
+    conflict: string;
+    start: string;
+    end: string;
+    locationId: number;
+    startDay: string;
+    endDay: string;
 }

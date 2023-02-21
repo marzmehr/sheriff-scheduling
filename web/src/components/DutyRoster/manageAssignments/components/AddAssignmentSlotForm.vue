@@ -1,8 +1,8 @@
 <template>
     <div>        
         <b-table-simple small borderless class="m-0 p-0">
-            <b-tbody >
-                <b-tr >
+            <b-tbody>
+                <b-tr>
                     <b-td >
                         <b-tr class="bg-white">
                             <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 15rem">                            
@@ -13,7 +13,7 @@
                                     :state = "dutyState?null:false">                                        
                                         <b-form-select-option
                                             v-for="duty in dutyList"
-                                            :key="duty"
+                                            :key="duty.id + '-' + duty.startTime"
                                             :value="duty">
                                                     {{duty.dutySubType}}
                                         </b-form-select-option>
@@ -131,20 +131,26 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {allEditingDutySlotsInfoType, assignDutySlotsInfoType, assignmentCardInfoType, manageAssignmentDutyInfoType, myTeamShiftInfoType } from '@/types/DutyRoster';
     import { namespace } from 'vuex-class';
-    import "@store/modules/DutyRosterInformation";
     import moment from 'moment-timezone';
+
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");
+
+    import "@store/modules/DutyRosterInformation";    
     const dutyState = namespace("DutyRosterInformation");
 
+    import {allEditingDutySlotsInfoType, assignDutySlotsInfoType, assignmentCardInfoType, manageAssignmentDutyInfoType, myTeamShiftInfoType, attachedDutyInfoType } from '@/types/DutyRoster';
+    import { locationInfoType } from '@/types/common';
+    
     @Component
     export default class AddAssignmentSlotForm extends Vue {        
 
-        @dutyState.State
-        public shiftAvailabilityInfo!: myTeamShiftInfoType[];
+        @commonState.State
+        public location!: locationInfoType;
 
         @dutyState.State
-        public dutyRosterAssignments!: assignmentCardInfoType[];
+        public shiftAvailabilityInfo!: myTeamShiftInfoType[];       
 
         @Prop({required: true})
         formData!: manageAssignmentDutyInfoType;
@@ -155,7 +161,8 @@
         @Prop({required: true})
         sheriffName!: string;
 
-               
+        @Prop({required: true})
+        date!: string;
 
         selectedDuty = {} as manageAssignmentDutyInfoType | undefined;
         dutyState = true;        
@@ -178,19 +185,23 @@
         confirmAssignOverTimeDuty = false;
         editedDutySlots: assignDutySlotsInfoType[] = [];      
 
-        dutyList: manageAssignmentDutyInfoType[] = [];       
+        dutyList: manageAssignmentDutyInfoType[] = [];      
         
-
-        // formDataId = '0';
-        showCancelWarning = false;        
+        editDutyDataMounted = false;        
+        showCancelWarning = false;     
         
-        mounted()
-        { 
-            this.clearSelections();
-            this.extractDuties();
-            if(this.formData.dutyType) {
-                this.extractFormInfo();
-            }               
+        WSColors = {
+            'CourtRole':'#189fd4',
+            'CourtRoom':'#189fd4',
+            'JailRole':'#A22BB9',
+            'EscortRun':'#ffb007',
+            'OtherAssignment':'#7a4528'
+        }
+        
+        mounted() { 
+            this.editDutyDataMounted = false;
+            this.clearSelections();            
+            this.getDuties();                           
         }        
 
         public extractFormInfo(){           
@@ -201,21 +212,68 @@
             this.originalEndTime = this.selectedEndTime = this.formData.endTime?this.formData.endTime:'';
             this.originalNote = this.selectedNote = this.formData.dutyNotes?this.formData.dutyNotes:'';
         }
-
         
-        public extractDuties(){
+        public extractDuties(duties: attachedDutyInfoType[]){
+
+            //TODO: extract duties which have not been assigned yet
             this.dutyList = [];
-            for(const dutyRosterAssignment of this.dutyRosterAssignments){
-                // if(dutyRosterAssignment.attachedDuty){
-                //     const duty = dutyRosterAssignment;
-                //     duty['fullname']= Vue.filter('capitalize')(duty.type.name) +
-                //         (duty.code? '-'+duty.code:'') +
-                //         (duty.name?' ('+duty.name+') ':'')+
-                //         (duty.FTEnumber>0?' slot_'+(duty.FTEnumber+1):'');
-                //     this.dutyList.push(duty) 
-                // }
+           
+            for(const duty of duties){
+                console.log(duty)
+                  
+                if(duty.dutySlots?.length>0){
+
+                    for (const slot of duty.dutySlots){
+                        if (!slot.sheriffId){ //TODO: determine if the slots are taking up all the assignment range                            
+                            const unassignedDuty = {} as manageAssignmentDutyInfoType;
+
+                            this.dutyList.push(unassignedDuty)
+                        }                        
+                    }
+                    
+                } else {
+                    const unassignedDuty = {} as manageAssignmentDutyInfoType;                    
+                    unassignedDuty.id = duty.id;
+                    unassignedDuty.startTime = duty.startDate;
+                    unassignedDuty.endTime = duty.endDate;
+                    unassignedDuty.dutyType = duty.assignment.lookupCode.type;
+                    unassignedDuty.dutySubType = duty.assignment.lookupCode.code;
+                    unassignedDuty.color = this.WSColors[duty.assignment.lookupCode.type]?this.WSColors[duty.assignment.lookupCode.type]:'';
+                    unassignedDuty.dutyNotes = duty.comment?duty.comment:''; 
+                    unassignedDuty.assignmentNotes = duty.assignment?.comment?duty.assignment.comment:'';
+                    this.dutyList.push(unassignedDuty);
+                }
             }
 
+            if(this.formData.dutyType) {
+                this.extractFormInfo();
+            }
+
+            this.editDutyDataMounted = true;
+        }
+
+        public getDuties(){
+
+           console.log(this.date)
+
+            const endDate = moment.tz(this.date, this.location.timezone).endOf('day').utc().format();
+            const startDate = moment.tz(this.date, this.location.timezone).startOf('day').utc().format();
+
+            const url = 'api/dutyroster?locationId='+this.location.id+'&start='+startDate+'&end='+endDate;
+        
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        this.extractDuties(response.data);  
+                    }
+                    
+                },err => {
+                    this.errorMsg=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                    if (err.response.status != '401') {
+                        this.showErrorMsg=true;
+                    }     
+                    this.editDutyDataMounted = true;
+                })          
         }
 
         public autoCompleteTime(time){

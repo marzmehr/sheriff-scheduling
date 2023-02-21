@@ -311,10 +311,11 @@
     import RankTab from '@/components/MyTeam/Tabs/RankTab.vue'
     import UserSummaryTemplate from "@/components/MyTeam/Tabs/UserSummaryTemplate.vue";
     
-    import { dayOptionsInfoType, editedShiftInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType, distributeScheduleInfoType } from '@/types/ShiftSchedule';
+    import { dayOptionsInfoType, editedShiftInfoType, shiftInfoType,shiftRangeInfoType } from '@/types/ShiftSchedule';
 
     import { locationInfoType, userInfoType } from '@/types/common';
     import { teamMemberInfoType } from '@/types/MyTeam';
+    import { manageScheduleInfoType } from '@/types/DutyRoster';
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -342,7 +343,7 @@
         public userDetails!: userInfoType;
 
         @Prop({required: true})
-        public sheriffInfo!: distributeScheduleInfoType;
+        public sheriffInfo!: manageScheduleInfoType;
 
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
@@ -429,7 +430,6 @@
             if(this.sheriffInfo.homeLocation != this.location.name) this.LoanedInDesc =  "Loaned In from " + this.sheriffInfo.homeLocation
                       
             for(const conflict of this.sheriffInfo.conflicts){
-                console.log(conflict)
                 this.dayOptions[conflict.dayOffset].conflicts[conflict.type].push(conflict); 
                 this.dayOptions[conflict.dayOffset].fullday = this.dayOptions[conflict.dayOffset].fullday || conflict.fullday               
             }

@@ -391,11 +391,7 @@
             if(conflict.conflict =='AwayLocation') return 'Loaned'
             else if(conflict.conflict =='Scheduled') return 'Shift'
             else return conflict.conflict
-        }       
-
-        public sortEvents (events: any) {            
-            return _.sortBy(events, "startTime");
-        }
+        }         
         
         public extractSchedules(conflictsJson, onlyShedules){
 
