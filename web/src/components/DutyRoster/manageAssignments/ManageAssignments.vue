@@ -23,13 +23,13 @@
                             <span>{{data.label}}</span>
                         </template>
                         <template v-slot:cell()="data" >  
-                            <assignment-card :sheriffId="data.item.myteam.sheriffId" :sheriffName="data.item.myteam.name" :scheduleInfo="data.value"/>
+                            <assignment-card :sheriffId="data.item.myteam.sheriffId" :sheriffName="data.item.myteam.name" :scheduleInfo="data.value" v-on:change="loadScheduleInformation(false)"/>
                         </template>
                         <template v-slot:cell(myteam) = "data" > 
                             <team-member-card v-on:change="loadScheduleInformation(false)" :sheriffInfo="data.item.myteam" />
                         </template>
                 </b-table>
-                <div v-if="!isManageScheduleDataMounted && this.sheriffSchedules.length == 0" style="min-height:115.6px;">
+                <div v-if="!isManageScheduleDataMounted && sheriffSchedules.length == 0" style="min-height:115.6px;">
                 </div>
             </b-overlay>
         <b-card><br></b-card>
@@ -66,11 +66,12 @@
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
+
     import { locationInfoType, commonInfoType } from '@/types/common';
     import { shiftRangeInfoType, conflictsInfoType } from '@/types/ShiftSchedule/index';
     import { sheriffsAvailabilityJsonType, conflictJsonType } from '@/types/ShiftSchedule/jsonTypes';
-    import { manageAssignmentDutyInfoType, manageScheduleInfoType, manageAssignmentsInfoType, manageAssignmentsScheduleInfoType, conflictsJsonAwayLocationInfoType } from '@/types/DutyRoster';
-   
+    import { assignmentCardWeekInfoType, attachedDutyInfoType, manageAssignmentDutyInfoType, manageScheduleInfoType, manageAssignmentsInfoType, manageAssignmentsScheduleInfoType, conflictsJsonAwayLocationInfoType, dutyRangeInfoType } from '@/types/DutyRoster';
+    
     @Component({
         components: {
             AssignmentCard,
@@ -95,6 +96,13 @@
         @assignmentState.Action
         public UpdateSelectedShifts!: (newSelectedShifts: string[]) => void
 
+        @assignmentState.State
+        public dutyShiftAssignmentsWeek!: assignmentCardWeekInfoType[];
+
+        @assignmentState.Action
+        public UpdateDutyShiftAssignmentsWeek!: (newDutyRosterAssignmentsWeek: assignmentCardWeekInfoType[]) => void
+
+
         allAssignmentsView = false;
         isManageScheduleDataMounted = false;
         headerDates: string[] = [];
@@ -104,6 +112,17 @@
         errorText ='';
         openErrorModal=false;
         maxRank = 1000;
+
+        dutyRostersJson: attachedDutyInfoType[] = [];
+        dutyColors = [
+            {name:'courtroom',  colorCode:'#189fd4'},
+            {name:'court',      colorCode:'#189fd4'},
+            {name:'jail' ,      colorCode:'#A22BB9'},
+            {name:'escort',     colorCode:'#ffb007'},
+            {name:'other',      colorCode:'#7a4528'}, 
+            {name:'overtime',   colorCode:'#e85a0e'},
+            {name:'free',       colorCode:'#e6d9e2'}                        
+        ]
 
         fields = [
             {key:'myteam', label:'My Team', tdClass:'px-0 mx-0', thClass:'text-center'},
@@ -133,7 +152,23 @@
         //     console.log('mount manage')
         // }
 
-        public loadScheduleInformation(allAssignmentsView: boolean) {
+        public getDutyRosters(startDate, endDate){            
+            const url = 'api/dutyroster?locationId='+this.location.id+'&start='+startDate+'&end='+endDate;
+            return this.$http.get(url)
+        }
+
+        public getAssignments(startDate, endDate){
+            const url = 'api/assignment?locationId='+this.location.id+'&start='+startDate+'&end='+endDate;
+            return this.$http.get(url)
+        }
+
+        public getDistributeschedule(startDate, endDate){
+            const url = 'api/distributeschedule/location?locationId='
+                        +this.location.id+'&start='+startDate+'&end='+endDate + '&includeWorkSection=true';
+            return this.$http.get(url)
+        }        
+
+        async loadScheduleInformation(allAssignmentsView: boolean) {
 
             this.UpdateSelectedShifts([]);
             this.isManageScheduleDataMounted=false;
@@ -143,24 +178,23 @@
 
             const endDate = moment.tz(this.assignmentRangeInfo.endDate, this.location.timezone).endOf('day').utc().format();
             const startDate = moment.tz(this.assignmentRangeInfo.startDate, this.location.timezone).startOf('day').utc().format();
+                        
+            const response = await Promise.all([
+                this.getDutyRosters(startDate, endDate),
+                this.getAssignments(startDate, endDate),
+                this.getDistributeschedule(startDate, endDate)
+            ]).catch(err=>{
+                this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                if (err.response.status != '401') {
+                    this.openErrorModal=true;
+                }   
+                this.sheriffSchedules = [];
+                this.isManageScheduleDataMounted=true;
+            });
             
-            const url = 'api/distributeschedule/location?locationId='
-                        +this.location.id+'&start='+startDate+'&end='+endDate + '&includeWorkSection=true';
-
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){                       
-                        const info = response.data;                        
-                        this.extractTeamScheduleInfo(info);                                                 
-                    }                                   
-                },err => {
-                    this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
-                    if (err.response.status != '401') {
-                        this.openErrorModal=true;
-                    }
-                    this.sheriffSchedules = [];
-                    this.isManageScheduleDataMounted=true;
-                }) 
+            this.dutyRostersJson = response[0].data;
+            this.extractAssignmentsInfo(response[1].data);
+            this.extractTeamScheduleInfo(response[2].data);            
         }
 
         public extractTeamScheduleInfo(sheriffsScheduleJson: sheriffsAvailabilityJsonType[]) {
@@ -678,6 +712,93 @@
             else if(conflict.conflict =='Scheduled') return 'Shift'
             else return conflict.conflict
         } 
+
+
+        //__ASSIGNMENTS__
+        public extractAssignmentsInfo(assignments){
+            const dutyWeekDates: string[] = []
+            for(let day=0; day<7; day++)
+                dutyWeekDates.push(moment(this.assignmentRangeInfo.startDate).add(day,'days').format().substring(0,10))                
+
+            console.log(dutyWeekDates)
+            const dutyRosterAssignments: assignmentCardWeekInfoType[] =[]
+            let sortOrder = 0;
+            for(const assignment of assignments){
+                sortOrder++;
+                const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
+
+               
+                if(dutyRostersForThisAssignment.length>0){
+                    let maximumRow = -2;
+                    for(const dutydate of dutyWeekDates){
+                        const dutyRostersInOneDay = dutyRostersForThisAssignment.filter(dutyRoster => moment(dutyRoster.startDate).tz(this.location.timezone).format().substring(0,10) == dutydate)
+                        if(dutyRostersInOneDay.length > maximumRow) maximumRow = dutyRostersInOneDay.length;
+                    }
+
+                    const dutyRosterAssignment: assignmentCardWeekInfoType[] = [];
+
+                    for(let row=0; row<maximumRow; row++){
+                        dutyRosterAssignment.push({
+                            assignment:('00' + sortOrder).slice(-3)+'FTE'+('0'+ row).slice(-2) ,
+                            assignmentDetail: assignment,
+                            name:assignment.name,
+                            code:assignment.lookupCode.code,
+                            type: this.getType(assignment.lookupCode.type),
+                            0: null,
+                            1: null,
+                            2: null,
+                            3: null,
+                            4: null,
+                            5: null,
+                            6: null,
+                            FTEnumber: row,
+                            totalFTE: maximumRow
+                        })
+                    }
+
+                    for(const dutydateInx in dutyWeekDates){
+                        const dutyRostersInOneDay = dutyRostersForThisAssignment.filter(dutyRoster => moment(dutyRoster.startDate).tz(this.location.timezone).format().substring(0,10) == dutyWeekDates[dutydateInx])
+                        for(const dutyRosterInOneDay of dutyRostersInOneDay){
+                            for(let row=0; row<maximumRow; row++){
+
+                                if(!dutyRosterAssignment[row][dutydateInx]){
+                                    dutyRosterAssignment[row][dutydateInx] = dutyRosterInOneDay;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    dutyRosterAssignments.push(...dutyRosterAssignment)
+                }else{                
+                    dutyRosterAssignments.push({
+                        assignment:('00' + sortOrder).slice(-3)+'FTE00' ,
+                        assignmentDetail: assignment,
+                        name:assignment.name,
+                        code:assignment.lookupCode.code,
+                        type: this.getType(assignment.lookupCode.type),
+                        0: null,
+                        1: null,
+                        2: null,
+                        3: null,
+                        4: null,
+                        5: null,
+                        6: null,
+                        FTEnumber: 0,
+                        totalFTE: 0
+                    })
+                }
+            }
+
+           this.UpdateDutyShiftAssignmentsWeek(dutyRosterAssignments)
+        }
+
+        public getType(type: string){
+            for(const color of this.dutyColors){
+                if(type.toLowerCase().includes(color.name))return color
+            }
+            return this.dutyColors[3]
+        }
 
     }
 </script>

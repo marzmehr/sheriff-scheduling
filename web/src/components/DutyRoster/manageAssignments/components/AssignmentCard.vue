@@ -1,35 +1,33 @@
 <template>
     <div v-if="scheduleInfo && isMounted" id="shiftBox" ref="shiftBox" :key="updateBoxes">             
-       
-        <b-card>
-            <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="event in sortEvents(scheduleInfo)" :key="event.id + event.date + event.location">
-                
-                <div v-if="event.type == 'Shift'">
-                        
-                    <div style="border-bottom: 1px solid #ccc; text-align: center; font-weight: 700; display: flex; align-items: center;">
-                        <!-- <span @dblclick="selectOnlyCard(event)" style="height:100%">
-                        In: {{event.startTime}} Out: {{event.endTime}}
-                        </span> -->
-                        <b-form-checkbox
-                            class="ml-5"
-                            v-model="checked"
-                            @change="cardSelected(checked, event)">
-                        </b-form-checkbox>
-                        <span>
-                            In: {{event.startTime}} Out: {{event.endTime}}
-                        </span>
-                        
-                    </div>
 
-                    <b-row v-if="event.duties && event.duties.length > 0" style="text-align: center;">     
-                        <b-col cols="10">                           
-                            <span style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="duty in sortEvents(event.duties)" :key="duty.startTime">                                
-                                <div :style="'color: ' + duty.color">{{duty.startTime}}-{{duty.endTime}} {{duty.dutySubType}}</div>                            
-                            </span>
-                        </b-col>
-                        <b-col cols="2">
+        <div style="font-size: 7pt; border:none;" class="m-0 p-0" v-for="event in sortEvents(scheduleInfo)" :key="event.id + event.date + event.location">
+            <!-- {{ event }} -->
+            <b-row v-if="event.type == 'Shift'" class="mx-1" style="border-bottom: 1px solid #ccc;">
+
+                <div style="text-align: left; font-weight: 700; width:25%; ">
+                    <!-- <span @dblclick="selectOnlyCard(event)" style="height:100%">
+                    In: {{event.startTime}} Out: {{event.endTime}}
+                    </span> -->
+                    
+                    <div>
+                        In: {{event.startTime}} 
+                    </div>
+                    <div>
+                        Out: {{event.endTime}}
+                    </div>
+                    
+                    <b-row class="m-0">
+                        <div class="m-0" >
+                            <b-form-checkbox
+                                style="margin:0.0rem 0;"                                
+                                v-model="checked"
+                                @change="cardSelected(checked, event)">
+                            </b-form-checkbox>
+                        </div>
+                        <div class="m-0" >
                             <b-button  
-                                class="mr-1 my-0 py-0" 
+                                class="p-0" 
                                 size="sm"
                                 variant="transparent" 
                                 @click="cardDutiesSelected(event)"
@@ -39,183 +37,75 @@
                                     icon="pencil-square" 
                                     font-scale="1.25" 
                                     variant="primary" 
-                                    style="transform: translate(-8px,0);"/>
+                                    />
                             </b-button>
-                        </b-col>
+                        </div>
                     </b-row>
-
-                    <span v-else style="height:100%;">
-                        <b-button block 
-                            class="mx-1 mt-1" 
-                            size="sm"
-                            variant="success" 
-                            @click="cardDutiesSelected(event)">
-                            Assign Duties
-                            <b-icon-plus
-                                font-scale="1.5" 
-                                variant="white"/>
-                        </b-button>                       
-                    </span>
-                        
                 </div>
-                <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">{{event.startTime}}-{{event.endTime}} Unavailable</div>
-                <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
-                
-                <div class="text-center" style="display:inline;" v-else-if="event.type == 'Leave'">                            
-                    <div style="border-bottom: 1px solid #ccc;" class="m-0 p-0">
-                        <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge text-white">Leave</div>
-                        <div v-else-if="annualLeaveList.some(leave => event.subType.toUpperCase().includes(leave))" class="bg-a-l-leave badge">Leave</div>
-                        <div v-else-if="healthLeaveList.some(leave => event.subType.toUpperCase().includes(leave))" class="bg-med-dental-leave badge">Leave</div>
-                        <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge text-white">Leave</div>
-                        <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge text-white">Leave</div>
-                        <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge text-white">Leave</div>
-                        <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge text-white">Leave</div>
-                        <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge text-white">Leave</div>
-                        <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge text-white">Leave</div>
-                        <div v-else  class="bg-primary badge text-white">Leave</div>
 
-                    </div> 
-                    <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-if="event.subType">
-                        <span v-if="event.startTime">{{event.startTime}}-{{event.endTime}}</span>
-                        <span v-else > FullDay </span>  
-                        {{ event.subType }}
-                    </div>  
+                <div style=" width:75%; background: #9EF;">
+                    <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="duty in sortEvents(event.duties)" :key="duty.startTime">                                
+                        <div :style="'color: ' + duty.color">{{duty.startTime}}-{{duty.endTime}} {{duty.dutySubType}}</div>                            
+                    </div>                    
+                </div>                    
+            </b-row>
+            <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">{{event.startTime}}-{{event.endTime}} Unavailable</div>
+            <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
+            
+            <div v-else-if="event.type == 'Leave'" class="text-center">
+                <div v-if="event.startTime && event.subType" style="font-size: 10pt; border:none;" class="m-0 p-0" >
+                    <span>{{event.startTime}}-{{event.endTime}}</span> {{ event.subType }}
+                </div>                            
+                <div v-else class="m-0 p-0" style="">
+                    <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge text-white">{{ event.subType }} Leave</div>
+                    <div v-else-if="annualLeaveList.some(leave => event.subType.toUpperCase().includes(leave))" class="bg-a-l-leave badge text-white">{{ event.subType }} Leave</div>
+                    <div v-else-if="healthLeaveList.some(leave => event.subType.toUpperCase().includes(leave))" class="bg-med-dental-leave badge">{{ event.subType }} Leave</div>
+                    <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge text-white">{{ event.subType }} Leave</div>
+                    <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge text-white">{{ event.subType }} Leave</div>
+                    <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge text-white">{{ event.subType }} Leave</div>
+                    <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge text-white">{{ event.subType }} Leave</div>
+                    <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge text-white">{{ event.subType }} Leave</div>
+                    <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge text-white">{{ event.subType }} Leave</div>
+                    <div v-else  class="bg-primary badge text-white">{{ event.subType }} Leave</div>
+                </div>                 
+                  
+            </div> 
+
+            <div v-else-if="event.type == 'Training'" class="text-center" style="display:inline;">  
+                
+                <div style="border-bottom: 1px solid #ccc;" class="m-0 p-0">
+                    <b-badge class="bg-primary text-white" >Training</b-badge>
                 </div> 
+                <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-if="event.subType">
+                    <span v-if="event.startTime">{{event.startTime}}-{{event.endTime}}</span>
+                    <span v-else > FullDay </span>  
+                    {{ event.subType }}
+                </div>  
+            </div>   
 
-                <div class="text-center" style="display:inline;" v-else-if="event.type == 'Training'">  
-                    
-                    <div style="border-bottom: 1px solid #ccc;" class="m-0 p-0">
-                        <b-badge class="bg-primary text-white" >Training</b-badge>
-                    </div> 
-                    <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-if="event.subType">
-                        <span v-if="event.startTime">{{event.startTime}}-{{event.endTime}}</span>
-                        <span v-else > FullDay </span>  
-                        {{ event.subType }}
-                    </div>  
-                </div>   
-
-                <div class="text-center" style="display:inline;" v-else-if="event.type == 'Loaned'">  
-                    <div style="border-bottom: 1px solid #ccc;" class="m-0 p-0">
-                        <b-badge class="bg-primary text-white">Loaned</b-badge>
-                    </div>
-
-                    <div style="font-size: 6pt; border:none;" class="m-0 p-0">
-                        <span v-if="event.startTime">{{event.startTime}}-{{event.endTime}}</span>
-                        <span v-else > FullDay </span>
-                        {{event.location}}
-                    </div>                            
-                </div>                
-            </div>
-        </b-card>
-
-        <b-modal v-model="showEditAssignmentsDetails" no-close-on-backdrop  centered header-class="bg-primary text-light" size="lg">
-			<template v-slot:modal-title>
-                
-				<div class="h2 mb-2  text-light"> {{sheriffName}} </div> 
-                <div style="float:left;" class="h4 ml-2 p-0 mb-0">{{shiftDate}}</div>             
-                <div style="float:left;" class="h4 text-warning ml-2 p-0 mb-0"> {{shiftStartTime}} - {{shiftEndTime}}</div>    
-                    
-            </template>
-
-			<b-card v-if="isAssignmentDataMounted" no-body style="font-size: 14px;user-select: none;" >				
-
-                <div>
-                    <b-card no-body border-variant="light" bg-variant="white">
-                        <b-table
-                            :items="dutyBlocks"
-                            :fields="fields"
-                            head-row-variant="primary"
-                            striped
-                            borderless
-                            small
-                            sort-by="startTimeString"
-                            responsive="sm">  
-
-                            <template v-slot:head(duty)="data" >
-                                <div style="">
-                                    <div style="float: left; margin:.15rem .25rem 0  0; font-size:14px">
-                                        {{data.label}}
-                                    </div>
-                                    <b-button
-                                        v-if="hasPermissionToAddAssignDuty && hasPermissionToEditDuty"
-                                        class="ml-1"
-                                        variant="success"
-                                        @click="manageDuties();"
-                                        size="sm"> Assignments
-                                    </b-button>
-                                </div>
-                            </template>
-
-                            <template v-slot:cell(duty)="data" >
-                                {{data.item.dutySubType}}
-                            </template>
-
-                            <template v-slot:cell(note)="data" >
-                                {{data.item.dutyNotes}}
-                            </template>
-
-                            <template v-if="hasPermissionToEditDuty" v-slot:cell(editDutySlot)="data" >          
-                                <b-button 
-                                    style="width:1.2rem;float:right" 
-                                    class="ml-1 mr-0 my-0 py-0"
-                                    size="sm"
-                                    variant="transparent" 
-                                    @click="confirmUnassignDutySlot(data.item)"
-                                    v-b-tooltip.hover                                
-                                    title="Unassign"
-                                    ><b-icon
-                                        icon="person-x-fill" 
-                                        font-scale="1.25" 
-                                        variant="danger" 
-                                        style="transform: translate(-8px,0);"/>
-                                </b-button>
-                                <b-button style="width:.75rem;float:right" 
-                                    class="mx-1 my-0 py-0" 
-                                    size="sm"
-                                    variant="transparent" 
-                                    @click="editDutySlotInfo(data)"
-                                    v-b-tooltip.hover                                
-                                    title="Edit"
-                                    ><b-icon
-                                        icon="pencil-square" 
-                                        font-scale="1.25" 
-                                        variant="primary" 
-                                        style="transform: translate(-8px,0);"/>
-                                </b-button>
-                            </template>
-
-                            <template v-slot:row-details="data">
-                                <b-card :id="'Le-Date-'+data.item.startTime.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
-                                    <add-assignment-slot-form 
-                                        :formData="data.item" 
-                                        :dutyBlocks="dutyBlocks"     
-                                        :sheriffName="sheriffName" 
-                                        :date="dutyDate"                                   
-                                        v-on:submit="assignDutyOverPopup" 
-                                        v-on:cancel="closeDutySlotForm" />
-                                </b-card>
-                            </template>
-                        </b-table> 
-                    </b-card> 
+            <div v-else-if="event.type == 'Loaned'" class="text-center" style="display:inline;">  
+                <div style="border-bottom: 1px solid #ccc;" class="m-0 p-0">
+                    <b-badge class="bg-primary text-white">Loaned</b-badge>
                 </div>
-                
-			</b-card>
 
-			<template v-slot:modal-footer>				
-				<b-button
-                    size="sm"
-                    variant="secondary"
-                    @click="closeEditDutyWindow()"
-				><b-icon-x style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Close</b-button>
-			</template>
-			<template v-slot:modal-header-close>
-				<b-button
-					variant="outline-primary"
-					class="text-light closeButton"
-					@click="closeEditDutyWindow()">
-					&times;</b-button>
-			</template>
-		</b-modal>
+                <div style="font-size: 6pt; border:none;" class="m-0 p-0">
+                    <span v-if="event.startTime">{{event.startTime}}-{{event.endTime}}</span>
+                    <span v-else > FullDay </span>
+                    {{event.location}}
+                </div>                            
+            </div>                
+        </div>
+
+        
+        <assignment-modal 
+            :showModal="showEditAssignmentsDetails" 
+            :sheriffName="sheriffName"
+            :shiftDate="shiftDate"
+            :shiftEndTime="shiftEndTime"
+            :shiftStartTime="shiftStartTime"
+            :dutyBlocks="dutyBlocks"
+            v-on:change="getData"
+            />
 
         <b-modal v-model="confirmUnassign" id="bv-modal-confirm-unassign" header-class="bg-warning text-light">
             <template v-slot:modal-title>
@@ -251,11 +141,11 @@
     import { userInfoType } from '@/types/common';
     import { allEditingDutySlotsInfoType, manageAssignmentDutyInfoType, manageAssignmentsScheduleInfoType } from '@/types/DutyRoster';
 
-    import AddAssignmentSlotForm from './AddAssignmentSlotForm.vue';
+    import AssignmentModal from './AssignmentComponents/AssignmentModal.vue';
 
     @Component({
         components: {
-            AddAssignmentSlotForm
+            AssignmentModal
         }
     })
     export default class AssignmentCard extends Vue {
@@ -290,7 +180,7 @@
         deleteErrorMsg = '';
         deleteError = false;
 
-        showEditAssignmentsDetails = false;
+        showEditAssignmentsDetails = { show: false };
 
         healthLeaveList = ['MEDICAL', 'DENTAL', 'MED/DENTAL'];
         annualLeaveList = ['A/L', 'ANNUAL'];
@@ -314,13 +204,13 @@
 
         dutyBlocks: manageAssignmentDutyInfoType[] = [];
 
-        fields = [      
-            {key:'duty',         label:'Duty',        sortable:false, tdClass: 'border-top'  },
-            {key:'startTime',    label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},
-            {key:'endTime',      label:'End Time',    sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},  
-            {key:'note',         label:'Note',        sortable:false, tdClass: 'border-top', thClass:'h6 align-middle'  },
-            {key:'editDutySlot', label:'',            sortable:false, tdClass: 'border-top', thClass:'',}       
-        ];
+        // fields = [      
+        //     {key:'duty',         label:'Duty',        sortable:false, tdClass: 'border-top'  },
+        //     {key:'startTime',    label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},
+        //     {key:'endTime',      label:'End Time',    sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},  
+        //     {key:'note',         label:'Note',        sortable:false, tdClass: 'border-top', thClass:'h6 align-middle'  },
+        //     {key:'editDutySlot', label:'',            sortable:false, tdClass: 'border-top', thClass:'',}       
+        // ];
 
         mounted() { 
             this.isMounted = false;
@@ -357,13 +247,13 @@
             this.shiftEndTime = block.endTime;
             this.dutyBlocks = block.duties?block.duties:[];  
             this.dutyDate =  block.date;        
-            this.showEditAssignmentsDetails = true;
+            this.showEditAssignmentsDetails.show = true;
             this.isAssignmentDataMounted = true;            
         }
 
         public closeEditDutyWindow(){
             this.closeDutySlotForm();
-            this.showEditAssignmentsDetails = false;
+            this.showEditAssignmentsDetails.show = false;
 		}
 
         public closeDutySlotForm() {                     
@@ -445,11 +335,20 @@
             this.updateBoxes++;
         }
 
+        public getData(){
+            this.$emit('change')
+        }
+
     }
 </script>
 
 <style scoped>   
 
+    .badge{
+        font-size: 10pt;
+        padding:0.5rem;
+        width:12rem;
+    }
     .card {
         border: white;
     }

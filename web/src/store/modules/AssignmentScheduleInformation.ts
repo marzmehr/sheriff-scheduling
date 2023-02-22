@@ -1,3 +1,4 @@
+import { assignmentCardWeekInfoType } from '@/types/DutyRoster';
 import { shiftRangeInfoType, sheriffAvailabilityInfoType, distributeTeamMemberInfoType } from '@/types/ShiftSchedule';
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 
@@ -10,6 +11,8 @@ class AssignmentScheduleInformation extends VuexModule {
   public sheriffsAvailabilityInfo = [] as sheriffAvailabilityInfoType[];
   public selectedShifts = [] as string[];
   public teamMemberList = [] as distributeTeamMemberInfoType[];
+
+  public dutyShiftAssignmentsWeek: assignmentCardWeekInfoType[] = [];
 
   @Mutation
   public setAssignmentRangeInfo(assignmentRangeInfo): void {   
@@ -50,6 +53,17 @@ class AssignmentScheduleInformation extends VuexModule {
   public UpdateTeamMemberList(newTeamMemberList): void {
     this.context.commit('setTeamMemberList', newTeamMemberList)
   }
+
+  @Mutation
+  public setDutyShiftAssignmentsWeek(dutyShiftAssignmentsWeek: assignmentCardWeekInfoType[]): void {   
+    this.dutyShiftAssignmentsWeek = dutyShiftAssignmentsWeek
+  }
+
+  @Action
+  public UpdateDutyShiftAssignmentsWeek(newDutyShiftAssignmentsWeek: assignmentCardWeekInfoType[]): void {
+    this.context.commit('setDutyShiftAssignmentsWeek', newDutyShiftAssignmentsWeek)
+  }
+
 }
 
 export default AssignmentScheduleInformation
