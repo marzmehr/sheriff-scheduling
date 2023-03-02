@@ -248,7 +248,8 @@ export interface manageAssignmentDutyInfoType {
     dutySubType: string;
     color: string;
     dutyNotes?: string; 
-    assignmentNotes?: string;   
+    assignmentNotes?: string;
+    isOvertime?: boolean;   
 }
 
 export interface manageAssignmentsInfoType {
@@ -286,6 +287,7 @@ export interface manageAssignmentsScheduleInfoType {
     duties?: manageAssignmentDutyInfoType[];
     workSection: string; 
     workSectionColor: string;
+    overtime?: number;
 }
 
 export interface conflictsJsonAwayLocationInfoType {

@@ -15,7 +15,7 @@
                     size="sm"
                     variant="dark"
                     class="text-white px-4"
-                    @click="showModal.show=false">
+                    @click="closeModal()">
                     Close
                 </b-button>                            
             </template>
@@ -101,6 +101,9 @@
         @assignmentState.State
 		public assignmentRangeInfo!: dutyRangeInfoType;
 
+        @assignmentState.Action
+        public UpdateManageDutiesModalID!: (newManageDutiesModalID: string) => void
+
         showCreateAssignments={show: false}
         hasPermissionToAddAssignments = false;
 
@@ -136,6 +139,11 @@
                 return card.assignment.start.substring(0,5) + ' - ' + card.assignment.end.substring(0,5)
             else
                 return ''
+        }
+
+        public closeModal(){
+            this.UpdateManageDutiesModalID("")
+            this.showModal.show=false
         }
         
     }
