@@ -167,6 +167,7 @@
         }
                 
         public addEditedDuty(){
+            if(!this.checkStates()) return
             this.selectedStartTime = Vue.filter('autoCompleteTime')(this.selectedStartTime)
             this.selectedEndTime = Vue.filter('autoCompleteTime')(this.selectedEndTime)
             const newDutyArray = Vue.filter('startEndTimesToArray')(null,1, this.dutyDate.slice(0,10), this.selectedStartTime, this.selectedEndTime, this.location.timezone)

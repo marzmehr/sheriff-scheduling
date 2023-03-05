@@ -6,20 +6,21 @@
             <b-row v-if="sheriffEvent.type == 'Shift'" class="mx-1" style="">
 
                 <div style="text-align: left; font-weight: 700; width:30%; ">
-
-                    <div>
-                        <span style="font-size: 6.5pt; margin-right:0.4rem; ">In: </span> {{sheriffEvent.startTime}} 
-                    </div>
-                    <div>
-                        <span style="font-size: 6pt;" >Out:</span> {{sheriffEvent.endTime}}
-                    </div>
+                    <div v-if="sheriffEvent.startTime && sheriffEvent.endTime">
+                        <div>
+                            <span style="font-size: 6.5pt; margin-right:0.4rem; ">In: </span> {{sheriffEvent.startTime}} 
+                        </div>
+                        <div>
+                            <span style="font-size: 6pt;" >Out:</span> {{sheriffEvent.endTime}}
+                        </div>
+                    </div>                    
                     
-                    <b-row class="m-0">
+                    <b-row class="m-0" v-if="sheriffEvent.startTime && sheriffEvent.endTime">
                         <div class="m-0" >
                             <b-form-checkbox
                                 style="transform:translate(0px,-1px);"                                
                                 v-model="checked"
-                                @change="cardSelected(checked, sheriffEvent)">
+                                @change="cardSelected">
                             </b-form-checkbox>
                         </div>
                         <div class="m-0" >
@@ -38,13 +39,14 @@
                 </div>
 
                 <div style=" width:70%;">
-                    <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="duty in sortEvents(sheriffEvent.duties)" :key="duty.startTime">                                
+                    <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="duty,inx in sortEvents(sheriffEvent.duties)" :key="'duty-name-'+inx+'-'+duty.startTime">                                
                         <div :style="'color: ' + duty.color">
                             <b v-if="duty.isOvertime">*</b>
                             <font-awesome-icon v-else-if="duty.dutyType=='Training'" style="font-size: 0.5rem;" icon="graduation-cap" />
                             <font-awesome-icon v-else-if="duty.dutyType=='Leave'" style="font-size: 0.5rem;" icon="suitcase" />
                             <font-awesome-icon v-else-if="duty.dutyType=='Loaned'" style="font-size: 0.5rem;transform:rotate(180deg);" icon="sign-out-alt" />
-                            <b> {{duty.startTime}}-{{duty.endTime}}</b> {{ duty.dutyType.replace('Role','') }} {{duty.dutySubType}}
+                            <b> {{duty.startTime}}-{{duty.endTime}}</b> {{ duty.dutyType.replace('Role','').replace('Assignment','').replace('EscortRun','Transport') }} 
+                            <span v-if="duty.dutyType!='Training' && duty.dutyType!='Leave' && duty.dutyType!='Loaned'" > {{duty.dutySubType}} </span>
                         </div>                            
                     </div>                    
                 </div>                    
@@ -64,15 +66,15 @@
 
             <div v-else-if="sheriffEvent.type == 'Training'" class="text-center" style="display:inline;">                  
                 <div style="" class="m-0 p-0">
-                    <div class="bg-training-leave text-white bdg" >
+                    <div class="bg-training-leave text-white bdg" v-b-tooltip.hover :title="sheriffEvent.subType">
                         <font-awesome-icon style="font-size: 0.9rem;" icon="graduation-cap" /> Training
                     </div>
                 </div> 
             </div>   
 
             <div v-else-if="sheriffEvent.type == 'Loaned'" class="text-center" style="display:inline;">  
-                <div style="" class="m-0 p-0">
-                    <div class="bg-loaned text-white bdg">
+                <div style="" class="m-0 p-0"> 
+                    <div class="bg-loaned text-white bdg" v-b-tooltip.hover :title="'Loaned to '+sheriffEvent.location">
                         <font-awesome-icon  style="transform:translate(0,0) rotate(180deg); font-size: .9rem;"  icon="sign-out-alt" /> Loaned
                     </div>
                 </div>                     
@@ -88,6 +90,7 @@
             :shiftEndTime="shiftEndTime"
             :shiftStartTime="shiftStartTime"
             :dutyDate="dutyDate"
+            :scheduleInfo="scheduleInfo"
             :dutyBlocks="dutyBlocks"
             :sheriffAvailabilityArray="sheriffAvailabilityArray"
             v-on:change="getData"
@@ -99,6 +102,7 @@
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import { namespace } from "vuex-class";    
     import * as _ from 'underscore';
+    import moment from 'moment-timezone';
 
     import "@store/modules/AssignmentScheduleInformation";
 	const assignmentState = namespace("AssignmentScheduleInformation");
@@ -110,6 +114,7 @@
     import { manageAssignmentDutyInfoType, manageAssignmentsScheduleInfoType } from '@/types/DutyRoster';
 
     import AssignmentModal from './AssignmentComponents/AssignmentModal.vue';
+import { selectShiftInfoType } from '@/types/ShiftSchedule';
 
     @Component({
         components: {
@@ -127,6 +132,12 @@
         @Prop({required: true})
         sheriffName!: string;
 
+        @Prop({required: true})
+        showAllDuties!: boolean;
+
+        @Prop({required: true})
+        cardDate!: string;
+
         @commonState.State
         public userDetails!: userInfoType;
         
@@ -134,10 +145,10 @@
         public location!: locationInfoType;
 
         @assignmentState.State
-        public selectedShifts!: string[];
+        public selectedShifts!: selectShiftInfoType[];
 
         @assignmentState.Action
-        public UpdateSelectedShifts!: (newSelectedShifts: string[]) => void  
+        public UpdateSelectedShifts!: (newSelectedShifts: selectShiftInfoType[]) => void  
         
 
         @assignmentState.State
@@ -176,6 +187,7 @@
         shiftEndTime = '';
         shiftDate = '';
         dutyDate = '';
+        currentTime='';
 
         dutyBlocks: manageAssignmentDutyInfoType[] = [];
         sheriffAvailabilityArray: number[]|null=[]
@@ -184,6 +196,11 @@
 
         mounted() { 
             this.isMounted = false;
+            this.currentTime='';
+            if(this.showAllDuties==false){
+                if(moment().format('YYYY-MM-DD')==moment(this.cardDate).format('YYYY-MM-DD'))
+                    this.currentTime=moment().format('HH:mm')
+            }
             this.hasPermissionToEditShifts = this.userDetails.permissions.includes("EditShifts");
             this.hasPermissionToEditDuty = this.userDetails.permissions.includes("EditDuties");            
             this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");            
@@ -192,11 +209,11 @@
             Vue.nextTick(()=>this.checkOpenModal()) 
         }
         
-        public extractSheriffEvents(){
-            // console.log(this.scheduleInfo)
+        public extractSheriffEvents(){            
+            // if(this.scheduleInfo.length) console.log(this.scheduleInfo)
             this.sheriffAvailabilityArray = null
             this.sheriffEvent = {} as manageAssignmentsScheduleInfoType;
-            const duties: manageAssignmentDutyInfoType[] = []
+            const duties: manageAssignmentDutyInfoType[] = []            
             for(const sheriffEvent of this.sortEvents(this.scheduleInfo)){
                 if(sheriffEvent.fullday){
                     this.sheriffEvent=sheriffEvent;
@@ -215,7 +232,6 @@
                         dutySubType: sheriffEvent.subType,
                         color: Vue.filter('subColors')(subtype)                                        
                     })
-
                 }
                 else if(sheriffEvent.type == 'Shift' && sheriffEvent.overtime){
                     // console.log('Overtime')
@@ -227,13 +243,14 @@
                     }
                 }
                 else{
-                    console.log(sheriffEvent)
+                    //console.log(sheriffEvent)
                     this.sheriffAvailabilityArray = Vue.filter('startEndTimesToArray')(
                         this.sheriffAvailabilityArray, 1, 
                         sheriffEvent.date.slice(0,10), 
                         sheriffEvent.startTime, 
                         sheriffEvent.endTime, 
-                        this.location.timezone)
+                        this.location.timezone
+                    )
                     duties.push(...sheriffEvent.duties)
                     if(!this.sheriffEvent.type){
                         this.sheriffEvent=sheriffEvent
@@ -245,9 +262,36 @@
                     }
                 }
             }
-            this.sheriffEvent.duties = duties;            
-            console.log(duties)
-            console.log(this.sheriffAvailabilityArray)
+            
+            if(this.currentTime){
+                this.sheriffEvent.duties = duties.filter( duty =>  
+                    duty.startTime && this.currentTime>=duty.startTime &&
+                    duty.endTime && this.currentTime<=duty.endTime
+                ) 
+            }else
+                this.sheriffEvent.duties = duties;
+            
+            //__Empty_Shift
+            if(!this.sheriffEvent.type && duties.length>0){
+                this.sheriffEvent={
+                    date: this.dutyDate,
+                    dayOffset: 0,
+                    duties: duties,
+                    endTime: "",
+                    fullday: false,                    
+                    location:"",
+                    overtime:0,
+                    startTime:"",
+                    subType:"",
+                    type:"Shift",
+                    workSection:"",
+                    workSectionColor:""
+                }
+            }
+                        
+            // console.log(this.sheriffEvent)
+            //console.log(duties)
+            //console.log(this.sheriffAvailabilityArray)
         }
 
         public checkOpenModal(){
@@ -255,17 +299,32 @@
             if(this.editDutyModalID==editModalID) this.editDuties(this.sheriffEvent)
         }
 
-        public cardSelected(checked, block: manageAssignmentsScheduleInfoType){
-            console.log(checked)
-            console.log(block)
-            let selectedCards = this.selectedShifts;
-            if(block.type=='Shift' && block.id){
-                if (!selectedCards.includes(block.id))
-                    selectedCards.push(block.id);
-                else
-                    selectedCards = selectedCards.filter(sc => sc != block.id);
-                this.UpdateSelectedShifts(selectedCards);
+        public cardSelected(check){            
+            // console.log(check)
+            // console.log(this.scheduleInfo)  
+            
+            const a ={
+                id:9,
+                sheriff:'Alex',
+                date: this.cardDate
             }
+            
+            const selectedCardsIds =  this.selectedShifts.map(shift => shift.id)
+            let selectedCards = this.selectedShifts;
+            for(const block of this.scheduleInfo){
+                if(block.type=='Shift' && block.id){
+                    // console.log(block)
+                    if (check && !selectedCardsIds.includes(block.id))
+                        selectedCards.push({
+                            id: block.id,
+                            sheriff: this.sheriffName,
+                            date: this.cardDate
+                        });
+                    else if (!check)
+                        selectedCards = selectedCards.filter(sc => sc.id != block.id);                    
+                }
+            }
+            this.UpdateSelectedShifts(selectedCards);
         }
 
         public editDuties(block: manageAssignmentsScheduleInfoType){ 
@@ -283,7 +342,8 @@
         }
 
         public sortEvents (events: any) {            
-            return _.sortBy(events, "startTime");
+            const eventsCopy = JSON.parse(JSON.stringify(events))
+            return _.sortBy(eventsCopy, "startTime");
         }
 
         public getColor(subtype){

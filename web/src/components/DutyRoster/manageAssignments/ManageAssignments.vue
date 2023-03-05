@@ -17,13 +17,19 @@
                         <col style="width:8.5rem;">                            
                     </template>
                     <template v-slot:head() = "data" >
-                        <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
+                        <span>{{data.column}}</span> <span> {{data.label}}</span>
                     </template>
                     <template v-slot:head(myteam) = "data" >  
                         <span>{{data.label}}</span>
                     </template>
-                    <template v-slot:cell()="data" >  
-                        <assignment-card :sheriffId="data.item.myteam.sheriffId" :sheriffName="data.item.myteam.name" :scheduleInfo="data.value" v-on:change="loadScheduleInformation()"/>
+                    <template v-slot:cell()="data" > 
+                        <assignment-card 
+                            :sheriffId="data.item.myteam.sheriffId" 
+                            :sheriffName="data.item.myteam.name" 
+                            :scheduleInfo="data.value"
+                            :showAllDuties="showAllAssignments"
+                            :cardDate="data.field.label"
+                            v-on:change="loadScheduleInformation()"/>
                     </template>
                     <template v-slot:cell(myteam) = "data" > 
                         <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo="data.item.myteam" />
@@ -67,7 +73,7 @@
 
 
     import { locationInfoType, commonInfoType } from '@/types/common';
-    import { shiftRangeInfoType, conflictsInfoType } from '@/types/ShiftSchedule/index';
+    import { shiftRangeInfoType, selectShiftInfoType } from '@/types/ShiftSchedule/index';
     import { sheriffsAvailabilityJsonType, conflictJsonType } from '@/types/ShiftSchedule/jsonTypes';
     import { assignmentCardWeekInfoType, attachedDutyInfoType, manageAssignmentDutyInfoType, manageScheduleInfoType, manageAssignmentsInfoType, manageAssignmentsScheduleInfoType, conflictsJsonAwayLocationInfoType, dutyRangeInfoType } from '@/types/DutyRoster';
     
@@ -93,7 +99,7 @@
 		public assignmentRangeInfo!: shiftRangeInfoType;
 
         @assignmentState.Action
-        public UpdateSelectedShifts!: (newSelectedShifts: string[]) => void
+        public UpdateSelectedShifts!: (newSelectedShifts: selectShiftInfoType[]) => void
 
         @assignmentState.State
         public dutyShiftAssignmentsWeek!: assignmentCardWeekInfoType[];
@@ -101,7 +107,7 @@
         @assignmentState.Action
         public UpdateDutyShiftAssignmentsWeek!: (newDutyRosterAssignmentsWeek: assignmentCardWeekInfoType[]) => void
 
-
+        showAllAssignments = true;
         isManageScheduleDataMounted = false;
         headerDates: string[] = [];
         numberOfheaderDates = 7;
@@ -113,7 +119,8 @@
 
         dutyRostersJson: attachedDutyInfoType[] = [];
 
-        fields = [
+        fields: any[] = []
+        originalFields = [
             {key:'myteam', label:'My Team', tdClass:'px-0 mx-0', thClass:'text-center'},
             {key:'Sun', label:'', tdClass:'align-middle px-0 mx-0', thStyle:'text-align: center;'},
             {key:'Mon', label:'', tdClass:'align-middle px-0 mx-0', thStyle:'text-align: center;'},
@@ -156,7 +163,9 @@
             return this.$http.get(url)
         }        
 
-        async loadScheduleInformation() {
+        async loadScheduleInformation(allAssignments?) {
+            
+            this.extractTableFields(allAssignments);
 
             this.UpdateSelectedShifts([]);
             this.isManageScheduleDataMounted=false;           
@@ -213,7 +222,7 @@
                 })
                 //break //TODO remove break
             } 
-            console.log(this.sheriffSchedules)         
+            //console.log(this.sheriffSchedules)         
             this.isManageScheduleDataMounted = true;            
             this.updateTable++;
         }
@@ -557,7 +566,7 @@
             for(let day=0; day<7; day++)
                 dutyWeekDates.push(moment(this.assignmentRangeInfo.startDate).add(day,'days').format().substring(0,10))                
 
-            console.log(dutyWeekDates)
+            //console.log(dutyWeekDates)
             const dutyRosterAssignments: assignmentCardWeekInfoType[] =[]
             let sortOrder = 0;
             for(const assignment of assignments){
@@ -632,6 +641,18 @@
 
         public getType(type: string){
             return Vue.filter('getColorByType')(type)
+        }
+
+        public extractTableFields(allAssignments){
+            if(allAssignments==true || allAssignments==false) 
+                this.showAllAssignments = allAssignments;
+
+            this.fields = JSON.parse(JSON.stringify(this.originalFields))  
+            if(this.showAllAssignments==false){
+                const day = Number(moment().weekday())+1                    
+                this.fields[day]['thClass']="bg-current-day"
+                this.fields[day]['tdClass']="bg-current-day align-middle px-0 mx-0"
+            }            
         }
 
     }

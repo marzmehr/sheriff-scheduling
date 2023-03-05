@@ -1,5 +1,5 @@
 import { assignmentCardWeekInfoType } from '@/types/DutyRoster';
-import { shiftRangeInfoType, sheriffAvailabilityInfoType, distributeTeamMemberInfoType } from '@/types/ShiftSchedule';
+import { shiftRangeInfoType, sheriffAvailabilityInfoType, distributeTeamMemberInfoType, selectShiftInfoType } from '@/types/ShiftSchedule';
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 
 @Module({
@@ -9,7 +9,7 @@ class AssignmentScheduleInformation extends VuexModule {
 
   public assignmentRangeInfo = {} as shiftRangeInfoType;
   public sheriffsAvailabilityInfo = [] as sheriffAvailabilityInfoType[];
-  public selectedShifts = [] as string[];
+  public selectedShifts = [] as selectShiftInfoType[];
   public teamMemberList = [] as distributeTeamMemberInfoType[];
 
   public dutyShiftAssignmentsWeek: assignmentCardWeekInfoType[] = [];

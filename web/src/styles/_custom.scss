@@ -77,6 +77,7 @@ $default-shift:             #FFEEDD !default;
 $default-shift-header:      #F94567 !default;
 $selected-shift:             #F7F54F !default;
 $selected-shift-header:      #F94567 !default;
+$current-day:                  #fceaead3 !default;
 
 $colors: () !default;
 // stylelint-disable-next-line scss/dollar-variable-default
@@ -157,7 +158,8 @@ $theme-colors: map-merge(
     "default-shift":               $default-shift,
     "default-shift-header":        $default-shift-header,
     "selected-shift":              $selected-shift,
-    "selected-shift-header":       $selected-shift-header
+    "selected-shift-header":       $selected-shift-header,
+    "current-day":                 $current-day
 
   ),
   $theme-colors

@@ -23,7 +23,8 @@
 
             </template>
 
-            <b-alert :show="errMsg!=''" dismissible  variant="danger">{{ errMsg }}  </b-alert>
+            <b-alert :show="errMsg!=''" dismissible @dismissed="errMsg='';"  variant="danger"> 
+            <div v-html="errMsg"></div></b-alert>
             <loading-spinner v-if="loadingData" />
             <b-card v-else no-body style="font-size: 14px;user-select: none;" >	                
                 <div>                    
@@ -60,13 +61,13 @@
                                             :key="'duty-'+inx"
                                             :style="{color: opt.color.colorCode}"                                             
                                             :value="opt">
-                                            {{ opt.code + ' ('+opt.name+') ' + opt.start + '-'+opt.end }}
+                                            {{ opt.code + (opt.name? ' ('+opt.name+') ':' ') + opt.start + '-'+opt.end }}
                                         </b-form-select-option>
                                     </b-form-select>
                                 </div>
                                 <div v-else :style="{color:data.item.color}">
-                                    <b v-if="data.item.isOvertime">*</b>
-                                    {{data.item.dutyType.replace('Role','') +' '+ data.item.dutySubType}}
+                                    <!-- <b v-if="data.item.isOvertime">*</b> -->
+                                    {{data.item.dutyType.replace('Role','').replace('Assignment','').replace('EscortRun','Transport') +' '+ data.item.dutySubType}}
                                 </div>
                                 
                             </template>
@@ -79,7 +80,10 @@
                                         type="text"                                        
                                     ></b-form-input>
                                 </div>                                
-                                <div v-else>{{data.item.dutyNotes}}</div>
+                                <div v-else>
+                                    <span v-if="data.item.isOvertime" class="text-overtime-shift">(Overtime) </span>
+                                    {{data.item.dutyNotes}}
+                                </div>
                             </template>
 
                             <template v-slot:cell(startTime)="data" >
@@ -171,9 +175,23 @@
                                         v-on:cancel="closeDutySlotForm" />
                                 </b-card>
                             </template>
-                        </b-table> 
+                        </b-table>                            
                     </b-card> 
                 </div>                
+            </b-card>
+
+            <b-card class="border-0 mb-0" no-body>
+                <b-row style="margin:0.75rem 0 -0.65rem auto; ">
+                    <div
+                        class="mx-1 p-0"
+                        v-for="color in Object.keys(dutyColorsCode)" 
+                        :key="color">
+                        <b-row class="m-0 p-0">
+                            <div :style="{backgroundColor:dutyColorsCode[color], width:'0.7rem', height:'0.7rem', borderRadius:'25px', margin:'0.1rem .2rem 0 0'}"/>
+                            <div style="font-size:9px; text-transform: capitalize; margin:0 0 0 0; padding:0"> {{color.replace('Role','').replace('Assignment','').replace('EscortRun','Transport')}}</div>
+                        </b-row>
+                    </div>
+                </b-row>
             </b-card>
         </b-modal>
 
@@ -195,14 +213,11 @@
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
-    // import { userInfoType } from '@/types/common';
-    // import { allEditingDutySlotsInfoType, manageAssignmentDutyInfoType, manageAssignmentsScheduleInfoType } from '@/types/DutyRoster';
-
-    import DutySlotForm from './DutySlotForm.vue';
-    import AllAssignmentsManagementModal from './AllAssignmentsManagementModal.vue'
-    import UnassignDutyModal from './UnassignDutyModal.vue'
-    import ConfirmOvertimeModal from './ConfirmOvertimeModal.vue'
-    import { manageAssignmentDutyInfoType, assignDutyInfoType, dutySlotInfoType } from '@/types/DutyRoster';
+    import DutySlotForm from './ManageDuty/DutySlotForm.vue';
+    import AllAssignmentsManagementModal from './ManageAssignment/AllAssignmentsManagementModal.vue'
+    import UnassignDutyModal from './ManageDuty/UnassignDutyModal.vue'
+    import ConfirmOvertimeModal from './ManageDuty/ConfirmOvertimeModal.vue'
+    import { manageAssignmentDutyInfoType, assignDutyInfoType, dutySlotInfoType, manageAssignmentsScheduleInfoType } from '@/types/DutyRoster';
     import { locationInfoType, userInfoType } from '@/types/common';
 
     @Component({
@@ -240,6 +255,9 @@
         dutyDate!: string;
 
         @Prop({required: true})
+        scheduleInfo!: manageAssignmentsScheduleInfoType[];
+
+        @Prop({required: true})
         dutyBlocks!: manageAssignmentDutyInfoType[];
 
         @commonState.State
@@ -262,9 +280,7 @@
             // console.log(newValue)
             if(newValue){
                 this.loadDutyData(this.dutyDate)
-
             }
-
         }
 
         shiftDay=0
@@ -289,6 +305,8 @@
         isEditOpen=false
         latestEditData;
 
+        dutyColorsCode= {}
+
         dutySlotToUnassign = {} as  manageAssignmentDutyInfoType
         showUnassignConfirm={show: false}
         
@@ -305,6 +323,7 @@
         ];
 
         mounted(){
+            this.dutyColorsCode=Vue.filter('WSColors')()
             this.shiftDay = moment(this.shiftDate).tz(this.location.timezone).day();
             this.hasPermissionToEditDuty = this.userDetails.permissions.includes("EditDuties");            
             this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
@@ -352,7 +371,7 @@
             }
             this.duties=duties;
             this.availabeDutySlots=availabeDutySlots
-            console.log(availabeDutySlots)
+            // console.log(availabeDutySlots)
         }
 
         public findAvailableSlots(dutyArray, startOfday, duty){
@@ -366,7 +385,7 @@
                 let inx2 = discontinuity.indexOf(2)
                 discontinuity[inx1]=0
                 if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
-                console.error(inx1 + ' ' +inx2)
+                // console.error(inx1 + ' ' +inx2)
                 const dutySlotRange = Vue.filter('convertTimeRangeBinsToTime')(startOfday, inx1, inx2)
                 const dutyType = duty.assignment?.lookupCode?.type
                 availableDutySlots.push(
@@ -421,7 +440,7 @@
             this.startTimeState=true
             this.endTimeState=true
             this.errMsg=""
-            console.log(this.selectedDuty)
+            // console.log(this.selectedDuty)
         }
 
         public editDutySlotInfo(data) {
@@ -460,13 +479,14 @@
         }
 
         public addNewDuty(){
+            if(!this.checkStates()) return
             this.selectedStartTime = Vue.filter('autoCompleteTime')(this.selectedStartTime)
             this.selectedEndTime = Vue.filter('autoCompleteTime')(this.selectedEndTime)
             const newDutyArray = Vue.filter('startEndTimesToArray')(null,1, this.dutyDate.slice(0,10), this.selectedStartTime, this.selectedEndTime, this.location.timezone)
             const overtimeArray = Vue.filter('subtractUnionOfArrays')(newDutyArray, this.sheriffAvailabilityArray)
             const isOvertime = Vue.filter('sumOfArrayElements')(overtimeArray)>0
-            console.log(overtimeArray)
-            console.log(isOvertime)
+            // console.log(overtimeArray)
+            // console.log(isOvertime)
             if(isOvertime){
                 this.showOvertimeConfirm.show=true;
             }else{
@@ -483,7 +503,7 @@
             const dutyInfo = this.duties.filter(duty => duty.id==dutyId)[0]
             let dutySlots: dutySlotInfoType[] = [];
             
-            console.log(dutyInfo)
+            // console.log(dutyInfo)
             
 
             if(unassign && dutyInfo){
@@ -502,7 +522,10 @@
                 const dutySlotID=slotid? slotid:null
                 
                 if(this.checkSheriffConflict(selectedStartTime, selectedEndTime, dutySlotID)){
-                    this.errMsg="The selected duty has a conflict with the Sheriff's other duties on this date!"
+                    const duties=this.dutyBlocks.map(d=>
+                    d.dutyType=='Training' || d.dutyType=='Leave' || d.dutyType=='Loaned'?
+                    ('<br/>'+d.startTime+'-'+d.endTime+' '+d.dutyType+' '+d.dutySubType):'')
+                    this.errMsg="The selected duty has a conflict with the Sheriff's other duties on this date."+duties.join(' ')
                     return
                 }
                 
@@ -511,22 +534,68 @@
                     delete dutySlot.concurrencyToken
                 }
 
-                const dutySlotDate = Vue.filter('rawDateStartEndTimesToUTC')(this.dutyDate.slice(0,10), selectedStartTime, selectedEndTime, this.location.timezone)
                 dutySlots.push(...dutyInfo.dutySlots)
                 dutySlots = dutySlots.filter(slot => slot.id != dutySlotID )
-                dutySlots.push({  
-                    id: dutySlotID,                                              
-                    startDate: dutySlotDate.startDate,
-                    endDate: dutySlotDate.endDate,
-                    dutyId: dutyInfo.id,
-                    sheriffId: this.sheriffId,
-                    shiftId: null,
-                    timezone: dutyInfo.timezone,
-                    isNotRequired: false,
-                    isNotAvailable: false,
-                    isClosed: false,
-                    isOvertime: false                           
-                })
+
+
+                const dutyArray = Vue.filter('startEndTimesToArray')(null, 1, this.dutyDate.slice(0,10), selectedStartTime, selectedEndTime, this.location.timezone)
+                let allShiftsArray = Vue.filter('initArray')();
+                console.log(dutyArray)
+                console.log(this.scheduleInfo)
+                for(const sch of this.scheduleInfo){                    
+                    const shiftArray = Vue.filter('startEndTimesToArray')(null, 1, this.dutyDate.slice(0,10), sch.startTime, sch.endTime, this.location.timezone)
+                    console.log(shiftArray)
+                    const dutyOnShiftArray = Vue.filter('unionArrays')(dutyArray, shiftArray)
+                    if(Vue.filter('sumOfArrayElements')(dutyOnShiftArray)>0){
+                        const bins = Vue.filter('getArrayRangeBins')(dutyOnShiftArray)
+                        allShiftsArray = Vue.filter('fillInArray')(allShiftsArray, 1, bins.startBin, bins.endBin)
+                        console.log(bins)
+                        const dutyOnShiftTime = Vue.filter('convertTimeRangeBinsToTime')(this.startOfDay, bins.startBin, bins.endBin)
+                        console.log(dutyOnShiftTime)
+                        dutySlots.push({  
+                            id: dutySlotID,                                              
+                            startDate: dutyOnShiftTime.startTime,
+                            endDate: dutyOnShiftTime.endTime,
+                            dutyId: dutyInfo.id,
+                            sheriffId: this.sheriffId,
+                            shiftId: null,
+                            timezone: dutyInfo.timezone,
+                            isNotRequired: false,
+                            isNotAvailable: false,
+                            isClosed: false,
+                            isOvertime: sch.overtime? true: false                           
+                        })
+                    }
+                }
+
+                const reminderOfDutyOnShiftsArray = Vue.filter('subtractUnionOfArrays')(dutyArray, allShiftsArray)
+                console.log(reminderOfDutyOnShiftsArray)
+                const discontinuity = Vue.filter('findDiscontinuity')(reminderOfDutyOnShiftsArray)                
+                const iterationNum = Math.floor((Vue.filter('sumOfArrayElements')(discontinuity) +1)/2);
+
+                for(let i=0; i< iterationNum; i++){
+                    const inx1 = discontinuity.indexOf(1)
+                    let inx2 = discontinuity.indexOf(2)
+                    discontinuity[inx1]=0
+                    if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
+                    const dutyOnShiftTime = Vue.filter('convertTimeRangeBinsToTime')(this.startOfDay, inx1, inx2)
+                    console.log(dutyOnShiftTime)
+                    dutySlots.push({  
+                        id: dutySlotID,                                              
+                        startDate: dutyOnShiftTime.startTime,
+                        endDate: dutyOnShiftTime.endTime,
+                        dutyId: dutyInfo.id,
+                        sheriffId: this.sheriffId,
+                        shiftId: null,
+                        timezone: dutyInfo.timezone,
+                        isNotRequired: false,
+                        isNotAvailable: false,
+                        isClosed: false,
+                        isOvertime: true                           
+                    })
+                }
+       
+                console.log(dutySlots)
                 this.postDutyChanges(dutyInfo, dutySlots)
             }
         }

@@ -177,3 +177,9 @@ export interface sentEmailContentInfoType {
     subject: string;
     to: string;
 }
+
+export interface selectShiftInfoType {
+    id: string;
+    sheriff: string;
+    date: string;
+}

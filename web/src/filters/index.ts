@@ -105,6 +105,9 @@ Vue.filter('rawDateStartEndTimesToUTC', function(date, start, end, timezone){
     return {startDate, endDate}
 })
 
+Vue.filter('initArray', function(){
+    return Array(96).fill(0)
+})
 
 Vue.filter('startEndTimesToArray', function(array, fillNum, date, start, end, timezone){
     const startDate = Vue.filter('convertDate')(date, start, '', timezone);
@@ -147,9 +150,9 @@ Vue.filter('getTimeRangeBins', function(startDate, endDate, timezone){
     return( {startBin: startBin, endBin:endBin } )
 })
 
-Vue.filter('convertTimeRangeBinsToTime', function(dutyDate, startBin, endBin){            
-    const startTime = moment(dutyDate).add(startBin*15, 'minutes');
-    const endTime = moment(dutyDate).add(endBin*15, 'minutes');
+Vue.filter('convertTimeRangeBinsToTime', function(dutyDateSD, startBin, endBin){            
+    const startTime = moment(dutyDateSD).add(startBin*15, 'minutes');
+    const endTime = moment(dutyDateSD).add(endBin*15, 'minutes');
 
     return( {
         startBin: startBin,
@@ -159,6 +162,17 @@ Vue.filter('convertTimeRangeBinsToTime', function(dutyDate, startBin, endBin){
         endTime: endTime.format() ,
         end: endTime.format('HH:mm')
     } )
+})
+
+Vue.filter('getArrayRangeBins', function(arrayOriginal){
+    const array = JSON.parse(JSON.stringify(arrayOriginal));
+    const startBin: number = array.findIndex(arr=> arr>0);
+    const binValue: number = startBin>=0? array[startBin]: 1;
+    return({
+        startBin: startBin ,
+        endBin: (96-array.reverse().findIndex(arr=> arr>0)),
+        binValue: binValue
+    })
 })
 
 Vue.filter('autoCompleteTime', function(time){
@@ -200,7 +214,8 @@ Vue.filter('WSColors', function(){
         'CourtRoom':'#189fd4',
         'JailRole':'#A22BB9',
         'EscortRun':'#ffb007',
-        'OtherAssignment':'#7a4528'
+        'OtherAssignment':'#7a4528',
+        'Overtime':'#e85a0e',
     }
 })
 
