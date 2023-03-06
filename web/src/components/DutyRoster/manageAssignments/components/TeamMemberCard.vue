@@ -10,8 +10,8 @@
                     <b-row 
                         style="font-size:12px; line-height: 16px; font-weight: bold; text-transform: Capitalize;" 
                         v-b-tooltip.hover.topleft                                
-                        :title="fullName.length>13?fullName:''">
-                            {{fullName|truncate(11)}}
+                        :title="sheriffInfo.name.length>13?sheriffInfo.name:''">
+                            {{sheriffInfo.name|truncate(11)}}
                     </b-row>
                 </b-col>
                 <b-col cols="3" class="m-0 p-0">                    
@@ -40,7 +40,7 @@
             <template v-slot:modal-title>                
                 <span class="m-0 p-0" > 
                     <h3 class="m-0 p-0" >Creating Shift for </h3>
-                    <h4  class="m-0 pt-2 pb-0 text-warning" style="text-align: center"> {{sheriffInfo.firstName}} {{sheriffInfo.lastName}}</h4>
+                    <h4  class="m-0 pt-2 pb-0 text-warning" style="text-align: center"> {{sheriffInfo.name}}</h4>
                 </span>
             </template>
 
@@ -293,8 +293,8 @@
     import { namespace } from "vuex-class";
     import moment from 'moment-timezone';
 
-    import "@store/modules/ShiftScheduleInformation";
-    const shiftState = namespace("ShiftScheduleInformation");
+    import "@store/modules/AssignmentScheduleInformation";
+	const assignmentState = namespace("AssignmentScheduleInformation");
 
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
@@ -310,10 +310,12 @@
     import IdentificationTab from '@/components/MyTeam/Tabs/IdentificationTab.vue';
     import RankTab from '@/components/MyTeam/Tabs/RankTab.vue'
     import UserSummaryTemplate from "@/components/MyTeam/Tabs/UserSummaryTemplate.vue";
+    
+    import { dayOptionsInfoType, editedShiftInfoType, shiftInfoType,shiftRangeInfoType } from '@/types/ShiftSchedule';
 
-    import { dayOptionsInfoType, editedShiftInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '@/types/ShiftSchedule';
     import { locationInfoType, userInfoType } from '@/types/common';
     import { teamMemberInfoType } from '@/types/MyTeam';
+    import { manageScheduleInfoType } from '@/types/DutyRoster';
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -331,8 +333,8 @@
     })
     export default class TeamMemberCard extends Vue {
 
-        @shiftState.State
-        public shiftRangeInfo!: shiftRangeInfoType;
+        @assignmentState.State
+		public assignmentRangeInfo!: shiftRangeInfoType;
 
         @commonState.State
         public location!: locationInfoType;
@@ -341,7 +343,7 @@
         public userDetails!: userInfoType;
 
         @Prop({required: true})
-        public sheriffInfo!: sheriffAvailabilityInfoType;
+        public sheriffInfo!: manageScheduleInfoType;
 
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
@@ -403,13 +405,13 @@
 
         
         mounted()
-        {  
+        {   //console.log(this.sheriffInfo)
             this.isDataMounted = false;
             this.hasPermissionToCreateShifts = this.userDetails.permissions.includes("CreateAndAssignShifts");        
             this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");
             this.hasPermissionToAssignRoles = this.userDetails.permissions.includes("CreateAndAssignRoles");
             this.sheriffId = this.sheriffInfo.sheriffId;          
-            this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
+           
 
             this.dayOptions = [
                 {name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], AllShifts:[], Shift:[], overTimeShift:[], Unavailable:[]}},
@@ -425,7 +427,7 @@
 
         public extractConflicts() {
             this.LoanedInDesc = '';
-            if(this.sheriffInfo.homeLocation.id != this.location.id) this.LoanedInDesc =  "Loaned In from " + this.sheriffInfo.homeLocation.name
+            if(this.sheriffInfo.homeLocation != this.location.name) this.LoanedInDesc =  "Loaned In from " + this.sheriffInfo.homeLocation
                       
             for(const conflict of this.sheriffInfo.conflicts){
                 this.dayOptions[conflict.dayOffset].conflicts[conflict.type].push(conflict); 
@@ -484,14 +486,14 @@
 					this.startTimeState = false;
 					requiredError = true;
 			} else {
-                    this.selectedStartTime = this.autoCompleteTime(this.selectedStartTime);
+                    this.selectedStartTime = Vue.filter('autoCompleteTime')(this.selectedStartTime);
 					this.startTimeState = true;
 			}
 			if (!this.selectedEndTime) {
 					this.endTimeState = false;
 					requiredError = true;
 			} else {
-                    this.selectedEndTime = this.autoCompleteTime(this.selectedEndTime);
+                    this.selectedEndTime = Vue.filter('autoCompleteTime')(this.selectedEndTime);
 					this.endTimeState = true;
             }
             if (this.selectedStartTime && this.selectedEndTime && this.selectedStartTime >= this.selectedEndTime ) {
@@ -516,23 +518,6 @@
 			}
         }
         
-        public autoCompleteTime(time){
-            const tail="00:00";
-            let result = "";
-            
-            if(time.length==1) result = '0'+time+ tail.slice(2);
-            else if(time.length==4) {
-                if(time.slice(3,4)=='2') result = time.slice(0,3)+'15';
-                else result = time+(time.slice(-1)=='1' || time.slice(-1)=='4'?'5':'0');
-            }
-            else if(time.length==5){
-                if(time.slice(3,4)=='2') result = time.slice(0,3)+'15';
-                else result =time.slice(0,4)+(time.slice(3,4)=='1' || time.slice(3,4)=='4'?'5':'0');
-            }
-            else  result = time+ tail.slice(time.length);
-            return result
-        }
-
         public isChanged(){
             if( this.selectedStartTime ||
                 this.selectedEndTime ||
@@ -607,22 +592,8 @@
 			return listOfDates;
         }      
 
-        public roundTime(time, floor){
-            const minutes = moment(time).minutes()
-            let minOffset = 0
-            if(minutes%15 == 0){
-                return time;
-            } 
-
-            if(minutes/15 >= 3) minOffset= floor? 45-minutes: 60-minutes;
-            else if(minutes/15 >= 2) minOffset= floor? 30-minutes: 45-minutes;
-            else if(minutes/15 >= 1) minOffset= floor? 15-minutes: 30-minutes;
-            else minOffset= floor? 0-minutes: 15-minutes;
-            return moment(time).add(minOffset,'minutes').format()           
-        }
-
         public completeDate(offset, time){
-            const startOfdate = moment(this.shiftRangeInfo.startDate).add(offset,'days').format().substring(0,10);
+            const startOfdate = moment(this.assignmentRangeInfo.startDate).add(offset,'days').format().substring(0,10);
             return(moment.tz(startOfdate + 'T'+time, this.location.timezone).format()); 
         }
 
@@ -635,7 +606,7 @@
                     if(response.data){
                         this.resetShiftWindowState();
                         this.closeShiftWindow;
-                        this.$emit('change');
+                        this.$emit('change', false);
                     }
                 }, err => {
                     const errMsg = err.response.data.error;
@@ -645,31 +616,8 @@
                 })
 		}
            
-        public timeFormat(value , event) {
-			if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':') return value.slice(0,-1)
-			if(value.length!=3 && value.slice(-1) == ':') return value.slice(0,-1);
-
-			if(value.length==2 && event.data && value.slice(0,1)>=3 && (value.slice(-1)>=5 || value.slice(-1)==2)) return value.slice(0,-1);
-			if(value.length==2 && event.data && value.slice(0,1)>=3 && (value.slice(-1)==0 || value.slice(-1)==3)) return '0'+ value.slice(0,1)+':'+value.slice(1,2)+'0';
-			if(value.length==2 && event.data && value.slice(0,1)>=3 && (value.slice(-1)==1 || value.slice(-1)==4)) return '0'+ value.slice(0,1)+':'+value.slice(1,2)+'5';
-			if(value.length==2 && event.data && value.slice(0,1)==2 && value.slice(-1)>=5) return value.slice(0,-1);
-			if(value.length==2 && event.data && value.slice(0,1)==2 && (value.slice(-1)==4 || value.slice(-1)==4)) return '02:45';
-			if(value.length==2 && event.data && value.slice(-1)!=0 && value.slice(-1)!=1 && value.slice(-1)!=3 && value.slice(-1)!=4) return value.slice(0,2)+':';
-			if(value.length==2 && event.data) return '0'+value.slice(0,1)+':'+value.slice(1,2);
-			if(value.length==3 && value.slice(-1)!=':' ) return value.slice(0,2)+':';
-			if(value.length==4 && event.data && (value.slice(0,1)>0||value.slice(1,2)>1) && (value.slice(-1)>=5 || value.slice(-1)==2)) return value.slice(0,-1);
-			if(value.length==4 && event.data && value.slice(0,1)>0 && (value.slice(-1)==0 || value.slice(-1)==3)) return value.slice(0,4)+'0';
-			if(value.length==4 && event.data && value.slice(0,1)>0 && (value.slice(-1)==1 || value.slice(-1)==4)) return value.slice(0,4)+'5';
-			if(value.length==4 && event.data && value.slice(0,1)==0 && value.slice(1,2)<2 && value.slice(-1)>=5 ) return value.slice(1,2)+value.slice(3,4)+':';
-			if(value.length==5 && (value.slice(0,2)>=24 || value.slice(3,5)>=60)) return '';
-			if(value.length==5 && value.slice(0,2)>=3 && (value.slice(3,4)==0 || value.slice(3,4)==3)) return value.slice(0,4)+'0';
-			if(value.length==5 && value.slice(0,2)>=3 && (value.slice(3,4)==1 || value.slice(3,4)==4)) return value.slice(0,4)+'5';
-			if(value.length==6 && value.slice(0,1)==0 && (value.slice(4,6)==0||value.slice(4,6)==15||value.slice(4,6)==30||value.slice(4,6)==45) && (value.slice(1,2)+value.slice(3,4))<24) return value.slice(1,2)+value.slice(3,4)+':'+value.slice(4,5)+value.slice(5,6);
-		
-			if(value.length>5) return value.slice(0,5);
-			if(value.length==5 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,5)) || value.slice(2,3)!=':') )return '';
-			if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
-			return value
+        public timeFormat(value , event){
+            return Vue.filter('timeFormat')(value , event)
         }
         
         public commentFormat(value) {
@@ -677,7 +625,7 @@
         }
 
         public getSheriffs() {
-            this.$emit('change');
+            this.$emit('change', false);
         }
         
         public refreshProfile(userId){

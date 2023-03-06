@@ -4,7 +4,7 @@
             <b-tbody>
                 <b-tr>
                     <b-td>
-                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 18rem">
+                        <b-form-group style="margin: 0.25rem 0 0 1rem;width: 35rem">
                             <label class="h6 ml-1 mb-0 pb-0" > {{type}}: </label> 
                             <b-form-input
                                 size = "sm"
@@ -14,10 +14,56 @@
                                 :state = "leaveTrainingState?null:false">                                           
                             </b-form-input>
                         </b-form-group>           
-                    </b-td>                    
+                    </b-td>
+                    <b-td v-if="type == 'Training'">
+                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 8.5rem">
+                            <label class="h6 ml-1 mb-0 pb-0" > Frequency: </label> 
+                            <b-form-select
+                                size = "sm"                                
+                                v-model="selectedTrainingFrequencyType">                            
+                                    <b-form-select-option
+                                        v-for="frequencyType in trainingFrequencyTypes" 
+                                        :key="frequencyType"                                
+                                        :value="frequencyType">
+                                            {{frequencyType}}
+                                    </b-form-select-option>     
+                            </b-form-select>
+                        </b-form-group>           
+                    </b-td>
+                    <b-td v-if="type == 'Training'">
+                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 11rem">
+                            <label class="h6 ml-1 mb-0 pb-0" > Training Type: </label> 
+                            <b-form-select
+                                size = "sm"                                
+                                v-model="selectedTrainingMandatory">                            
+                                    <b-form-select-option
+                                        v-for="type in trainingTypes" 
+                                        :key="type.name"                                
+                                        :value="type.value">
+                                            {{type.name}}
+                                    </b-form-select-option>     
+                            </b-form-select>
+                        </b-form-group>           
+                    </b-td>
+                    <b-td v-if="type == 'Training'">
+                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 10rem">
+                            <label class="h6 ml-1 mb-0 pb-0" > Delivery Method: </label> 
+                            <b-form-select
+                                size = "sm"                                
+                                v-model="selectedTrainingDeliveryMethod">                            
+                                    <b-form-select-option
+                                        v-for="deliveryMethod in trainingDeliveryMethods" 
+                                        :key="deliveryMethod"                                
+                                        :value="deliveryMethod">
+                                            {{deliveryMethod}}
+                                    </b-form-select-option>     
+                            </b-form-select>
+                        </b-form-group>           
+                    </b-td>
+
                     <b-td >
                         <b-button                                    
-                            style="margin: 1.5rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
+                            style="margin: 1.5rem .5rem 0 0; padding:0 .5rem 0 .5rem;"
                             variant="secondary"
                             @click="closeForm()">
                             Cancel
@@ -72,10 +118,11 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {leaveTrainingTypeInfoType}  from '../../types/ManageTypes/index';
-    import {locationInfoType} from '../../types/common'; 
-    
     import { namespace } from 'vuex-class';
+    
+    import {leaveTrainingTypeInfoType}  from '@/types/ManageTypes/index';
+    import {locationInfoType} from '@/types/common';     
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
@@ -97,14 +144,38 @@
         @Prop({required: true})
         sortOrder!: number;
 
-        originalLeaveTraining = '';
-        selectedLeaveTraining = '';
+        trainingFrequencyTypes = [
+            'One Time',
+            'Annually',
+            'Every Two Years',
+            'Every Three Years'
+        ];
+
+        trainingTypes = [
+            {name: 'Mandatory', value: true},
+            {name: 'Optional', value: false}
+        ];
+
+        trainingDeliveryMethods = [
+            'Online',
+            'In Person'
+        ];
+        
         leaveTrainingState = true;
 
         formDataId = 0;
         showCancelWarning = false;
-
         showSaveWarning = false;
+
+        selectedLeaveTraining = '';
+        selectedTrainingFrequencyType = 'Annually';
+        selectedTrainingDeliveryMethod = 'Online';
+        selectedTrainingMandatory = true;
+
+        originalLeaveTraining = '';
+        originalTrainingFrequencyType = '';
+        originalTrainingDeliveryMethod = '';
+        originalTrainingMandatory = true;
         
         mounted()
         { 
@@ -116,10 +187,13 @@
 
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:0;
-            this.originalLeaveTraining = this.selectedLeaveTraining = this.formData.code            
-            //console.log(this.formDataId)
-            //console.log(this.originalLeaveTraining)
-            // console.log(this.originalLocationScope)
+            this.originalLeaveTraining = this.selectedLeaveTraining = this.formData.code;
+            if (this.type == 'Training'){
+                this.originalTrainingFrequencyType = this.selectedTrainingFrequencyType = this.formData.frequency?this.formData.frequency:'';
+                this.originalTrainingDeliveryMethod = this.selectedTrainingDeliveryMethod = this.formData.deliveryMethod?this.formData.deliveryMethod:'';
+                this.originalTrainingMandatory = this.selectedTrainingMandatory = this.formData.mandatory?this.formData.mandatory:false;
+            }           
+            
         }
 
         public saveForm(){
@@ -136,13 +210,29 @@
                 this.leaveTrainingState  = false;
             }else{
                 this.leaveTrainingState  = true;
+
+                let body = {};
+
+                if (this.type == 'Training'){
+                    console.log(this.type)
+                    body = {
+                        code: this.selectedLeaveTraining,
+                        locationId: null,
+                        id: this.formDataId,
+                        frequency: this.selectedTrainingFrequencyType,
+                        mandatory: this.selectedTrainingMandatory,
+                        deliveryMethod: this.selectedTrainingDeliveryMethod,
+                        sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
+                    }
+                } else {
+                    body = {
+                        code: this.selectedLeaveTraining,
+                        locationId: null,
+                        id: this.formDataId,
+                        sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
+                    }
+                }                
                 
-                const body = {
-                    code: this.selectedLeaveTraining,
-                    locationId: null,
-                    id: this.formDataId,
-                    sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
-                }
                 this.$emit('submit', body, this.isCreate);                  
             }
         }
@@ -156,11 +246,24 @@
 
         public isChanged(){
             if(this.isCreate){
+
                 if( this.selectedLeaveTraining) return true;
                 return false;
-            }else{
-                if(this.originalLeaveTraining != this.selectedLeaveTraining) return true;
-                return false;
+
+            } else {
+
+                if (this.type == 'Training'){
+                    if( this.originalLeaveTraining != this.selectedLeaveTraining ||
+                        this.originalTrainingFrequencyType != this.selectedTrainingFrequencyType ||
+                        this.originalTrainingDeliveryMethod != this.selectedTrainingDeliveryMethod ||
+                        this.originalTrainingMandatory != this.selectedTrainingMandatory) {
+                        return true;
+                    } 
+                    return false;
+                } else {
+                    if(this.originalLeaveTraining != this.selectedLeaveTraining) return true;
+                    return false;
+                }                
             }
         }
 

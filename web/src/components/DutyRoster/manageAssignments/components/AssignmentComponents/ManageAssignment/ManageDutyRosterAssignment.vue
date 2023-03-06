@@ -17,32 +17,43 @@
 			backgroundColor:assignment.type.colorCode,
 			borderRadius:getBorderRadius,
 			margin:'0.15rem 0.1rem 0 0.1rem'}" > 
-            <b-col cols="10" class="m-0 p-0 text-white" @click="editAssignment()">
-                                   
+            <b-col cols="10" class="m-0 p-0 text-white" @click="editAssignment()">                                   
                 <b-row                                  
                     style="text-transform: capitalize;" 
                     class="h6 p-0 mt-2 mb-0 ml-1">
 					<div 
                         v-b-tooltip.hover                            
                         :title="assignmentTitle.length>15? assignmentTitle:''">
-						{{assignmentTitle|truncate(12)}} 
+						{{assignmentTitle | truncate(12)}} 
                     </div>                    
                 </b-row>
                 <b-row v-if="dutyError" >
 					<h6 class="ml-3 my-0 p-0"
 						><b-badge v-b-tooltip.hover
 							:title="dutyErrorMsg"
-							variant="danger"> {{dutyErrorMsg|truncate(14)}}
+							variant="danger"> {{dutyErrorMsg | truncate(14)}}
 							<b-icon class="ml-2"
 								icon = x-square-fill
 								@click="dutyError = false"
 					/></b-badge></h6>
 				</b-row>     
                 <b-row v-else class="h7 p-0 m-0 ml-2">
+					<div>
+						<b-button  
+                                class="p-0"
+                                style="transform:translate(-5px,1px); height:0.9rem;" 
+                                size="sm"
+                                variant="light" 
+                                @click="editAssignment()"
+                                v-b-tooltip.hover                                
+                                title="Edit Assignment"
+                                ><b-icon-pencil-square style="transform:translate(0px,-7px);"  font-scale="0.9" variant="dark" />
+                            </b-button>
+					</div>
 					<div 
                         v-b-tooltip.hover                            
                         :title="assignment.name?assignment.name.length>17? assignment.name:'':''"> 
-                            {{assignment.name|truncate(14)}} 
+                            {{assignment.name | truncate(14)}} 
                     </div>                    
                 </b-row>
             </b-col>
@@ -56,7 +67,7 @@
 						:title="getTimeRange"
 						@click="addDuty();"
 						size="sm"> 
-							<b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-3px);"/></b-button>
+							<b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-2px);"/></b-button>
 				</b-row>
 				<b-row class="m-0 p-0" >
 					<div v-if="assignment.assignmentDetail.comment"
@@ -386,12 +397,16 @@
     const commonState = namespace("CommonInformation");
     import "@store/modules/DutyRosterInformation";   
 	const dutyState = namespace("DutyRosterInformation");
+
+	import "@store/modules/AssignmentScheduleInformation";
+	const assignmentState = namespace("AssignmentScheduleInformation");
+
 	import * as _ from 'underscore';
     import { localTimeInfoType, locationInfoType, userInfoType } from '@/types/common';
     import { assignmentCardInfoType, assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '@/types/DutyRoster';
 
     @Component
-    export default class DutyRosterAssignment extends Vue {
+    export default class ManageDutyRosterAssignment extends Vue {
 
         @Prop({required: true})
 		assignment!: assignmentCardInfoType;
@@ -405,8 +420,11 @@
 		@commonState.State
         public userDetails!: userInfoType;
 
-        @dutyState.State
-		public dutyRangeInfo!: dutyRangeInfoType;
+        // @dutyState.State
+		// public dutyRangeInfo!: dutyRangeInfoType;
+
+		@assignmentState.State
+		public assignmentRangeInfo!: dutyRangeInfoType;
 
 		@commonState.State
         public localTime!: localTimeInfoType;
@@ -500,7 +518,7 @@
 		}
 
 		public determineExpired(){
-			const currentTime = this.dutyRangeInfo.endDate
+			const currentTime = this.assignmentRangeInfo.endDate
 			const currentDay = moment(currentTime).tz(this.location.timezone).day();
 
 			if (this.assignment.assignmentDetail) {
@@ -779,14 +797,14 @@
 				this.startTimeState = false;
 				requiredError = true;
 			} else {
-				this.selectedStartTime = this.autoCompleteTime(this.selectedStartTime);					
+				this.selectedStartTime = Vue.filter('autoCompleteTime')(this.selectedStartTime);					
 				this.startTimeState = true;
 			}
 			if (!this.selectedEndTime) {
 				this.endTimeState = false;
 				requiredError = true;
 			} else {
-				this.selectedEndTime = this.autoCompleteTime(this.selectedEndTime);					
+				this.selectedEndTime = Vue.filter('autoCompleteTime')(this.selectedEndTime);					
 				this.endTimeState = true;
 			}
 			if (this.selectedStartTime && this.selectedEndTime && this.selectedStartTime >= this.selectedEndTime ) {
@@ -807,22 +825,6 @@
 			}
 		}
 
-		public autoCompleteTime(time){
-            const tail="00:00";
-            let result = "";
-            
-            if(time.length==1) result = '0'+time+ tail.slice(2);
-            else if(time.length==4) {
-                if(time.slice(3,4)=='2') result = time.slice(0,3)+'15';
-                else result = time+(time.slice(-1)=='1' || time.slice(-1)=='4'?'5':'0');
-            }
-            else if(time.length==5){
-                if(time.slice(3,4)=='2') result = time.slice(0,3)+'15';
-                else result =time.slice(0,4)+(time.slice(3,4)=='1' || time.slice(3,4)=='4'?'5':'0');
-            }
-            else  result = time+ tail.slice(time.length);
-            return result
-		}
 		
 		public isChanged(){
 			this.readEditedAssignment();
@@ -929,7 +931,7 @@
         public createDuty(){
 			this.dutyError = false;
 
-			const date = this.dutyRangeInfo.startDate.substring(0,10);
+			const date = this.assignmentRangeInfo.startDate.substring(0,10);
 			const startDate = moment.tz(date+'T'+this.assignment.assignmentDetail.start, this.location.timezone).utc();
 			const endDate = moment.tz(date+'T'+this.assignment.assignmentDetail.end, this.location.timezone).utc();
 
@@ -992,34 +994,14 @@
 		}
 
 		get getTimeRange(){
-			return this.assignment.assignmentDetail.start.substring(0,5)+' - '+this.assignment.assignmentDetail.end.substring(0,5)
+			const days: string[]= []
+			for(const day of this.weekDayNames) if(this.assignment.assignmentDetail[day]) days.push(day[0].toUpperCase()+day.slice(1))
+			return this.assignment.assignmentDetail.start.substring(0,5)+' - '+this.assignment.assignmentDetail.end.substring(0,5)+' '+ days.join(', ')
 		}
 
-		public timeFormat(value , event) {
-			if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':') return value.slice(0,-1)
-			if(value.length!=3 && value.slice(-1) == ':') return value.slice(0,-1);
-			if(value.length==2 && event.data && value.slice(0,1)>=3 && (value.slice(-1)>=5 || value.slice(-1)==2)) return value.slice(0,-1);
-			if(value.length==2 && event.data && value.slice(0,1)>=3 && (value.slice(-1)==0 || value.slice(-1)==3)) return '0'+ value.slice(0,1)+':'+value.slice(1,2)+'0';
-			if(value.length==2 && event.data && value.slice(0,1)>=3 && (value.slice(-1)==1 || value.slice(-1)==4)) return '0'+ value.slice(0,1)+':'+value.slice(1,2)+'5';
-			if(value.length==2 && event.data && value.slice(0,1)==2 && value.slice(-1)>=5) return value.slice(0,-1);
-			if(value.length==2 && event.data && value.slice(0,1)==2 && (value.slice(-1)==4 || value.slice(-1)==4)) return '02:45';
-			if(value.length==2 && event.data && value.slice(-1)!=0 && value.slice(-1)!=1 && value.slice(-1)!=3 && value.slice(-1)!=4) return value.slice(0,2)+':';
-			if(value.length==2 && event.data) return '0'+value.slice(0,1)+':'+value.slice(1,2);
-			if(value.length==3 && value.slice(-1)!=':' ) return value.slice(0,2)+':';
-			if(value.length==4 && event.data && (value.slice(0,1)>0||value.slice(1,2)>1) && (value.slice(-1)>=5 || value.slice(-1)==2)) return value.slice(0,-1);
-			if(value.length==4 && event.data && value.slice(0,1)>0 && (value.slice(-1)==0 || value.slice(-1)==3)) return value.slice(0,4)+'0';
-			if(value.length==4 && event.data && value.slice(0,1)>0 && (value.slice(-1)==1 || value.slice(-1)==4)) return value.slice(0,4)+'5';
-			if(value.length==4 && event.data && value.slice(0,1)==0 && value.slice(1,2)<2 && value.slice(-1)>=5 ) return value.slice(1,2)+value.slice(3,4)+':';
-			if(value.length==5 && (value.slice(0,2)>=24 || value.slice(3,5)>=60)) return '';
-			if(value.length==5 && value.slice(0,2)>=3 && (value.slice(3,4)==0 || value.slice(3,4)==3)) return value.slice(0,4)+'0';
-			if(value.length==5 && value.slice(0,2)>=3 && (value.slice(3,4)==1 || value.slice(3,4)==4)) return value.slice(0,4)+'5';
-			if(value.length==6 && value.slice(0,1)==0 && (value.slice(4,6)==0||value.slice(4,6)==15||value.slice(4,6)==30||value.slice(4,6)==45) && (value.slice(1,2)+value.slice(3,4))<24) return value.slice(1,2)+value.slice(3,4)+':'+value.slice(4,5)+value.slice(5,6);
-		
-			if(value.length>5) return value.slice(0,5);
-			if(value.length==5 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,5)) || value.slice(2,3)!=':') )return '';
-			if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
-			return value
-		}
+		public timeFormat(value , event){
+            return Vue.filter('timeFormat')(value , event)
+        }
 
 		public commentFormat(value) {
 			return value.slice(0,100);

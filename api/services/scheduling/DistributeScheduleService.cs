@@ -66,13 +66,15 @@ namespace SS.Api.services.scheduling
                             .Date
                     });
 
-            var newAvailabilityConflict = shiftAvailability.Conflicts.WhereToList(c => c.Conflict != ShiftConflictType.Scheduled);
-            foreach (var group in shiftsGroupedByDate)
-            {
-                var earliestShiftForDate = group.First(s => s.Start == group.Min(s => s.Start));
-                earliestShiftForDate.End = group.Max(s => s.End);
-                newAvailabilityConflict.Add(earliestShiftForDate);
-            }
+            var newAvailabilityConflict = shiftAvailability.Conflicts;
+            // TODO
+            //.WhereToList(c => c.Conflict != ShiftConflictType.Scheduled);
+            //foreach (var group in shiftsGroupedByDate)
+            //{
+            //    var earliestShiftForDate = group.First(s => s.Start == group.Min(s => s.Start));
+            //    earliestShiftForDate.End = group.Max(s => s.End);
+            //    newAvailabilityConflict.Add(earliestShiftForDate);
+            //}
 
             if (includeWorkSection)
                 newAvailabilityConflict = DetermineWorkSections(newAvailabilityConflict, shifts);

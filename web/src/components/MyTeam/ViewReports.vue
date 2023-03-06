@@ -182,7 +182,8 @@
     const commonState = namespace("CommonInformation");      
     import PageHeader from "@components/common/PageHeader.vue";
     import Spinner from "@components/Spinner.vue";
-    import {reportInfoType, locationInfoType, regionInfoType} from '../../types/common';
+    
+    import {reportInfoType, locationInfoType, regionInfoType} from '@/types/common';
     import { trainingReportInfoType } from '@/types/MyTeam';
     import { leaveTrainingTypeInfoType } from '@/types/ManageTypes';
 

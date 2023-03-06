@@ -20,7 +20,7 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import { myTeamShiftInfoType, dutiesDetailInfoType} from '../../../types/DutyRoster';
+    import { myTeamShiftInfoType, dutiesDetailInfoType} from '@/types/DutyRoster';
     
     @Component
     export default class SheriffAvailabilityBar extends Vue {

@@ -3,7 +3,7 @@
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
 				<b-navbar-nav>
-					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2 font-weight-normal">Shift Schedule</h3>
+					<h3 style="width:14rem; margin-bottom: 0px;" class="text-white ml-2 font-weight-normal">Manage Assignments</h3>
 				</b-navbar-nav>
 
 				<b-navbar-nav class="custom-navbar">
@@ -22,6 +22,16 @@
 							locale="en-US">
 					</b-form-datepicker>
 					<b-button style="max-height: 40px;" size="sm" variant="secondary" @click="nextDateRange" class="my-2"><b-icon-chevron-right/></b-button>
+				</b-navbar-nav>
+
+				<b-navbar-nav class="mr-2">
+                    <b-nav-form>						
+                        <div :class="showAllAssignmentsChecked?'bg-success':''" style="border:1px solid green;border-radius:5px; margin-left: 15px; width: 20rem;">
+                            <b-form-checkbox class="mx-1 my-1" v-model="showAllAssignmentsChecked" @change="updateAssignments()" size="lg" switch>
+                                <div style="font-size: 16px;" class="text-white">{{viewDetails}}</div>
+                            </b-form-checkbox>
+                        </div>
+					</b-nav-form>
 				</b-navbar-nav>
 
 				<b-navbar-nav class="mr-2">
@@ -166,7 +176,7 @@
 
                 <b-row v-if="shiftsDiffer" id="shiftsDifferError" style="border-radius:5px; max-width: 30rem;" class="h4 mx-2 py-2 bg-warning">
 					<b-col cols="11">
-						<span class="p-0">{{shiftsDifferMsg}}</span>
+						<div class="h5 p-0" v-html="shiftsDifferMsg" />
 					</b-col>
 					<b-col cols="1" style=" padding:0; margin:auto 0;">
 						<b-icon
@@ -227,6 +237,7 @@
                         @click="closeShiftEditWindow()"
                 ><b-icon-x font-scale="1.5" style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
                 <b-button
+						:disabled="multipleShifts"
                         variant="success"
                         size="sm"
                         @click="saveShift()"
@@ -281,17 +292,17 @@
 	import { namespace } from "vuex-class";
 	import moment from 'moment-timezone';
 
-	import "@store/modules/ShiftScheduleInformation";
-	const shiftState = namespace("ShiftScheduleInformation");
+	import "@store/modules/AssignmentScheduleInformation";
+	const assignmentState = namespace("AssignmentScheduleInformation");
 
 	import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
-	import { importConflictMessageType, shiftInfoType, shiftRangeInfoType } from '@/types/ShiftSchedule';
+	import { importConflictMessageType, shiftInfoType, shiftRangeInfoType, selectShiftInfoType } from '@/types/ShiftSchedule';
 	import { locationInfoType, userInfoType } from '@/types/common';
 	
 	@Component
-	export default class ScheduleHeader extends Vue {		
+	export default class ManageAssignmentsHeader extends Vue {		
 
 		@commonState.State
 		public location!: locationInfoType;
@@ -299,17 +310,17 @@
 		@commonState.State
         public userDetails!: userInfoType;
 				
-		@shiftState.State
-		public shiftRangeInfo!: shiftRangeInfoType;
+		@assignmentState.State
+		public assignmentRangeInfo!: shiftRangeInfoType;
 
-		@shiftState.Action
-		public UpdateShiftRangeInfo!: (newShiftRangeInfo: shiftRangeInfoType) => void
+		@assignmentState.Action
+		public UpdateAssignmentRangeInfo!: (newAssignmentRangeInfo: shiftRangeInfoType) => void
 
-		@shiftState.State
-		public selectedShifts!: string[];
+		@assignmentState.State
+		public selectedShifts!: selectShiftInfoType[];
 
-		@shiftState.Action
-        public UpdateSelectedShifts!: (newSelectedShifts: string[]) => void
+		@assignmentState.Action
+        public UpdateSelectedShifts!: (newSelectedShifts: selectShiftInfoType[]) => void
 
 		shiftsToEdit = [] as shiftInfoType[]; 
 
@@ -348,8 +359,12 @@
         importErrorMsgDesc = '';
 		importError = true;
 
-		errorText = ''
-		openErrorModal=false
+		errorText = '';
+		openErrorModal=false;
+
+		multipleShifts=false;
+
+		showAllAssignmentsChecked = true;
 		
 		importConflictMsg: importConflictMessageType[] = [];
 		importConflict = false;
@@ -357,16 +372,17 @@
 
 		mounted() {
 			//console.log('header')
-
+			this.showAllAssignmentsChecked = true;
+			this.multipleShifts=false;
 			this.hasPermissionToImportShifts = this.userDetails.permissions.includes("ImportShifts");
 			this.hasPermissionToExpireShifts = this.userDetails.permissions.includes("ExpireShifts");
 			this.hasPermissionToEditShifts = this.userDetails.permissions.includes("EditShifts");            
 			
-			if(!this.shiftRangeInfo.startDate){
+			if(!this.assignmentRangeInfo.startDate){
 				this.selectedDate = moment().format().substring(0,10);
 				this.loadNewDateRange();
 			} else {
-				this.selectedDate = this.shiftRangeInfo.startDate;
+				this.selectedDate = this.assignmentRangeInfo.startDate;
 				this.$emit('change');
 			}
 			//console.log(this.selectedDate)
@@ -376,6 +392,14 @@
 				this.EditShift();
 			});
 		}
+
+		get viewDetails() {
+            if(this.showAllAssignmentsChecked) return 'Display All Assignments';else return 'Display Current Assignment Only'
+        }
+
+		public updateAssignments() {			
+            Vue.nextTick(()=>this.$emit('change', this.showAllAssignmentsChecked));
+        }
 
 		public EditShift() {
 			this.isShiftDataMounted = false;
@@ -398,13 +422,17 @@
 			this.shiftsDiffer = false;
 			this.shiftsDifferMsg = '';
 
-			const endDate = moment(this.shiftRangeInfo.endDate).endOf('day').format();
+			const endDate = moment(this.assignmentRangeInfo.endDate).endOf('day').format();
 
-			const url = 'api/shift?locationId='+this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+endDate;
+			const url = 'api/shift?locationId='+this.location.id+'&start='+this.assignmentRangeInfo.startDate+'&end='+endDate;
             this.$http.get(url)
                 .then(response => {
-                    if(response.data){						
-						this.shiftsToEdit = response.data.filter(shift=>{if(this.selectedShifts.indexOf(shift.id) != -1) return true});						
+                    if(response.data){
+						const selectedCardsName = this.selectedShifts.map(shift => shift.sheriff+' on ('+shift.date+' )')
+						const multiShifts = selectedCardsName.filter((e, i, a) => a.indexOf(e) !== i)
+												
+						const selectedCardsIds =  this.selectedShifts.map(shift => shift.id)						
+						this.shiftsToEdit = response.data.filter(shift => selectedCardsIds.includes(shift.id));												
 						for (const shift of this.shiftsToEdit) {							
 							startTimes.push(this.extractTime(shift.startDate, shift.timezone));
 							endTimes.push(this.extractTime(shift.endDate, shift.timezone));
@@ -443,7 +471,18 @@
 							this.originalComment = this.comment = '';
 						}
 
-						if (this.shiftsDiffer) {
+						this.multipleShifts=false;
+
+						if(multiShifts.length>0){
+							this.multipleShifts=true;
+							const multiShiftsUnq = multiShifts.filter((e, i, a) => a.indexOf(e) === i)
+							this.shiftsDifferMsg += 'The following selections have multiple shifts and are NOT "Editable". '+ 
+													'You may consider deleting them and creating a new shift instead.<br/><br/>'
+							for(const multiShiftUnq of multiShiftsUnq){
+								this.shiftsDifferMsg += ('<li>'+multiShiftUnq +'</li>')
+							}
+						}
+						else if (this.shiftsDiffer) {
 							if (numberOfEndTimes > 1 && numberOfStartTimes > 1 && numberOfComments > 1) {
 								this.shiftsDifferMsg = "The comments, start and end times of the selected shifts do not match."
 							} else if (numberOfEndTimes > 1 && numberOfStartTimes > 1) {
@@ -477,14 +516,14 @@
 					this.startTimeState = false;
 					requiredError = true;
 			} else {
-                    this.selectedStartTime = this.autoCompleteTime(this.selectedStartTime);
+                    this.selectedStartTime = Vue.filter('autoCompleteTime')(this.selectedStartTime);
 					this.startTimeState = true;
 			}
 			if (!this.selectedEndTime) {
 					this.endTimeState = false;
 					requiredError = true;
 			} else {
-                    this.selectedEndTime = this.autoCompleteTime(this.selectedEndTime);
+                    this.selectedEndTime = Vue.filter('autoCompleteTime')(this.selectedEndTime);
 					this.endTimeState = true;
             }
             if (this.selectedStartTime && this.selectedEndTime && this.selectedStartTime >= this.selectedEndTime ) {
@@ -500,23 +539,6 @@
 					console.log('Error required')
 			}
         }
-
-		public autoCompleteTime(time){
-            const tail="00:00";
-            let result = "";
-            
-            if(time.length==1) result = '0'+time+ tail.slice(2);
-            else if(time.length==4) {
-                if(time.slice(3,4)=='2') result = time.slice(0,3)+'15';
-                else result = time+(time.slice(-1)=='1' || time.slice(-1)=='4'?'5':'0');
-            }
-            else if(time.length==5){
-                if(time.slice(3,4)=='2') result = time.slice(0,3)+'15';
-                else result =time.slice(0,4)+(time.slice(3,4)=='1' || time.slice(3,4)=='4'?'5':'0');
-            }
-            else  result = time+ tail.slice(time.length);
-            return result
-		}
 
 		public completeDate(date, time){
             const startOfdate = moment(date).startOf("day").format().substring(0,10);
@@ -567,33 +589,10 @@
 		public commentFormat(value) {
 			return value.slice(0,100);
 		}
-           
-        public timeFormat(value , event) {
-			if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':') return value.slice(0,-1)
-			if(value.length!=3 && value.slice(-1) == ':') return value.slice(0,-1);
-
-			if(value.length==2 && event.data && value.slice(0,1)>=3 && (value.slice(-1)>=5 || value.slice(-1)==2)) return value.slice(0,-1);
-			if(value.length==2 && event.data && value.slice(0,1)>=3 && (value.slice(-1)==0 || value.slice(-1)==3)) return '0'+ value.slice(0,1)+':'+value.slice(1,2)+'0';
-			if(value.length==2 && event.data && value.slice(0,1)>=3 && (value.slice(-1)==1 || value.slice(-1)==4)) return '0'+ value.slice(0,1)+':'+value.slice(1,2)+'5';
-			if(value.length==2 && event.data && value.slice(0,1)==2 && value.slice(-1)>=5) return value.slice(0,-1);
-			if(value.length==2 && event.data && value.slice(0,1)==2 && (value.slice(-1)==4 || value.slice(-1)==4)) return '02:45';
-			if(value.length==2 && event.data && value.slice(-1)!=0 && value.slice(-1)!=1 && value.slice(-1)!=3 && value.slice(-1)!=4) return value.slice(0,2)+':';
-			if(value.length==2 && event.data) return '0'+value.slice(0,1)+':'+value.slice(1,2);
-			if(value.length==3 && value.slice(-1)!=':' ) return value.slice(0,2)+':';
-			if(value.length==4 && event.data && (value.slice(0,1)>0||value.slice(1,2)>1) && (value.slice(-1)>=5 || value.slice(-1)==2)) return value.slice(0,-1);
-			if(value.length==4 && event.data && value.slice(0,1)>0 && (value.slice(-1)==0 || value.slice(-1)==3)) return value.slice(0,4)+'0';
-			if(value.length==4 && event.data && value.slice(0,1)>0 && (value.slice(-1)==1 || value.slice(-1)==4)) return value.slice(0,4)+'5';
-			if(value.length==4 && event.data && value.slice(0,1)==0 && value.slice(1,2)<2 && value.slice(-1)>=5 ) return value.slice(1,2)+value.slice(3,4)+':';
-			if(value.length==5 && (value.slice(0,2)>=24 || value.slice(3,5)>=60)) return '';
-			if(value.length==5 && value.slice(0,2)>=3 && (value.slice(3,4)==0 || value.slice(3,4)==3)) return value.slice(0,4)+'0';
-			if(value.length==5 && value.slice(0,2)>=3 && (value.slice(3,4)==1 || value.slice(3,4)==4)) return value.slice(0,4)+'5';
-			if(value.length==6 && value.slice(0,1)==0 && (value.slice(4,6)==0||value.slice(4,6)==15||value.slice(4,6)==30||value.slice(4,6)==45) && (value.slice(1,2)+value.slice(3,4))<24) return value.slice(1,2)+value.slice(3,4)+':'+value.slice(4,5)+value.slice(5,6);
-		
-			if(value.length>5) return value.slice(0,5);
-			if(value.length==5 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,5)) || value.slice(2,3)!=':') )return '';
-			if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
-			return value
-		}
+         
+		public timeFormat(value , event){
+            return Vue.filter('timeFormat')(value , event)
+        }
 
 		public extractTime(dateTime: string, timezone: string) {
 			return moment(dateTime).tz(timezone).format("HH:mm")
@@ -646,7 +645,7 @@
 
         public deleteShift(){
 			const url = 'api/shift';
-			const body = this.selectedShifts;
+			const body = this.selectedShifts.map(shift => shift.id);
             this.$http.delete(url, {data: body})
                 .then(response => {
                     // console.log(response);
@@ -667,7 +666,7 @@
         }
 
         public importShift(){
-			const startDate = moment(this.shiftRangeInfo.startDate).subtract(7, 'days').format().substring(0,10);
+			const startDate = moment(this.assignmentRangeInfo.startDate).subtract(7, 'days').format().substring(0,10);
 			const url = 'api/shift/importweek?locationId=' + this.location.id + '&start=' + startDate;
 			this.importConflictMsg = [];
             this.$http.post(url)
@@ -706,7 +705,7 @@
 			const firstDayOfWeek = moment(this.selectedDate).startOf('week').format()
 			const lastDayOfWeek = moment(this.selectedDate).endOf('week').format();
 			const dateRange = {startDate: firstDayOfWeek.substring(0,10), endDate: lastDayOfWeek.substring(0,10)}
-			this.UpdateShiftRangeInfo(dateRange);
+			this.UpdateAssignmentRangeInfo(dateRange);
 			this.$emit('change'); 
 		}
 	}
@@ -715,19 +714,19 @@
 <style scoped>
 
 	.card {
-				border: white;
-		}
+		border: white;
+	}
 
 	.custom-navbar {
-			float:none;
-			margin:0 auto 0 auto;
-			display: block;
-			text-align: center;
+		float:none;
+		margin:0 auto 0 auto;
+		display: block;
+		text-align: center;
 	}
 
 	.custom-navbar > li {
-			display: inline-block;
-			float:none;
+		display: inline-block;
+		float:none;
 	}
 
 </style>
