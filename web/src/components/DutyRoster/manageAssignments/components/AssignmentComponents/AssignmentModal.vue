@@ -540,18 +540,18 @@
 
                 const dutyArray = Vue.filter('startEndTimesToArray')(null, 1, this.dutyDate.slice(0,10), selectedStartTime, selectedEndTime, this.location.timezone)
                 let allShiftsArray = Vue.filter('initArray')();
-                console.log(dutyArray)
-                console.log(this.scheduleInfo)
+                // console.log(dutyArray)
+                // console.log(this.scheduleInfo)
                 for(const sch of this.scheduleInfo){                    
                     const shiftArray = Vue.filter('startEndTimesToArray')(null, 1, this.dutyDate.slice(0,10), sch.startTime, sch.endTime, this.location.timezone)
-                    console.log(shiftArray)
+                    // console.log(shiftArray)
                     const dutyOnShiftArray = Vue.filter('unionArrays')(dutyArray, shiftArray)
                     if(Vue.filter('sumOfArrayElements')(dutyOnShiftArray)>0){
                         const bins = Vue.filter('getArrayRangeBins')(dutyOnShiftArray)
                         allShiftsArray = Vue.filter('fillInArray')(allShiftsArray, 1, bins.startBin, bins.endBin)
-                        console.log(bins)
+                        // console.log(bins)
                         const dutyOnShiftTime = Vue.filter('convertTimeRangeBinsToTime')(this.startOfDay, bins.startBin, bins.endBin)
-                        console.log(dutyOnShiftTime)
+                        // console.log(dutyOnShiftTime)
                         dutySlots.push({  
                             id: dutySlotID,                                              
                             startDate: dutyOnShiftTime.startTime,
@@ -569,7 +569,7 @@
                 }
 
                 const reminderOfDutyOnShiftsArray = Vue.filter('subtractUnionOfArrays')(dutyArray, allShiftsArray)
-                console.log(reminderOfDutyOnShiftsArray)
+                // console.log(reminderOfDutyOnShiftsArray)
                 const discontinuity = Vue.filter('findDiscontinuity')(reminderOfDutyOnShiftsArray)                
                 const iterationNum = Math.floor((Vue.filter('sumOfArrayElements')(discontinuity) +1)/2);
 
@@ -579,7 +579,7 @@
                     discontinuity[inx1]=0
                     if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
                     const dutyOnShiftTime = Vue.filter('convertTimeRangeBinsToTime')(this.startOfDay, inx1, inx2)
-                    console.log(dutyOnShiftTime)
+                    // console.log(dutyOnShiftTime)
                     dutySlots.push({  
                         id: dutySlotID,                                              
                         startDate: dutyOnShiftTime.startTime,
@@ -595,7 +595,7 @@
                     })
                 }
        
-                console.log(dutySlots)
+                // console.log(dutySlots)
                 this.postDutyChanges(dutyInfo, dutySlots)
             }
         }
@@ -612,7 +612,8 @@
                 comment: this.selectedComment
             }];
 
-            console.log(body)
+            //console.log(body)
+            this.loadingData=true
 
             if(body?.length>0){
                 const url = 'api/dutyroster';
@@ -623,7 +624,8 @@
                         }
                     }, err => {
                         const errMsg = err.response.data.error;
-                        this.errMsg = errMsg;                            
+                        this.errMsg = errMsg;
+                        this.loadingData=false                            
                     })
             }
         }

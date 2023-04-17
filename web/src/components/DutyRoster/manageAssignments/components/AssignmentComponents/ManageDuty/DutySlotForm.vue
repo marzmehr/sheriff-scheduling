@@ -173,8 +173,8 @@
             const newDutyArray = Vue.filter('startEndTimesToArray')(null,1, this.dutyDate.slice(0,10), this.selectedStartTime, this.selectedEndTime, this.location.timezone)
             const overtimeArray = Vue.filter('subtractUnionOfArrays')(newDutyArray, this.sheriffAvailabilityArray)
             const isOvertime = Vue.filter('sumOfArrayElements')(overtimeArray)>0
-            console.log(overtimeArray)
-            console.log(isOvertime)
+            // console.log(overtimeArray)
+            // console.log(isOvertime)
             if(isOvertime){
                 this.showOvertimeConfirm.show=true;
             }else{
