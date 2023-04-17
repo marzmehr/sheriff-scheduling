@@ -14,14 +14,14 @@
                                     :src="src"                                                         
                                     alt="B.C. Gov"/>                                                                   
                             </div>                                
-                            <div style="width:70%; margin-top:1rem;">
+                            <div style="width:70%; margin-top:1.5rem;">
                                 <div style="font-size:13pt;"><b>B.C. Sheriff Service</b></div>
                                 <div style="font-size:12pt;" class="text-secondary font-italic"><b>Honour - Integrity - Commitment</b></div>
                             </div>
                         </div>
                     </div>
                 
-                    <div style="width:52%" >
+                    <div style="width:52%; margin-top: 0.2rem;" >
                         <div class="card m-0 border border-dark text-center">
                             <div class="mt-1">{{location.name}} Schedule</div>
                             <div v-if="weekView" style="font-size:12pt;"><b>{{shiftRangeInfo.startDate | beautify-full-date}} - {{shiftRangeInfo.endDate | beautify-full-date}}</b></div>
@@ -37,7 +37,6 @@
                 <template #overlay>
                     <loading-spinner :inline="true"/>
                 </template> 
-                
                 <div v-for="page,inx in sheriffPages" :key="'pdf-'+inx" class="ss-body">   
                     <weekly-schedule :key="updateTable" :fields="fields"  :sheriffSchedules="sheriffSchedules.slice(page.start,page.end)" v-if="weekView" />
                     <daily-schedule :key="updateDailyTable" :dailySheriffSchedules="dailySheriffSchedules.slice(page.start,page.end)" v-else/>
@@ -124,13 +123,13 @@
 
         fields = [
             {key:'myteam',  label:'Name', tdClass:'px-1 mx-0 align-middle my-team', thStyle:'text-align: center; font-size: 8pt; width: 11rem;'},
-            {key:'Sun',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
-            {key:'Mon',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
-            {key:'Tue',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
-            {key:'Wed',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
-            {key:'Thu',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
-            {key:'Fri',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
-            {key:'Sat',     label:'',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'}
+            {key:'Sun',     label:'',     tdClass:'px-1 mx-0 py-0', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Mon',     label:'',     tdClass:'px-1 mx-0 py-0', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Tue',     label:'',     tdClass:'px-1 mx-0 py-0', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Wed',     label:'',     tdClass:'px-1 mx-0 py-0', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Thu',     label:'',     tdClass:'px-1 mx-0 py-0', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Fri',     label:'',     tdClass:'px-1 mx-0 py-0', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
+            {key:'Sat',     label:'',     tdClass:'px-1 mx-0 py-0', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'}
         ]
 
         WSColors = {
@@ -145,6 +144,7 @@
 
         sheriffSchedules: weekScheduleInfoType[] =[];
         dailySheriffSchedules: distributeScheduleInfoType[] = [];
+        sheriffSchedulesLength = 0;
 
         sheriffPages: sheriffPagesInfoType[]=[];
         marginToLastPageRows = '0rem';
@@ -193,12 +193,13 @@
                         } else {
                             info = response.data.filter(data =>{if(data.sheriffId == sheriffId ) return true})
                         }
+                        this.sheriffSchedulesLength = info.length
                         //console.log(info)
                         if (this.weekView){
                             this.extractTeamScheduleInfo(info);
                         } else {
                             this.extractTeamDailyScheduleInfo(info); 
-                        }
+                        }                      
                                                  
                     }                                   
                 },err => {
@@ -296,7 +297,7 @@
                 sheriffSchedule.conflicts =isInLoanLocation? this.extractInLoanLocationConflicts(sheriffScheduleJson.conflicts) :this.extractSchedules(sheriffScheduleJson.conflicts, false);
                 this.dailySheriffSchedules.push(sheriffSchedule)
             }          
-            this.splitDailySheriffPages();
+            this.splitSheriffPages();
             this.isDistributeDataMounted = true;            
             this.updateDailyTable++;
         }
@@ -409,47 +410,9 @@
                         const date = this.headerDates[dateIndex]
                         if(date>=conflict.start && date<=conflict.end)
                         {
-                            if (conflict.conflict =='Scheduled'){
-
-                                if (conflict.dutySlots?.length > 0){
-
-                                    const duties = this.extractDutyInfo(conflict.dutySlots);
-                                    
-                                    schedules.push({
-                                            id:conflict.shiftId? conflict.shiftId:0,
-                                            location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                            dayOffset: Number(dateIndex), 
-                                            date:date, 
-                                            startTime:'', 
-                                            endTime:'',
-                                            type:this.getConflictsType(conflict),
-                                            subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'',
-                                            duties: duties,
-                                            workSection: '',
-                                            workSectionColor: ''
-                                        })
-
-                                } else {
-
-                                    schedules.push({
-                                        id:conflict.shiftId? conflict.shiftId:0,
-                                        location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                        dayOffset: Number(dateIndex), 
-                                        date:date, 
-                                        startTime:'', 
-                                        endTime:'',
-                                        duties: [],
-                                        type:this.getConflictsType(conflict),
-                                        subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'',
-                                        workSection: '',
-                                        workSectionColor: ''
-                                    }) 
-
-                                }
-
-                                
-                            } else {
-                                schedules.push({
+                            const duties = ((conflict.conflict =='Scheduled')&&(conflict.dutySlots?.length > 0)) ? this.extractDutyInfo(conflict.dutySlots): [];
+                            
+                            schedules.push({
                                     id:conflict.shiftId? conflict.shiftId:0,
                                     location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
                                     dayOffset: Number(dateIndex), 
@@ -458,13 +421,12 @@
                                     endTime:'',
                                     type:this.getConflictsType(conflict),
                                     subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'',
-                                    duties: [],
+                                    duties: duties,
                                     workSection: '',
-                                    workSectionColor: ''
+                                    workSectionColor: '',
+                                    fullday: true,
+                                    overtime: conflict.overtimeHours
                                 }) 
-
-                            }
-                                   
                         }                       
                     }
                 } else {
@@ -474,104 +436,60 @@
                         const nextDate = moment(this.headerDates[dateIndex]).add(1,'days').format().substring(0,10);
                         if(date == conflict.start.substring(0,10) && date == conflict.end.substring(0,10)) {  
 
-                            if (conflict.dutySlots?.length > 0){
-
-                                const duties = this.extractDutyInfo(conflict.dutySlots);
-                                schedules.push({
-                                    id:conflict.shiftId? conflict.shiftId:0,
-                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                    dayOffset: Number(dateIndex), 
-                                    date:this.headerDates[dateIndex], 
-                                    startTime:Vue.filter('beautify-time')(conflict.start), 
-                                    endTime:Vue.filter('beautify-time')(conflict.end), 
-                                    type:this.getConflictsType(conflict),                                
-                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
-                                    duties: duties,
-                                    workSection:'',
-                                    workSectionColor: ''
-                                })  
-
-                            } else {
-
-                                schedules.push({
-                                    id:conflict.shiftId? conflict.shiftId:0,
-                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                    dayOffset: Number(dateIndex), 
-                                    date:this.headerDates[dateIndex], 
-                                    startTime:Vue.filter('beautify-time')(conflict.start), 
-                                    endTime:Vue.filter('beautify-time')(conflict.end), 
-                                    type:this.getConflictsType(conflict),                                
-                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
-                                    duties: [],
-                                    workSection: '',
-                                    workSectionColor: ''
-                                })  
-
-                            }
+                            const duties = (conflict.dutySlots?.length > 0) ? this.extractDutyInfo(conflict.dutySlots) :[];
+                            schedules.push({
+                                id:conflict.shiftId? conflict.shiftId:0,
+                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                dayOffset: Number(dateIndex), 
+                                date:this.headerDates[dateIndex], 
+                                startTime:Vue.filter('beautify-time')(conflict.start), 
+                                endTime:Vue.filter('beautify-time')(conflict.end), 
+                                type:this.getConflictsType(conflict),                                
+                                subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
+                                duties: duties,
+                                workSection:'',
+                                workSectionColor: '',
+                                fullday: false,
+                                overtime: conflict.overtimeHours
+                            })                            
 
                         } else if(date == conflict.start.substring(0,10) && nextDate == conflict.end.substring(0,10)) {  
                             const midnight = moment(conflict.start).endOf('day');  
-                            if (conflict.dutySlots?.length > 0){
+                            
+                            const duties = (conflict.dutySlots?.length > 0) ? this.extractDutyInfo(conflict.dutySlots): [];
 
-                                const duties = this.extractDutyInfo(conflict.dutySlots);
+                            schedules.push({
+                                id:conflict.shiftId? conflict.shiftId:0,
+                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                dayOffset: Number(dateIndex), 
+                                date:this.headerDates[dateIndex], 
+                                startTime:Vue.filter('beautify-time')(conflict.start), 
+                                endTime:Vue.filter('beautify-time')(midnight.format()),
+                                type:this.getConflictsType(conflict),
+                                subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
+                                duties: duties,
+                                workSection: '',
+                                workSectionColor: '',
+                                fullday: false,
+                                overtime: conflict.overtimeHours
+                            })
 
-                                schedules.push({
-                                    id:conflict.shiftId? conflict.shiftId:0,
-                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                    dayOffset: Number(dateIndex), 
-                                    date:this.headerDates[dateIndex], 
-                                    startTime:Vue.filter('beautify-time')(conflict.start), 
-                                    endTime:Vue.filter('beautify-time')(midnight.format()),
-                                    type:this.getConflictsType(conflict),
-                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
-                                    duties: duties,
-                                    workSection: '',
-                                    workSectionColor: ''
-                                })
-
-                                schedules.push({
-                                    id:conflict.shiftId? conflict.shiftId:0,
-                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                    dayOffset: Number(dateIndex)+1, 
-                                    date:moment(this.headerDates[dateIndex]).add(1,'day').format(), 
-                                    startTime:'00:00', 
-                                    endTime:Vue.filter('beautify-time')(conflict.end),
-                                    type:this.getConflictsType(conflict),
-                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
-                                    duties: duties,
-                                    workSection: '',
-                                    workSectionColor: ''
-                                }) 
-
-                            } else {
-                                                                                
-                                schedules.push({
-                                    id:conflict.shiftId? conflict.shiftId:0,
-                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                    dayOffset: Number(dateIndex), 
-                                    date:this.headerDates[dateIndex], 
-                                    startTime:Vue.filter('beautify-time')(conflict.start), 
-                                    endTime:Vue.filter('beautify-time')(midnight.format()),
-                                    type:this.getConflictsType(conflict),
-                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
-                                    duties: [],
-                                    workSection:'',
-                                    workSectionColor: ''
-                                })
-                                schedules.push({
-                                    id:conflict.shiftId? conflict.shiftId:0,
-                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                    dayOffset: Number(dateIndex)+1, 
-                                    date:moment(this.headerDates[dateIndex]).add(1,'day').format(), 
-                                    startTime:'00:00', 
-                                    endTime:Vue.filter('beautify-time')(conflict.end),
-                                    type:this.getConflictsType(conflict),
-                                    subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
-                                    duties: [],
-                                    workSection:'',
-                                    workSectionColor: ''
-                                })   
-                            }     
+                            schedules.push({
+                                id:conflict.shiftId? conflict.shiftId:0,
+                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                dayOffset: Number(dateIndex)+1, 
+                                date:moment(this.headerDates[dateIndex]).add(1,'day').format(), 
+                                startTime:'00:00', 
+                                endTime:Vue.filter('beautify-time')(conflict.end),
+                                type:this.getConflictsType(conflict),
+                                subType: (conflict.sheriffEventType)?conflict.sheriffEventType:'', 
+                                duties: duties,
+                                workSection: '',
+                                workSectionColor: '',
+                                fullday: false,
+                                overtime: conflict.overtimeHours
+                            }) 
+                           
                         }                       
                     }
                 } 
@@ -583,14 +501,14 @@
         public splitSheriffPages(){
             this.sheriffPages =[]
             const PAGE_ITEMS=10
-            const len = this.sheriffSchedules.length
+            const len = this.sheriffSchedulesLength
             for(let page=1; page<=(Math.ceil(len/PAGE_ITEMS)); page++){
                 this.sheriffPages.push({
                     start:(page-1)*PAGE_ITEMS,
                     end:Math.min(len, page*PAGE_ITEMS)
                 })
             }  
-            const mod = this.sheriffSchedules.length % PAGE_ITEMS
+            const mod = this.sheriffSchedulesLength % PAGE_ITEMS
             this.marginToLastPageRows = (mod==0)? '0rem' :((PAGE_ITEMS-mod)*2.1)+'rem'
         }
 
@@ -612,20 +530,6 @@
 
             return duties;
 
-        }
-
-        public splitDailySheriffPages(){
-            this.sheriffPages =[]
-            const PAGE_ITEMS=16
-            const len = this.dailySheriffSchedules.length
-            for(let page=1; page<=(Math.ceil(len/PAGE_ITEMS)); page++){
-                this.sheriffPages.push({
-                    start:(page-1)*PAGE_ITEMS,
-                    end:Math.min(len, page*PAGE_ITEMS)
-                })
-            }  
-            const mod = this.dailySheriffSchedules.length % PAGE_ITEMS
-            this.marginToLastPageRows = (mod==0)? '0rem' :((PAGE_ITEMS-mod)*2.1)+'rem'
         }
 
     }

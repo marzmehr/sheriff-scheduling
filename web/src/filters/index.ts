@@ -219,6 +219,20 @@ Vue.filter('WSColors', function(){
     }
 })
 
+Vue.filter('getTypeAbrv', function(type){
+    if(!type) return ''
+    const typesAbrv = {
+        'CourtRole':'CA',
+        'CourtRoom':'CR',
+        'JailRole':'J',
+        'EscortRun':'T',
+        'Transport':'T',
+        'OtherAssignment':'O',        
+    }
+    if(typesAbrv[type]) return '('+typesAbrv[type]+')'
+    else return type
+})
+
 Vue.filter('subColors', function(subtype){
     const leaveColor = {
         'spl':'#ffee07',
@@ -226,6 +240,7 @@ Vue.filter('subColors', function(subtype){
         'medical':'#fd7e14',
         'med':'#fd7e14',
         'dental':'#fd7e14',
+        'illness':'#fd7e14',
         'stiip':'#dc3545',
         'stip':'#dc3545',
         'annual':'#007bff',
@@ -321,18 +336,20 @@ Vue.filter('printPdf', function(html, pageFooterLeft, pageFooterRight){
             `.table{border: 3px solid;width: 100%;}`+
             `tr {border: 3px solid;}`+
             `th {border: 3px solid black;}`+
+            `table.printer td:has(.middle-text){ vertical-align: middle !important;}`+
             `td {height: 2.5rem;border: 3px solid; width: 6.5rem;}`+
             `td.my-team {height: 2.5rem;border: 3px solid; width: 11rem !important;}`+
             `td.my-notes {height: 2.5rem;border: 3px solid; width: 17rem !important;}`+
             `.bg-spl-leave {background-color: #ffee07;}`+
             `.bg-a-l-leave {background-color: #007bff;}`+
-            `.bg-med-dental-leave {background-color: #fd7e14;}`+
-            `.bg-stiip-leave {background-color: #dc3545;}`+
-            `.bg-cto-leave {background-color: #33b652;}`+
-            `.bg-lwop-leave {background-color: #6e42c1dc;}`+
-            `.bg-bereavement-leave {background-color: #6c757d;}`+
-            `.bg-training-leave {background-color: #b46d47;}`+
-            `.bg-overtime-leave {background-color: #ced4da;}`+
+            `.bg-med-dental-leave {background-color: #f8a88a;}`+
+            `.bg-stiip-leave {background-color: #ff6439;}`+
+            `.bg-cto-leave {background-color: #3ad15e;}`+
+            `.bg-lwop-leave {background-color: #7a54c1b0;}`+
+            `.bg-bereavement-leave {background-color: #5f6265;}`+
+            `.bg-training-leave {background-color: #b8c6d4;}`+
+            `.bg-overtime-leave {background-color: #b8c6d4;}`+
+            `.bg-loaned {background-color: #b8c6d4;}` +
             `.bg-primary {background-color: #1b4f86;}`+
             `.dot {height: 20px; width: 20px; background-color: black;
                 color: white;
