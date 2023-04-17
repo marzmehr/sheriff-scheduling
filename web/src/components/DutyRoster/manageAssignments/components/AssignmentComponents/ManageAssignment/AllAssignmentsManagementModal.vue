@@ -6,12 +6,13 @@
                     v-if="hasPermissionToAddAssignments"
                     variant="success"
                     size="sm"
+                    :disabled="loadingData"
                     class="text-white px-4"
                     @click="createAssignments()">
                     Assignments +
                 </b-button>
-                <b-card class="border-0 mb-0" no-body>
-                <b-row style="margin:0.75rem 0 -0.65rem auto; border:1px solid #EFEFEF;">
+                <b-card class="border-0 mb-0" no-body :style="{opacity: (loadingData? 0.4 : 1)}">
+                    <b-row style="margin:0.75rem 0 -0.65rem auto; border:1px solid #EFEFEF;">
                         <div
                             class="mx-2 p-0"
                             v-for="color in Object.keys(dutyColorsCode)" 
@@ -27,60 +28,62 @@
                 <b-button
                     size="sm"
                     variant="dark"
+                    :disabled="loadingData"
                     class="text-white px-4"
                     @click="closeModal()">
                     Close
                 </b-button>                            
             </template>
+            <b-overlay :show="loadingData" rounded="sm" :opacity="0.9" spinner-large spinner-variant="primary">
+                <b-card no-body style="border-bottom: 1px solid #EFEFEF ; font-size: 14px; margin-top:-1rem; user-select: none;" >	
+                    <b-table
+                        :items="dutyShiftAssignmentsWeek" 
+                        :fields="fields"
+                        sort-by="assignment"
+                        :style="{ overflowX: 'scroll', marginBottom: '0px' }" 
+                        small   
+                        borderless                    
+                        fixed>
+                            <template v-slot:table-colgroup>
+                                <col style="width:9rem">                         
+                            </template>
+                    
+                            <template v-slot:cell(assignment) ="data"  >                            
+                                <manage-duty-roster-assignment v-on:change="getData" :assignment="data.item" :weekview="true"/>
+                            </template>
+                                                    
+                            <template v-slot:head()="data" >                            
+                                <div v-if="data.column.substring(1,2)>=0" style="border:1px solid #EFEFEF;" class="m-0 bg-light text-center" >
+                                    {{getBeautifyTime(Number(data.column.substring(1,2)))}}
+                                </div>
+                            </template>
+                    
+                            <template v-slot:cell()="data" >                                                                                      
+                                <div v-if="data.item[data.field.key.substring(1,2)]" 
+                                    class="text-center m-1 py-2 text-white rounded" 
+                                    :style="{background:data.item.type.colorCode}"
+                                    >
+                                    <b-button v-if="hasPermissionToEditDuty" 
+                                        style="width:1.1rem; height: 1.1rem; float:right; transform: translate(0px,2px);" 
+                                        class="mx-1 my-0 py-0" 
+                                        size="sm"
+                                        variant="primary" 
+                                        @click="editAssignmentDuty(data.item[data.field.key.substring(1,2)])"
+                                        v-b-tooltip.hover                                
+                                        title="Edit"
+                                        ><b-icon
+                                            icon="pencil-square" 
+                                            font-scale="1.25" 
+                                            variant="light" 
+                                            style="transform: translate(-9px,-3px);"/>
+                                    </b-button>
+                                    {{ getAssignmentTime(data.item[data.field.key.substring(1,2)])}}
+                                </div>                        
+                            </template>
 
-            <b-card no-body style="border-bottom: 1px solid #EFEFEF ; font-size: 14px; margin-top:-1rem; user-select: none;" >	
-                <b-table
-                    :items="dutyShiftAssignmentsWeek" 
-                    :fields="fields"
-                    sort-by="assignment"
-                    :style="{ overflowX: 'scroll', marginBottom: '0px' }" 
-                    small   
-                    borderless                    
-                    fixed>
-                        <template v-slot:table-colgroup>
-                            <col style="width:9rem">                         
-                        </template>
-                
-                        <template v-slot:cell(assignment) ="data"  >                            
-                            <manage-duty-roster-assignment v-on:change="getData" :assignment="data.item" :weekview="true"/>
-                        </template>
-                                                
-                        <template v-slot:head()="data" >                            
-                            <div v-if="data.column.substring(1,2)>=0" style="border:1px solid #EFEFEF;" class="m-0 bg-light text-center" >
-                                {{getBeautifyTime(Number(data.column.substring(1,2)))}}
-                            </div>
-                        </template>
-                
-                        <template v-slot:cell()="data" >                                                                                      
-                            <div v-if="data.item[data.field.key.substring(1,2)]" 
-                                class="text-center m-1 py-2 text-white rounded" 
-                                :style="{background:data.item.type.colorCode}"
-                                >
-                                <b-button v-if="hasPermissionToEditDuty" 
-                                    style="width:1.1rem; height: 1.1rem; float:right; transform: translate(0px,2px);" 
-                                    class="mx-1 my-0 py-0" 
-                                    size="sm"
-                                    variant="primary" 
-                                    @click="editAssignmentDuty(data.item[data.field.key.substring(1,2)])"
-                                    v-b-tooltip.hover                                
-                                    title="Edit"
-                                    ><b-icon
-                                        icon="pencil-square" 
-                                        font-scale="1.25" 
-                                        variant="light" 
-                                        style="transform: translate(-9px,-3px);"/>
-                                </b-button>
-                                {{ getAssignmentTime(data.item[data.field.key.substring(1,2)])}}
-                            </div>                        
-                        </template>
-
-                </b-table>               
-            </b-card>
+                    </b-table>               
+                </b-card>
+            </b-overlay>
         </b-modal>
 
         <create-assignments-modal :showModal="showCreateAssignments" v-on:change="getData" />
@@ -142,6 +145,8 @@
         hasPermissionToAddAssignments = false;
         hasPermissionToEditDuty = false;
 
+        loadingData=false
+
         editingDuty = {} as assignDutyInfoType;
 
         fields =[
@@ -158,6 +163,7 @@
         dutyColorsCode={}
 
         mounted(){
+            this.loadingData=false;
             this.dutyColorsCode=Vue.filter('WSColors')() 
             delete this.dutyColorsCode['Overtime']
             this.hasPermissionToAddAssignments = this.userDetails.permissions.includes("CreateAssignments");
@@ -179,6 +185,7 @@
         }
 
         public getData(){
+            this.loadingData=true
             this.$emit('change')
         }
 

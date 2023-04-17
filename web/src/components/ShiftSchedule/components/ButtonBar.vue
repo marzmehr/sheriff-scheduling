@@ -11,14 +11,14 @@
             </b-col>
             <b-col cols="8">
                 <b-button 
-                    variant="warning" 
+                    variant="warning"
+                    :disabled="emailingPdf" 
                     @click="emailSchedulePdf()">
-                    <spinner color="#FFF" 
-                        v-if="emailingPdf" 
-                        style="margin:0; padding: 0; height:1.9rem; transform:translate(0px,-25px);"/>
-                    <span style="font-size: 14px;" v-else>
-                        Email {{pdfType}}
-                    </span>
+                    <b-overlay :show="emailingPdf" rounded="sm" :opacity="0.1" spinner-small spinner-variant="primary">                        
+                        <span style="font-size: 14px;">
+                            Email {{pdfType}}
+                        </span>
+                    </b-overlay>                   
                 </b-button>
             </b-col>
         </b-row>

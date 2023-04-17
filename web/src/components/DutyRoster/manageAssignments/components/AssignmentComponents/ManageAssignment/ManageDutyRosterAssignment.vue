@@ -1,84 +1,86 @@
 <template>
-    <div> 
-        <b-row v-if="assignment.FTEnumber>0"
-			@click="editAssignment()" 
-			:style="{
-				borderTop: '0px solid #BBBBBB',
+    <div>
+		<b-overlay :show="loadingData" rounded="sm" :opacity="0.8" spinner-small spinner-variant="primary">
+			<b-row v-if="assignment.FTEnumber>0"
+				@click="editAssignment()" 
+				:style="{
+					borderTop: '0px solid #BBBBBB',
+					borderBottom: getBorderBottom,
+					height:'2.925rem',
+					backgroundColor: assignment.type.colorCode,
+					borderRadius:getBorderRadius,
+					margin:'0rem 0.1rem 0 0.1rem'}">
+			</b-row>
+			<b-row v-else :style="{
+				borderTop: '1px solid #BBBBBB',
 				borderBottom: getBorderBottom,
-				height:'2.925rem',
-				backgroundColor: assignment.type.colorCode,
+				height:'2.785rem',
+				backgroundColor:assignment.type.colorCode,
 				borderRadius:getBorderRadius,
-				margin:'0rem 0.1rem 0 0.1rem'}">
-        </b-row>
-        <b-row v-else :style="{
-			borderTop: '1px solid #BBBBBB',
-			borderBottom: getBorderBottom,
-			height:'2.785rem',
-			backgroundColor:assignment.type.colorCode,
-			borderRadius:getBorderRadius,
-			margin:'0.15rem 0.1rem 0 0.1rem'}" > 
-            <b-col cols="10" class="m-0 p-0 text-white" @click="editAssignment()">                                   
-                <b-row                                  
-                    style="text-transform: capitalize;" 
-                    class="h6 p-0 mt-2 mb-0 ml-1">
-					<div 
-                        v-b-tooltip.hover                            
-                        :title="assignmentTitle.length>15? assignmentTitle:''">
-						{{assignmentTitle | truncate(12)}} 
-                    </div>                    
-                </b-row>
-                <b-row v-if="dutyError" >
-					<h6 class="ml-3 my-0 p-0"
-						><b-badge v-b-tooltip.hover
-							:title="dutyErrorMsg"
-							variant="danger"> {{dutyErrorMsg | truncate(14)}}
-							<b-icon class="ml-2"
-								icon = x-square-fill
-								@click="dutyError = false"
-					/></b-badge></h6>
-				</b-row>     
-                <b-row v-else class="h7 p-0 m-0 ml-2">
-					<div>
-						<b-button  
-                                class="p-0"
-                                style="transform:translate(-5px,1px); height:0.9rem;" 
-                                size="sm"
-                                variant="light" 
-                                @click="editAssignment()"
-                                v-b-tooltip.hover                                
-                                title="Edit Assignment"
-                                ><b-icon-pencil-square style="transform:translate(0px,-7px);"  font-scale="0.9" variant="dark" />
-                            </b-button>
-					</div>
-					<div 
-                        v-b-tooltip.hover                            
-                        :title="assignment.name?assignment.name.length>17? assignment.name:'':''"> 
-                            {{assignment.name | truncate(14)}} 
-                    </div>                    
-                </b-row>
-            </b-col>
-            <b-col cols="2" class="m-0 p-0"> 
-				<b-row class="m-0 p-0">
-					<b-button
-						class="bg-white"
-						style="padding:0; height:1.2rem; width:1.2rem; margin:0.35rem 0"
-						:disabled="isDeleted || !hasPermissionToAddAssignDuty" 
-						v-b-tooltip.hover.righttop
-						:title="getTimeRange"
-						@click="addDuty();"
-						size="sm"> 
-							<b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-2px);"/></b-button>
-				</b-row>
-				<b-row class="m-0 p-0" >
-					<div v-if="assignment.assignmentDetail.comment"
-						v-b-tooltip.hover.right.v-info
-						:title="assignment.assignmentDetail.comment">
-						<b-icon-chat-square-text-fill variant="white" font-scale=".8" class="ml-1 mb-2 p-0" style="transform:translate(0,-3px);"/>
-					</div>
-				</b-row>
-				
-			</b-col>
-        </b-row>
+				margin:'0.15rem 0.1rem 0 0.1rem'}" > 
+				<b-col cols="10" class="m-0 p-0 text-white" @click="editAssignment()">                                   
+					<b-row                                  
+						style="text-transform: capitalize;" 
+						class="h6 p-0 mt-2 mb-0 ml-1">
+						<div 
+							v-b-tooltip.hover                            
+							:title="assignmentTitle.length>15? assignmentTitle:''">
+							{{assignmentTitle | truncate(12)}} 
+						</div>                    
+					</b-row>
+					<b-row v-if="dutyError" >
+						<h6 class="ml-3 my-0 p-0"
+							><b-badge v-b-tooltip.hover
+								:title="dutyErrorMsg"
+								variant="danger"> {{dutyErrorMsg | truncate(14)}}
+								<b-icon class="ml-2"
+									icon = x-square-fill
+									@click="dutyError = false"
+						/></b-badge></h6>
+					</b-row>     
+					<b-row v-else class="h7 p-0 m-0 ml-2">
+						<div>
+							<b-button  
+									class="p-0"
+									style="transform:translate(-5px,1px); height:0.9rem;" 
+									size="sm"
+									variant="light" 
+									@click="editAssignment()"
+									v-b-tooltip.hover                                
+									title="Edit Assignment"
+									><b-icon-pencil-square style="transform:translate(0px,-7px);"  font-scale="0.9" variant="dark" />
+								</b-button>
+						</div>
+						<div 
+							v-b-tooltip.hover                            
+							:title="assignment.name?assignment.name.length>17? assignment.name:'':''"> 
+								{{assignment.name | truncate(14)}} 
+						</div>                    
+					</b-row>
+				</b-col>
+				<b-col cols="2" class="m-0 p-0"> 
+					<b-row class="m-0 p-0">
+						<b-button
+							class="bg-white"
+							style="padding:0; height:1.2rem; width:1.2rem; margin:0.35rem 0"
+							:disabled="isDeleted || !hasPermissionToAddAssignDuty" 
+							v-b-tooltip.hover.righttop
+							:title="getTimeRange"
+							@click="addDuty();"
+							size="sm"> 
+								<b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-2px);"/></b-button>
+					</b-row>
+					<b-row class="m-0 p-0" >
+						<div v-if="assignment.assignmentDetail.comment"
+							v-b-tooltip.hover.right.v-info
+							:title="assignment.assignmentDetail.comment">
+							<b-icon-chat-square-text-fill variant="white" font-scale=".8" class="ml-1 mb-2 p-0" style="transform:translate(0,-3px);"/>
+						</div>
+					</b-row>
+					
+				</b-col>
+			</b-row>
+		</b-overlay>
 
 		<b-modal v-model="showEditAssignmentDetails" id="bv-modal-edit-assignment-details" centered header-class="bg-primary text-light">
 			<template v-slot:modal-title>
@@ -471,6 +473,7 @@
 
 		initialStartDate = false;
 		initialEndDate = false;
+		loadingData = false;
 
 		weekDayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
@@ -508,6 +511,7 @@
 		openErrorModal=false;
 
         mounted(){
+			this.loadingData = false;
 			this.hasPermissionToEditAssignment = this.userDetails.permissions.includes("EditAssignments");
             this.hasPermissionToExpireAssignment = this.userDetails.permissions.includes("ExpireAssignments");    
             this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");    
@@ -730,6 +734,7 @@
 		
 		public loadSubTypes(type) {
 			Vue.nextTick(()=>{
+				this.loadingData=true;
 				this.isSubTypeDataReady = false;
 				const url = 'api/managetypes?codeType='+ type.name +'&locationId='+this.location.id+'&showExpired=false';
 				this.$http.get(url)
@@ -737,11 +742,13 @@
 						if(response.data){
 							this.extractSubTypes(response.data);
 						}
+						this.loadingData=false;
 					},err => {
 						this.errorText = err.response.statusText+' '+err.response.status + '  - ' + moment().format();
 						if (err.response.status != '401') {
 							this.openErrorModal=true;
-						}  
+						}
+						this.loadingData=false; 
 					})
 			});
 		}
@@ -966,16 +973,18 @@
 					concurrencyToken: 0
 				})			
 			}
-
+			this.loadingData = true;
 			const url = 'api/dutyroster';
 			this.$http.post(url, body )
 				.then(response => {
 					if(response.data){
 							this.$emit('change', this.scrollPositions());
 					}
+					this.loadingData = false;
 				}, err => {
 					this.dutyErrorMsg = err.response.data.error;
 					this.dutyError = true;
+					this.loadingData = false;
 				})
 		}		
 		
