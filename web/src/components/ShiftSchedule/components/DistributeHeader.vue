@@ -281,8 +281,11 @@
             this.recipients = checked?this.teamMemberList.map(member => member.email).slice(): [];
         }
         
-        public getSchedule() {			
-            Vue.nextTick(()=>this.$emit('change', this.showWeekViewChecked, this.selectedTeamMember.sheriffId))
+        public getSchedule() {            			
+            Vue.nextTick(()=>{
+                this.selectedDate = this.dailyShiftRangeInfo.startDate;
+                this.$emit('change', this.showWeekViewChecked, this.selectedTeamMember.sheriffId)
+            })
         }
 
         public emailSchedule(){
