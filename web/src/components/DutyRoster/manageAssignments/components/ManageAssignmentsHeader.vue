@@ -27,7 +27,7 @@
 				<b-navbar-nav class="mr-2">
                     <b-nav-form>						
                         <div :class="showAllAssignmentsChecked?'bg-success':''" style="border:1px solid green;border-radius:5px; margin-left: 15px; width: 20rem;">
-                            <b-form-checkbox class="mx-1 my-1" v-model="showAllAssignmentsChecked" @change="updateAssignments()" size="lg" switch>
+                            <b-form-checkbox :disabled="!isCurrentWeek" class="mx-1 my-1" v-model="showAllAssignmentsChecked" @change="updateAssignments()" size="lg" switch>
                                 <div style="font-size: 16px;" class="text-white">{{viewDetails}}</div>
                             </b-form-checkbox>
                         </div>
@@ -338,6 +338,8 @@
 		isShiftDataMounted = false;
 		startTimeState = true;
 		endTimeState = true;
+
+		isCurrentWeek = false;
 
 		datePickerOpened = false;
 		
@@ -706,7 +708,10 @@
 			const lastDayOfWeek = moment(this.selectedDate).endOf('week').format();
 			const dateRange = {startDate: firstDayOfWeek.substring(0,10), endDate: lastDayOfWeek.substring(0,10)}
 			this.UpdateAssignmentRangeInfo(dateRange);
-			this.$emit('change'); 
+			const today = moment().format().substring(0,10);
+			this.isCurrentWeek = (today >= dateRange.startDate) && (today <= dateRange.endDate)  
+			this.showAllAssignmentsChecked = true
+			this.$emit('change', this.showAllAssignmentsChecked); 
 		}
 	}
 </script>
