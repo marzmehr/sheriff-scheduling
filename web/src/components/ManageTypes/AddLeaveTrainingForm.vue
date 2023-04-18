@@ -4,7 +4,7 @@
             <b-tbody>
                 <b-tr>
                     <b-td>
-                        <b-form-group style="margin: 0.25rem 0 0 1rem;width: 35rem">
+                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 18rem">
                             <label class="h6 ml-1 mb-0 pb-0" > {{type}}: </label> 
                             <b-form-input
                                 size = "sm"
@@ -15,7 +15,7 @@
                             </b-form-input>
                         </b-form-group>           
                     </b-td>
-                    <b-td v-if="type == 'Training'">
+                    <!-- <b-td v-if="type == 'Training'">
                         <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 8.5rem">
                             <label class="h6 ml-1 mb-0 pb-0" > Frequency: </label> 
                             <b-form-select
@@ -59,7 +59,7 @@
                                     </b-form-select-option>     
                             </b-form-select>
                         </b-form-group>           
-                    </b-td>
+                    </b-td> -->
 
                     <b-td >
                         <b-button                                    
@@ -144,22 +144,25 @@
         @Prop({required: true})
         sortOrder!: number;
 
-        trainingFrequencyTypes = [
-            'One Time',
-            'Annually',
-            'Every Two Years',
-            'Every Three Years'
-        ];
+        originalLeaveTraining = '';
+        selectedLeaveTraining = '';
 
-        trainingTypes = [
-            {name: 'Mandatory', value: true},
-            {name: 'Optional', value: false}
-        ];
+        // trainingFrequencyTypes = [
+        //     'One Time',
+        //     'Annually',
+        //     'Every Two Years',
+        //     'Every Three Years'
+        // ];
 
-        trainingDeliveryMethods = [
-            'Online',
-            'In Person'
-        ];
+        // trainingTypes = [
+        //     {name: 'Mandatory', value: true},
+        //     {name: 'Optional', value: false}
+        // ];
+
+        // trainingDeliveryMethods = [
+        //     'Online',
+        //     'In Person'
+        // ];
         
         leaveTrainingState = true;
 
@@ -167,15 +170,15 @@
         showCancelWarning = false;
         showSaveWarning = false;
 
-        selectedLeaveTraining = '';
-        selectedTrainingFrequencyType = 'Annually';
-        selectedTrainingDeliveryMethod = 'Online';
-        selectedTrainingMandatory = true;
+        // selectedLeaveTraining = '';
+        // selectedTrainingFrequencyType = 'Annually';
+        // selectedTrainingDeliveryMethod = 'Online';
+        // selectedTrainingMandatory = true;
 
-        originalLeaveTraining = '';
-        originalTrainingFrequencyType = '';
-        originalTrainingDeliveryMethod = '';
-        originalTrainingMandatory = true;
+        // originalLeaveTraining = '';
+        // originalTrainingFrequencyType = '';
+        // originalTrainingDeliveryMethod = '';
+        // originalTrainingMandatory = true;
         
         mounted()
         { 
@@ -188,11 +191,11 @@
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:0;
             this.originalLeaveTraining = this.selectedLeaveTraining = this.formData.code;
-            if (this.type == 'Training'){
-                this.originalTrainingFrequencyType = this.selectedTrainingFrequencyType = this.formData.frequency?this.formData.frequency:'';
-                this.originalTrainingDeliveryMethod = this.selectedTrainingDeliveryMethod = this.formData.deliveryMethod?this.formData.deliveryMethod:'';
-                this.originalTrainingMandatory = this.selectedTrainingMandatory = this.formData.mandatory?this.formData.mandatory:false;
-            }           
+            // if (this.type == 'Training'){
+            //     this.originalTrainingFrequencyType = this.selectedTrainingFrequencyType = this.formData.frequency?this.formData.frequency:'';
+            //     this.originalTrainingDeliveryMethod = this.selectedTrainingDeliveryMethod = this.formData.deliveryMethod?this.formData.deliveryMethod:'';
+            //     this.originalTrainingMandatory = this.selectedTrainingMandatory = this.formData.mandatory?this.formData.mandatory:false;
+            // }           
             
         }
 
@@ -211,28 +214,33 @@
             }else{
                 this.leaveTrainingState  = true;
 
-                let body = {};
+                // let body = {};
 
-                if (this.type == 'Training'){
-                    console.log(this.type)
-                    body = {
-                        code: this.selectedLeaveTraining,
-                        locationId: null,
-                        id: this.formDataId,
-                        frequency: this.selectedTrainingFrequencyType,
-                        mandatory: this.selectedTrainingMandatory,
-                        deliveryMethod: this.selectedTrainingDeliveryMethod,
-                        sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
-                    }
-                } else {
-                    body = {
-                        code: this.selectedLeaveTraining,
-                        locationId: null,
-                        id: this.formDataId,
-                        sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
-                    }
-                }                
-                
+                // if (this.type == 'Training'){
+                //     console.log(this.type)
+                //     body = {
+                //         code: this.selectedLeaveTraining,
+                //         locationId: null,
+                //         id: this.formDataId,
+                //         frequency: this.selectedTrainingFrequencyType,
+                //         mandatory: this.selectedTrainingMandatory,
+                //         deliveryMethod: this.selectedTrainingDeliveryMethod,
+                //         sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
+                //     }
+                // } else {
+                //     body = {
+                //         code: this.selectedLeaveTraining,
+                //         locationId: null,
+                //         id: this.formDataId,
+                //         sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
+                //     }
+                // }                
+                const body = {
+                    code: this.selectedLeaveTraining,
+                    locationId: null,
+                    id: this.formDataId,
+                    sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
+                }
                 this.$emit('submit', body, this.isCreate);                  
             }
         }
@@ -251,19 +259,20 @@
                 return false;
 
             } else {
-
-                if (this.type == 'Training'){
-                    if( this.originalLeaveTraining != this.selectedLeaveTraining ||
-                        this.originalTrainingFrequencyType != this.selectedTrainingFrequencyType ||
-                        this.originalTrainingDeliveryMethod != this.selectedTrainingDeliveryMethod ||
-                        this.originalTrainingMandatory != this.selectedTrainingMandatory) {
-                        return true;
-                    } 
-                    return false;
-                } else {
-                    if(this.originalLeaveTraining != this.selectedLeaveTraining) return true;
-                    return false;
-                }                
+                if(this.originalLeaveTraining != this.selectedLeaveTraining) return true;
+                return false;
+                // if (this.type == 'Training'){
+                //     if( this.originalLeaveTraining != this.selectedLeaveTraining ||
+                //         this.originalTrainingFrequencyType != this.selectedTrainingFrequencyType ||
+                //         this.originalTrainingDeliveryMethod != this.selectedTrainingDeliveryMethod ||
+                //         this.originalTrainingMandatory != this.selectedTrainingMandatory) {
+                //         return true;
+                //     } 
+                //     return false;
+                // } else {
+                //     if(this.originalLeaveTraining != this.selectedLeaveTraining) return true;
+                //     return false;
+                // }                
             }
         }
 
