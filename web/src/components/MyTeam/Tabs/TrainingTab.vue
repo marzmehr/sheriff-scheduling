@@ -157,13 +157,16 @@
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import {teamMemberInfoType, userTrainingInfoType} from '../../../types/MyTeam'; 
-    import { trainingTypeJson } from '../../../types/common/jsonTypes';    
-    import { trainingInfoType, userInfoType } from '../../../types/common';    
-    import AddTrainingForm from './AddForms/AddTrainingForm.vue'   
     import { namespace } from 'vuex-class';
+
+    import {teamMemberInfoType, userTrainingInfoType} from '@/types/MyTeam'; 
+    import { trainingTypeJson } from '@/types/common/jsonTypes';    
+    import { trainingInfoType, userInfoType } from '@/types/common';    
+    import AddTrainingForm from './AddForms/AddTrainingForm.vue'   
+    
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
+
     import "@store/modules/TeamMemberInformation";    
     const TeamMemberState = namespace("TeamMemberInformation");
 

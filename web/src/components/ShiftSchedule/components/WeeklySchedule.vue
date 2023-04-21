@@ -5,6 +5,7 @@
             :items="sheriffSchedules" 
             :fields="fields"
             small
+            class="printer"
             style="width: 100%;"
             bordered
             fixed>
@@ -45,68 +46,8 @@
                 
             </template>               
             
-            <template v-slot:cell() = "data">                   
-                <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="event in sortEvents(data.item[data.field.key])" :key="event.id + event.date + event.location">
-                    <div v-if="event.type == 'Shift'">
-                            
-                        <div style="border-bottom: 1px solid #ccc; text-align: center; font-weight: 700;" class="m-0 p-0">
-                            In: {{event.startTime}} Out: {{event.endTime}}
-                        </div>
-                                
-                        <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="duty in sortEvents(event.duties)" :key="duty.startTime">
-                            <div :style="'color: ' + duty.color">{{duty.startTime}}-{{duty.endTime}} {{duty.dutySubType}}</div>
-                        </div>
-                            
-                    </div>
-                    <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">{{event.startTime}}-{{event.endTime}} Unavailable</div>
-                    <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
-                   
-                    <div class="text-center" style="display:inline;" v-else-if="event.type == 'Leave'">                            
-                        <div style="border-bottom: 1px solid #ccc;" class="m-0 p-0">
-                            <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge text-white">Leave</div>
-                            <div v-else-if="annualLeaveList.some(leave => event.subType.toUpperCase().includes(leave))" class="bg-a-l-leave badge">Leave</div>
-                            <div v-else-if="healthLeaveList.some(leave => event.subType.toUpperCase().includes(leave))" class="bg-med-dental-leave badge">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge text-white">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge text-white">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge text-white">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge text-white">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge text-white">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge text-white">Leave</div>
-                            <div v-else  class="bg-primary badge text-white">Leave</div>
-
-                        </div> 
-                        <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-if="event.subType">
-                            <span v-if="event.startTime">{{event.startTime}}-{{event.endTime}}</span>
-                            <span v-else > FullDay </span>  
-                            {{ event.subType }}
-                        </div>  
-                    </div> 
-
-                    <div class="text-center" style="display:inline;" v-else-if="event.type == 'Training'">  
-                        
-                        <div style="border-bottom: 1px solid #ccc;" class="m-0 p-0">
-                            <b-badge class="bg-primary text-white" >Training</b-badge>
-                        </div> 
-                        <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-if="event.subType">
-                            <span v-if="event.startTime">{{event.startTime}}-{{event.endTime}}</span>
-                            <span v-else > FullDay </span>  
-                            {{ event.subType }}
-                        </div>  
-                    </div>   
-
-                    <div class="text-center" style="display:inline;" v-else-if="event.type == 'Loaned'">  
-                        <div style="border-bottom: 1px solid #ccc;" class="m-0 p-0">
-                            <b-badge class="bg-primary text-white">Loaned</b-badge>
-                        </div>
-
-                        <div style="font-size: 6pt; border:none;" class="m-0 p-0">
-                            <span v-if="event.startTime">{{event.startTime}}-{{event.endTime}}</span>
-                            <span v-else > FullDay </span>
-                            {{event.location}}
-                        </div>                            
-                    </div>
-                  
-                </div>
+            <template v-slot:cell() = "data">
+                <weekly-assignment-card :scheduleInfo="data.item[data.field.key]" />                
             </template>                
             
         </b-table>
@@ -117,14 +58,20 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
-    import "@store/modules/CommonInformation";
-    const commonState = namespace("CommonInformation");    
-    import { locationInfoType } from '../../../types/common';
-    import { weekScheduleInfoType } from '../../../types/ShiftSchedule/index'
-
     import * as _ from 'underscore';
 
-    @Component
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");   
+
+    import { locationInfoType } from '@/types/common';
+    import { weekScheduleInfoType } from '@/types/ShiftSchedule/index';
+    import WeeklyAssignmentCard from './WeeklyAssignmentCard.vue'    
+
+    @Component({
+        components :{
+            WeeklyAssignmentCard
+        }
+    })
     export default class WeeklySchedule extends Vue {
 
         @Prop({required: true})
@@ -136,15 +83,18 @@
         @commonState.State
         public location!: locationInfoType;    
 
-        healthLeaveList = ['MEDICAL', 'DENTAL', 'MED/DENTAL'];
-        annualLeaveList = ['A/L', 'ANNUAL'];
-
         public sortEvents (events: any) {            
             return _.sortBy(events, "startTime");
         }
 
     }
 </script>
+
+<style>
+    table.printer td:has(.middle-text){  
+        vertical-align: middle !important;
+    }
+</style>
 
 <style scoped lang="scss" src="@/styles/_pdf.scss">
 

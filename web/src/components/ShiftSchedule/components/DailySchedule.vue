@@ -1,7 +1,7 @@
 <template>
-    <div>            
+    <div v-if="isMounted">         
         <b-table
-            :items="dailySheriffSchedules" 
+            :items="sheriffSchedules" 
             :fields="dailyFields"
             small
             bordered
@@ -37,93 +37,75 @@
                 
             </template>               
 
-            <template v-slot:cell(shifts) = "data">  
-
-                <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="event in sortEvents(data.item.conflicts)" :key="event.id + event.date + event.location">
-                    <div v-if="event.type == 'Shift'">
-                            
-                        <div style="text-align: center; font-weight: 700;" class="m-0 p-0">
-                            In: {{event.startTime}} Out: {{event.endTime}}
+            <template v-slot:cell(shifts) = "data"> 
+                <div style="font-size: 6pt; border:none;" class="m-0 p-0" >
+                    
+                    <div v-if="data.item.sheriffEvent.type == 'Shift'"  style="margin-bottom: 0.1rem;">
+                        <div v-if="data.item.sheriffEvent.startTime && data.item.sheriffEvent.endTime" style="margin:0 1rem; text-align: center; font-weight: 600; border-bottom: 1px solid #ccc;">                    
+                            <span style="font-size: 5.5pt; margin-right:0.1rem; ">In: </span> {{data.item.sheriffEvent.startTime}}                         
+                            <span style="font-size: 6pt;" >Out:</span> {{data.item.sheriffEvent.endTime}}                    
                         </div>
-                            
+                        <div style="font-size: 6pt; border: none; line-height: 0.55rem;" class="m-0 p-0" v-for="duty,inx in sortEvents(data.item.sheriffEvent.duties)" :key="'duty-name-'+inx+'-'+duty.startTime">                                
+                            <div v-if="duty.dutyType=='Training' || duty.dutyType=='Leave' || duty.dutyType=='Loaned'">
+                                <div  style="margin:0 1rem; text-align: center; border-bottom: 1px solid #ccc;">
+                                    <div class="badge my-1 " :style="{fontSize:'6pt', background: getColor(duty.dutySubType)}">{{ duty.dutyType }}</div>                            
+                                    <div>
+                                        <b> {{duty.startTime}}-{{duty.endTime}}</b>  
+                                        <span > {{duty.dutySubType}} </span>
+                                    </div>
+                                </div>
+                            </div>                            
+                        </div>         
                     </div>
-                    <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">{{event.startTime}}-{{event.endTime}} Unavailable</div>
-                    <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
-                   
-                    <div class="text-center" style="display:inline;" v-else-if="event.type == 'Leave'"> 
-                        <div style="border-bottom: 1px solid #ccc;" class="m-0 p-0">
-                            <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge text-white">Leave</div>
-                            <div v-else-if="annualLeaveList.some(leave => event.subType.toUpperCase().includes(leave))" class="bg-a-l-leave badge">Leave</div>
-                            <div v-else-if="healthLeaveList.some(leave => event.subType.toUpperCase().includes(leave))" class="bg-med-dental-leave badge">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge text-white">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge text-white">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge text-white">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge text-white">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge text-white">Leave</div>
-                            <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge text-white">Leave</div>
-                            <div v-else  class="bg-primary badge text-white">Leave</div>
 
-                        </div> 
-                        <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-if="event.subType">
-                            <span v-if="event.startTime">{{event.startTime}}-{{event.endTime}}</span>
-                            <span v-else > FullDay </span>  
-                            {{ event.subType }}
-                        </div>  
+                    <div v-else-if="data.item.sheriffEvent.type == 'Unavailable'" class="text-center middle-text">                                         
+                        <div  class="m-0 p-0" style="">                    
+                            <div :style="{background:getColor(data.item.sheriffEvent.subType)}" class=" text-white">Unavailable</div>
+                        </div>
+                    </div>
+                    
+                    <div v-else-if="data.item.sheriffEvent.type == 'Leave'" class="text-center middle-text">                                         
+                        <div  class="m-0 p-0" style="">                    
+                            <div :style="{background:getColor(data.item.sheriffEvent.subType)}" class=" text-white">
+                                <div>Leave</div> {{ data.item.sheriffEvent.subType }}
+                            </div>
+                        </div>
                     </div> 
 
-                    <div class="text-center" style="display:inline;" v-else-if="event.type == 'Training'">  
-                        
-                        <div style="border-bottom: 1px solid #ccc;" class="m-0 p-0">
-                            <b-badge class="bg-primary text-white" >Training</b-badge>
+                    <div v-else-if="data.item.sheriffEvent.type == 'Training'" class="text-center middle-text">                  
+                        <div style="" class="m-0 p-0">
+                            <div class="bg-training-leave">
+                                <div>Training</div> {{data.item.sheriffEvent.subType}}
+                            </div>
                         </div> 
-                        <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-if="event.subType">
-                            <span v-if="event.startTime">{{event.startTime}}-{{event.endTime}}</span>
-                            <span v-else > FullDay </span>  
-                            {{ event.subType }}
-                        </div>  
                     </div>   
 
-                    <div class="text-center" style="display:inline;" v-else-if="event.type == 'Loaned'">  
-                        <div style="border-bottom: 1px solid #ccc;" class="m-0 p-0">
-                            <b-badge class="bg-primary text-white">Loaned</b-badge>
-                        </div>
-
-                        <div style="font-size: 6pt; border:none;" class="m-0 p-0">
-                            <span v-if="event.startTime">{{event.startTime}}-{{event.endTime}}</span>
-                            <span v-else > FullDay </span>
-                            {{event.location}}
-                        </div>                            
-                    </div>
-                  
-                </div>
+                    <div v-else-if="data.item.sheriffEvent.type == 'Loaned'" class="text-center middle-text">  
+                        <div style="" class="m-0 p-0"> 
+                            <div class="bg-loaned">
+                                <div>Loaned</div> {{data.item.sheriffEvent.location}}
+                            </div>
+                        </div>                     
+                    </div>                
+                </div>                
 
             </template>
 
-            <template v-slot:cell(duties) = "data">  
-
-                <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="event in sortEvents(data.item.conflicts)" :key="event.id + event.date + event.location">
-                    <div v-if="event.type == 'Shift'">
-                                
-                        <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="duty in sortEvents(event.duties)" :key="duty.startTime">
-                            <div :style="'color: ' + duty.color">{{duty.startTime}}-{{duty.endTime}} {{duty.dutySubType}}</div>
-                        </div>
-                            
-                    </div>
+            <template v-slot:cell(duties) = "data">
+                <div style="font-size: 6pt; border: none; line-height: 0.55rem;" class="m-0 p-0" v-for="duty,inx in sortEvents(data.item.sheriffEvent.duties)" :key="'duty-name-'+inx+'-'+duty.startTime">                                
+                    <div :style="'color: ' + duty.color" v-if="duty.dutyType!='Training' && duty.dutyType!='Leave' && duty.dutyType!='Loaned'">
+                        <b v-if="duty.isOvertime">*</b>                            
+                        <b> {{duty.startTime}}-{{duty.endTime}}</b>  
+                        <span > {{duty.dutySubType}} </span>
+                        {{ duty.dutyType }}
+                    </div>                            
                 </div>
-
             </template>
 
-            <template v-slot:cell(notes) = "data">  
-
-                <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="event in sortEvents(data.item.conflicts)" :key="event.id + event.date + event.location">
-                    <div v-if="event.type == 'Shift'">                       
-                                
-                        <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="duty in sortEvents(event.duties)" :key="duty.startTime">
-                            <div :style="'color: ' + duty.color" v-if="duty.dutyNotes">{{duty.dutyNotes}}</div>
-                            <div v-if="duty.assignmentNotes">{{duty.assignmentNotes}}</div>
-                        </div>
-                            
-                    </div>                  
+            <template v-slot:cell(notes) = "data">
+                <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="duty in sortEvents(data.item.sheriffEvent.duties)" :key="duty.startTime">
+                    <div :style="'color: ' + duty.color" v-if="duty.dutyNotes">{{duty.dutyNotes}}</div>
+                    <div v-if="duty.assignmentNotes">{{duty.assignmentNotes}}</div>
                 </div>
             </template>
                 
@@ -133,27 +115,29 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import { namespace } from 'vuex-class'
+    import { namespace } from 'vuex-class';
+    import * as _ from 'underscore';
 
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");    
-    import { locationInfoType } from '../../../types/common';
-    import { distributeScheduleInfoType, distributeTeamMemberInfoType } from '../../../types/ShiftSchedule/index';
-   
-    import * as _ from 'underscore';
+
+    import { locationInfoType } from '@/types/common';
+    import { distributeScheduleInfoType, distributeTeamMemberInfoType, dailyDistributeScheduleInfoType } from '@/types/ShiftSchedule/index';       
+    import { manageAssignmentsScheduleInfoType, manageAssignmentDutyInfoType } from '@/types/DutyRoster';
 
     @Component
     export default class DailySchedule extends Vue {
 
         @Prop({required: true})
-        dailySheriffSchedules!: distributeScheduleInfoType[];
+        dailySheriffSchedules!: distributeScheduleInfoType[];        
         
         @commonState.State
         public location!: locationInfoType;
 
-        isDistributeDataMounted = false;       
+        isMounted = false;       
 
-        teamMembers: distributeTeamMemberInfoType[] = [];        
+        
+        sheriffSchedules: dailyDistributeScheduleInfoType[] =[];    
 
         dailyFields=[
             {key:'name',        label:'Name',            tdClass:'px-1 mx-0 align-middle my-team', thStyle:'text-align: center; font-size: 8pt; width: 11rem;'},
@@ -161,17 +145,83 @@
             {key:'duties',      label:'Assignments',     tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center; font-size: 8pt; width: 8rem;'},
             {key:'notes',       label:'Notes',           tdClass:'px-1 mx-0 align-middle my-notes', thStyle:'text-align: center; font-size: 8pt; width: 17rem;'}
         ]    
-        
-        healthLeaveList = ['MEDICAL', 'DENTAL', 'MED/DENTAL'];
-        annualLeaveList = ['A/L', 'ANNUAL'];
 
-        mounted() {           
-            this.isDistributeDataMounted=false;       
+        mounted() {
+            this.isMounted = false;
+            this.extractSheriffEvents();
+            this.isMounted = true;       
         }
 
         public sortEvents (events: any) {            
             return _.sortBy(events, "startTime");
-        }      
+        }
+        
+        public extractSheriffEvents(){
+            this.sheriffSchedules = []            
+            for(const sherifschedule of this.dailySheriffSchedules){
+                const scheduleInfo = sherifschedule.conflicts
+                
+                let sheriffEvent = {} as manageAssignmentsScheduleInfoType;
+                const duties: manageAssignmentDutyInfoType[] = []            
+                for(const shEvent of this.sortEvents(scheduleInfo)){
+
+                    if(shEvent.fullday){
+                        sheriffEvent=shEvent;
+                        break
+                    }
+
+                    if(shEvent.type != 'Shift'){
+                        // console.log(shEvent)
+                        const subtype = (shEvent.type=='Leave'? shEvent.subType:shEvent.type)
+                        // console.log(subtype)
+                        duties.push({                    
+                            startTime: shEvent.startTime,
+                            endTime: shEvent.endTime, 
+                            dutyType: shEvent.type,
+                            dutySubType: shEvent.subType,
+                            color: Vue.filter('subColors')(subtype)                                        
+                        })
+                    }
+                    else if(shEvent.type == 'Shift' && shEvent.overtime){
+                        
+                        for(const duty of shEvent.duties){
+                            duty.isOvertime=true
+                            duty.color= Vue.filter('subColors')('overtime')
+                            duties.push(duty)
+                        }
+                    }
+                    else{
+                    
+                        duties.push(...shEvent.duties)
+                        if(!sheriffEvent.type){
+                            sheriffEvent=shEvent
+                        }else{
+                            const start = sheriffEvent.startTime
+                            const end = sheriffEvent.endTime
+                            sheriffEvent.startTime = start < shEvent.startTime? start :shEvent.startTime;
+                            sheriffEvent.endTime = end > shEvent.endTime? end :shEvent.endTime;
+                        }
+                    }
+                }
+
+                sheriffEvent.duties = duties;
+                
+                this.sheriffSchedules.push({
+                    sheriffId: sherifschedule.sheriffId,   
+                    sheriffEvent: sheriffEvent,
+                    name: sherifschedule.name,
+                    homeLocation: sherifschedule.homeLocation,
+                    rank: sherifschedule.rank,
+                    badgeNumber: sherifschedule.badgeNumber,
+                    actingRank: sherifschedule.actingRank                    
+                })
+            }
+            // console.log(this.sheriffSchedules)
+        }
+
+        public getColor(subtype){
+            return Vue.filter('subColors')(subtype)
+        }
 
     }
 </script>

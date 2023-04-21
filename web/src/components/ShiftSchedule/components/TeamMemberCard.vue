@@ -291,12 +291,17 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import { namespace } from "vuex-class";
+    import moment from 'moment-timezone';
+
     import "@store/modules/ShiftScheduleInformation";
     const shiftState = namespace("ShiftScheduleInformation");
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
+
     import "@store/modules/TeamMemberInformation";
     const TeamMemberState = namespace("TeamMemberInformation");
+
     import ConflictsIcon from './ConflictsIcon.vue'
     import LocationTab from '@/components/MyTeam/Tabs/LocationTab.vue';
     import LeaveTab from '@/components/MyTeam/Tabs/LeaveTab.vue';
@@ -305,9 +310,9 @@
     import IdentificationTab from '@/components/MyTeam/Tabs/IdentificationTab.vue';
     import RankTab from '@/components/MyTeam/Tabs/RankTab.vue'
     import UserSummaryTemplate from "@/components/MyTeam/Tabs/UserSummaryTemplate.vue";
-    import { dayOptionsInfoType, editedShiftInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '../../../types/ShiftSchedule';
-    import moment from 'moment-timezone';
-    import { locationInfoType, userInfoType } from '../../../types/common';
+
+    import { dayOptionsInfoType, editedShiftInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '@/types/ShiftSchedule';
+    import { locationInfoType, userInfoType } from '@/types/common';
     import { teamMemberInfoType } from '@/types/MyTeam';
 
     enum gender {'Male'=0, 'Female', 'Other'}

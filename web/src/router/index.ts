@@ -1,17 +1,18 @@
-import { RouteConfig } from 'vue-router'
-import VueResource from 'vue-resource'
-import Home from '@components/Home.vue'
-import Logout from '@components/Logout.vue'
-import RequestAccess from '@components/RequestAccess.vue'
-import ManageDutyRoster from '@components/DutyRoster/ManageDutyRoster.vue'
-import ViewDutyRoster from '@components/DutyRoster/ViewDutyRoster.vue'
-import ManageSchedule from '@components/ShiftSchedule/ManageSchedule.vue'
-import DistributeSchedule from '@components/ShiftSchedule/DistributeSchedule.vue'
-import MyTeamMembers from '@components/MyTeam/MyTeamMembers.vue'
-import DefineRolesAccess from '@components/MyTeam/DefineRolesAccess.vue'
-import ViewReports from '@components/MyTeam/ViewReports.vue'
-import AssignmentTypes from '@components/ManageTypes/AssignmentTypes.vue'
-import LeaveTrainingTypes from '@components/ManageTypes/LeaveTrainingTypes.vue'
+import { RouteConfig } from 'vue-router';
+import VueResource from 'vue-resource';
+import Home from '@components/Home.vue';
+import Logout from '@components/Logout.vue';
+import RequestAccess from '@components/RequestAccess.vue';
+import ManageDutyRoster from '@components/DutyRoster/ManageDutyRoster.vue';
+import ViewDutyRoster from '@components/DutyRoster/ViewDutyRoster.vue';
+import ManageAssignments from '@components/DutyRoster/manageAssignments/ManageAssignments.vue';
+import ManageSchedule from '@components/ShiftSchedule/ManageSchedule.vue';
+import DistributeSchedule from '@components/ShiftSchedule/DistributeSchedule.vue';
+import MyTeamMembers from '@components/MyTeam/MyTeamMembers.vue';
+import DefineRolesAccess from '@components/MyTeam/DefineRolesAccess.vue';
+import ViewReports from '@components/MyTeam/ViewReports.vue';
+import AssignmentTypes from '@components/ManageTypes/AssignmentTypes.vue';
+import LeaveTrainingTypes from '@components/ManageTypes/LeaveTrainingTypes.vue';
 import store from "@/store";
 
 function dontDisplayHeader(to: any, from: any, next: any) {
@@ -45,7 +46,7 @@ async function checkPermission(to: any, from: any, next: any) {
 		await store.state.CommonInformation.userDetails;
 		await waitFor(() => {
 			const userPermissions = store.state.CommonInformation.userDetails.permissions;
-			if(to.name == "ManageDutyRoster" || to.name == "ViewDutyRoster") {
+			if(to.name == "ManageDutyRoster" || to.name == "ViewDutyRoster" || to.name == "ManageAssignments") {
 				if (userPermissions.includes("ViewDutyRoster")){        
 					dontDisplayFooter(to, from, next);	
 				} else {
@@ -109,6 +110,12 @@ const routes: Array<RouteConfig> = [
 		name: 'ViewDutyRoster',
 		beforeEnter: checkPermission,
 		component: ViewDutyRoster    
+	},
+	{
+		path: '/manage-assignments',
+		name: 'ManageAssignments',
+		beforeEnter: checkPermission,
+		component: ManageAssignments    
 	},
 	{    
 		path: '/manage-shift-schedule',

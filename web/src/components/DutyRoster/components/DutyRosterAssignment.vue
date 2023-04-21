@@ -387,8 +387,8 @@
     import "@store/modules/DutyRosterInformation";   
 	const dutyState = namespace("DutyRosterInformation");
 	import * as _ from 'underscore';
-    import { localTimeInfoType, locationInfoType, userInfoType } from '../../../types/common';
-    import { assignmentCardInfoType, assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '../../../types/DutyRoster';
+    import { localTimeInfoType, locationInfoType, userInfoType } from '@/types/common';
+    import { assignmentCardInfoType, assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '@/types/DutyRoster';
 
     @Component
     export default class DutyRosterAssignment extends Vue {

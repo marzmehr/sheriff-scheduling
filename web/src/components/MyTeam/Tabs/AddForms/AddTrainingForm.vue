@@ -197,9 +197,11 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {teamMemberInfoType ,userTrainingInfoType} from '../../../../types/MyTeam';
-    import {trainingInfoType} from '../../../../types/common';
     import { namespace } from 'vuex-class';
+    
+    import {teamMemberInfoType ,userTrainingInfoType} from '@/types/MyTeam';
+    import {trainingInfoType} from '@/types/common';
+    
     import "@store/modules/TeamMemberInformation"; 
     const TeamMemberState = namespace("TeamMemberInformation");
 

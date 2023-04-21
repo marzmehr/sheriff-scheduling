@@ -1,5 +1,5 @@
 <template>
-	<div v-on:edit-shifts="EditShifts()">
+	<div v-on:edit-shifts="EditShift()">
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
 				<b-navbar-nav>
@@ -280,12 +280,15 @@
 	import { Component, Vue } from 'vue-property-decorator';
 	import { namespace } from "vuex-class";
 	import moment from 'moment-timezone';
+
 	import "@store/modules/ShiftScheduleInformation";
 	const shiftState = namespace("ShiftScheduleInformation");
+
 	import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-	import { importConflictMessageType, shiftInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
-	import { locationInfoType, userInfoType } from '../../../types/common';
+
+	import { importConflictMessageType, shiftInfoType, shiftRangeInfoType } from '@/types/ShiftSchedule';
+	import { locationInfoType, userInfoType } from '@/types/common';
 	
 	@Component
 	export default class ScheduleHeader extends Vue {		

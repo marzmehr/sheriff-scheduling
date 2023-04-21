@@ -62,7 +62,7 @@
                             <b-form-select-option :value="{sheriffId: '', name: 'All', email: ''}">All</b-form-select-option>
                             <b-form-select-option
                                 v-for="member in teamMemberList"
-                                :key="member.id"                  
+                                :key="member.sheriffId"                  
                                 :value="member">{{member.name}}
                             </b-form-select-option>                  
                         </b-form-select>
@@ -82,9 +82,12 @@
                                 style="max-height: 40px;" 
                                 size="sm"
                                 variant="white"						
-                                @click="printSchedule()" 
-                                class="my-0 ml-2">
-                                <b-icon icon="printer-fill" font-scale="2.0" variant="white"/>
+                                @click="printSchedule()"
+                                :disabled="loadingPdf" 
+                                class="mb-0 mt-n1 ml-2">
+                                <b-overlay :show="loadingPdf" rounded="sm" :opacity="0.4" spinner-small spinner-variant="primary">
+                                    <b-icon icon="printer-fill" class="mt-1 mx-1" font-scale="2.0" variant="white"/>
+                                </b-overlay>                               
                             </b-button>
                         </div>
                         <div v-b-tooltip.hover.noninteractive
@@ -93,9 +96,12 @@
                                 style="max-height: 40px;" 
                                 size="sm"
                                 variant="white"		
-                                @click="emailSchedule()" 
+                                @click="emailSchedule()"
+                                :disabled="loadingPdf" 
                                 class="my-0 ml-2">
-                                <b-icon icon="envelope-fill" font-scale="2.0" variant="white"/>
+                                <b-overlay :show="loadingPdf" rounded="sm" :opacity="0.4" spinner-small spinner-variant="primary">
+                                    <b-icon icon="envelope-fill" class="mx-1" font-scale="2.0" variant="white"/>
+                                </b-overlay>
                             </b-button>
                         </div>
                     </b-nav-form>
@@ -115,24 +121,25 @@
                     </b-col>	
                     <b-col cols="3">
                         <b-dropdown
-                            class="recipientList bg-danger"
+                            class="recipientList"
                             variant="primary"
                             text="Recipients"		
                             style="width: 100%; margin-top: 2rem;"
                             allow-focus>
-                            <b-form-checkbox	
-                                @change="toggleAllEmails"															
-                                v-model="allSelected">All
-                            </b-form-checkbox>
-                            <b-form-checkbox-group
-                                @change="updateRecipientEmails()"
-                                v-model="recipients">
-                                <b-form-checkbox
-                                    v-for="member in teamMemberList"
-                                    :key="member.id"                  
-                                    :value="member.email">{{member.name}}								
+                            <div class="ml-1">
+                                <b-form-checkbox	
+                                    @change="toggleAllEmails"															
+                                    v-model="allSelected">All
                                 </b-form-checkbox>
-                            </b-form-checkbox-group>
+                                <b-form-checkbox-group                                    
+                                    v-model="recipients">
+                                    <b-form-checkbox
+                                        v-for="member in teamMemberList"
+                                        :key="member.sheriffId"                  
+                                        :value="member.email">{{member.name}}								
+                                    </b-form-checkbox>
+                                </b-form-checkbox-group>
+                            </div>
                         </b-dropdown>
                     </b-col>
                                     
@@ -190,8 +197,8 @@
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
-    import { distributeTeamMemberInfoType, sentEmailContentInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
-    import { locationInfoType, userInfoType } from '../../../types/common';
+    import { distributeTeamMemberInfoType, sentEmailContentInfoType, shiftRangeInfoType } from '@/types/ShiftSchedule';
+    import { locationInfoType, userInfoType } from '@/types/common';
 
     import ButtonBar from './ButtonBar.vue';
     import SentEmailContent from './SentEmailContent.vue';
@@ -241,6 +248,7 @@
         subjectState = true;
         contentState = true;
         allSelected = false;
+        loadingPdf = false;
 
         selectedTeamMember = {sheriffId: '', name: 'All', email: ''} as distributeTeamMemberInfoType;
 
@@ -254,11 +262,15 @@
         @Watch('recipients', { immediate: true })
         recipientChange()
         {
-            this.emailContent.to = this.recipients.toString();
+            const emails = this.emailContent.to?.split(",") || [];
+            const removeList = this.teamMemberEmailList.filter(email => !this.recipients.includes(email)) || [];
+            const cleanList = emails?.filter(email => !removeList.includes(email)) || [];
+            const reminderList = this.recipients?.filter(recipt => !emails.includes(recipt)) || [];
+            this.emailContent.to = [...cleanList,...reminderList].join(",");
         }
 
         mounted() {
-            
+            this.loadingPdf = false;
             this.showWeekViewChecked = true;
             this.hasPermissionToViewDutyRoster = this.userDetails.permissions.includes("ViewDutyRoster");		
             this.teamMemberEmailList = this.teamMemberList.map(member => member.email);	
@@ -270,19 +282,17 @@
                 this.selectedDate = this.shiftRangeInfo.startDate;
                 this.getSchedule();
             }			
-        }		
-
-        public updateRecipientEmails(){
-            Vue.nextTick(()=>console.log('adding emails: ' + this.recipients))		
-            
         }
 
         public toggleAllEmails(checked){			
             this.recipients = checked?this.teamMemberList.map(member => member.email).slice(): [];
         }
         
-        public getSchedule() {			
-            Vue.nextTick(()=>this.$emit('change', this.showWeekViewChecked, this.selectedTeamMember.sheriffId))
+        public getSchedule() {            			
+            Vue.nextTick(()=>{
+                this.selectedDate = this.dailyShiftRangeInfo.startDate;
+                this.$emit('change', this.showWeekViewChecked, this.selectedTeamMember.sheriffId)
+            })
         }
 
         public emailSchedule(){
@@ -309,7 +319,8 @@
                 headers: {
                 "Content-Type": "application/json",
                 }
-            }  
+            }
+            this.loadingPdf = true;  
             this.$http.post(url,body, options)
             .then(res => { 
                 const blob = res.data;
@@ -318,8 +329,12 @@
                 document.body.appendChild(link);
                 link.download = "SS.pdf";
                 link.click();
-                setTimeout(() => URL.revokeObjectURL(link.href), 1000);                                
+                setTimeout(() => {
+                    URL.revokeObjectURL(link.href);
+                    this.loadingPdf = false;
+                }, 1000);                                
             },err => {
+                this.loadingPdf = false;
                 // console.error(err);                
             });
         }
@@ -380,13 +395,11 @@
 
             this.$http.post(url,body, options)
             .then(res => {
-                
-                if (res.status == 200){
-                    this.emailingPdf=false;
-                    this.showEmailWindow=false; 
-                    this.showSentEmail = true;
-                }
-                
+                                
+                this.emailingPdf=false;
+                this.showEmailWindow=false; 
+                this.showSentEmail = true;
+                                
             },err => {
                 console.error(err);
                 this.showEmailWindow=false;
@@ -457,7 +470,7 @@
     }
 
     .recipientList /deep/ .dropdown-menu {
-        max-height: 100px;
+        max-height: 300px;
         overflow-y: auto;
     }	
 

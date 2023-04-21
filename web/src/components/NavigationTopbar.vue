@@ -23,6 +23,7 @@
 				<b-nav-item-dropdown text="Duty Roster" dropdown :disabled="!hasPermissionToViewDutyRosterPage">
                     <b-dropdown-item to="/manage-duty-roster">Manage Duties</b-dropdown-item>
                     <b-dropdown-item to="/view-duty-roster">View Duties</b-dropdown-item>
+                    <b-dropdown-item to="/manage-assignments" :disabled="!hasPermissionToViewSchedulePages">Manage Assignments</b-dropdown-item>
                 </b-nav-item-dropdown>
                 <b-nav-item-dropdown text="Shift Schedule" dropdown :disabled="!hasPermissionToViewSchedulePages">
                     <b-dropdown-item v-if="hasPermissionToViewManageSchedule" to="/manage-shift-schedule">Manage Schedule</b-dropdown-item>
@@ -72,7 +73,7 @@
 	import { Component, Vue} from 'vue-property-decorator';
 	import { namespace } from "vuex-class";
 	import "@store/modules/CommonInformation";  
-	import {commonInfoType, locationInfoType, userInfoType} from '../types/common';  
+	import {commonInfoType, locationInfoType, userInfoType} from '@/types/common';  
 	const commonState = namespace("CommonInformation");
     import store from "@/store";
 
