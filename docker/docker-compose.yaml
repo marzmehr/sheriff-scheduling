@@ -39,6 +39,9 @@ services:
       - Logging__LogLevel__Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker=${ControllerLoggingLevel} 
       - Logging__LogLevel__SS.Api.infrastructure.middleware.ErrorHandlingMiddleware=${MiddlewareLoggingLevel} 
       - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=${DatabaseLoggingLevel}
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${KestrelPassword}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=${KestrelPath}
+      - PdfUrl=${PdfUrl}
     ports:
       - 5000:5000
     volumes:
@@ -63,3 +66,8 @@ services:
       - 5432:5432
     volumes:
       - ./tmp:/tmp2
+  
+  pdf:
+    image: hassananv/weasyprint
+    ports:
+      - 8083:5001

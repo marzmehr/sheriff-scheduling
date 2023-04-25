@@ -222,7 +222,7 @@
 
             const vancouverIndex = regions.findIndex((region => region.name == 'Vancouver'));
 
-            regions[vancouverIndex].name = 'Coastal';            
+            if(vancouverIndex>=0) regions[vancouverIndex].name = 'Coastal';            
             
             this.UpdateRegionList(_.sortBy(regions,'name'));            
         }
