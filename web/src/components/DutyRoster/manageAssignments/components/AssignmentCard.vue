@@ -39,7 +39,7 @@
                 </div>
 
                 <div style=" width:70%;">
-                    <div style="font-size: 6pt; border:none;" class="m-0 p-0" v-for="duty,inx in sortEvents(sheriffEvent.duties)" :key="'duty-name-'+inx+'-'+duty.startTime">                                
+                    <div :style="{fontSize:(currentTime?'10pt':'6pt'), border:'none'}" class="m-0 p-0" v-for="duty,inx in sortEvents(sheriffEvent.duties)" :key="'duty-name-'+inx+'-'+duty.startTime">                                
                         <div :style="'color: ' + duty.color">
                             <b v-if="duty.isOvertime">*</b>
                             <font-awesome-icon v-else-if="duty.dutyType=='Training'" style="font-size: 0.5rem;" icon="graduation-cap" />
@@ -114,7 +114,7 @@
     import { manageAssignmentDutyInfoType, manageAssignmentsScheduleInfoType } from '@/types/DutyRoster';
 
     import AssignmentModal from './AssignmentComponents/AssignmentModal.vue';
-import { selectShiftInfoType } from '@/types/ShiftSchedule';
+    import { selectShiftInfoType } from '@/types/ShiftSchedule';
 
     @Component({
         components: {
@@ -270,6 +270,8 @@ import { selectShiftInfoType } from '@/types/ShiftSchedule';
                 ) 
             }else
                 this.sheriffEvent.duties = duties;
+
+            this.sheriffEvent.allDuties = duties;
             
             //__Empty_Shift
             if(!this.sheriffEvent.type && duties.length>0){
@@ -333,7 +335,7 @@ import { selectShiftInfoType } from '@/types/ShiftSchedule';
             this.shiftDate = Vue.filter('beautify-date-weekday')(block.date);
             this.shiftStartTime = block.startTime;
             this.shiftEndTime = block.endTime;
-            this.dutyBlocks = block.duties?block.duties:[];  
+            this.dutyBlocks = block.allDuties?block.allDuties:[];  
             this.dutyDate = block.date;
             const editModalID=this.sheriffEvent.date.slice(0,10)+'-'+this.sheriffId;
             this.UpdateEditDutyModalID(editModalID)

@@ -385,7 +385,8 @@
 				this.loadNewDateRange();
 			} else {
 				this.selectedDate = this.assignmentRangeInfo.startDate;
-				this.$emit('change');
+				this.loadNewDateRange()
+				//this.$emit('change');
 			}
 			//console.log(this.selectedDate)
 			

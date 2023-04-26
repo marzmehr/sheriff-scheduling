@@ -2,10 +2,10 @@
     <div>
         <b-modal v-model="showModal.show" no-close-on-backdrop hide-footer centered header-class="bg-primary text-light" size="lg">
             <template v-slot:modal-header>                
-                <div class="h3 mb-2  text-light"> {{sheriffName}} </div>
+                <div class="h3 my-auto text-light"> {{sheriffName}} </div>
                 <div>
                     <div class="h4 text-center ml-2 p-0 mb-0">{{shiftDate}}</div>             
-                    <div class="h4 text-center text-warning ml-2 p-0 mb-0"> {{shiftStartTime}} - {{shiftEndTime}}</div>                        
+                    <div class="h3 text-center text-warning ml-2 p-0 mb-0"> {{shiftStartTime}} - {{shiftEndTime}}</div>                        
                 </div>
                 <b-button
                     v-if="hasPermissionToAddAssignDuty && hasPermissionToEditDuty"
@@ -428,9 +428,10 @@
                 block.dutyType != "Training" &&
                 block.dutyType != "Unavailable" 
             )
+            const sortedShiftDutyBlocks = _.sortBy(shiftDutyBlocks,'startTime')
             newDuty['_rowVariant']= 'info'
             this.dutyBlocksExtra = [newDuty]
-            this.dutyBlocksExtra.push(...shiftDutyBlocks)
+            this.dutyBlocksExtra.push(...sortedShiftDutyBlocks)
         }
         
         public dutySelected(){

@@ -285,6 +285,7 @@ export interface manageAssignmentsScheduleInfoType {
     subType?: string;    
     fullday: boolean;
     duties?: manageAssignmentDutyInfoType[];
+    allDuties?: manageAssignmentDutyInfoType[];
     workSection: string; 
     workSectionColor: string;
     overtime?: number;
