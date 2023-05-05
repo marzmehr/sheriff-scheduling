@@ -80,7 +80,7 @@ build-api() {
     -e "CORS_DOMAIN=http://localhost:8080" \
     -e "DOTNET_STARTUP_PROJECT=./api/api.csproj" \
     '..' \
-    'registry.centos.org/dotnet/dotnet-31-centos7' \
+    'registry.centos.org/dotnet/dotnet-50-centos7' \
     'ss-api'
   echo -e "===================================================================================================="
 }
@@ -165,6 +165,9 @@ configureEnvironment () {
   # ss-web
   export API_URL=${API_URL-http://api:5000/api/}
   export WEB_BASE_HREF=${WEB_BASE_HREF-/sheriff-scheduling/}
+
+  # ss-pdf
+  export PdfUrl=${PdfUrl-http://pdf:5001}
 }
 
 getStartupParams() {
