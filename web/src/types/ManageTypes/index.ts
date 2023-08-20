@@ -11,10 +11,10 @@ export interface leaveTrainingTypeInfoType {
     code: string;
     concurrencyToken?: number;
     id: number;
-    frequency?: string;
+    validityPeriod?: number;
     mandatory?: boolean;
-    deliveryMethod?: string;
-    // locationId: number;
+    category?: string;
+    advanceNotice?: number;
     type: string;
     sortOrder: number;
 }

@@ -338,7 +338,7 @@ Vue.filter('printPdf', function(html, pageFooterLeft, pageFooterRight){
             `th {border: 3px solid black;}`+
             `table.printer td:has(.middle-text){ vertical-align: middle !important;}`+
             `td {height: 2.5rem;border: 3px solid; width: 6.5rem;}`+
-            `td.my-team {height: 2.5rem;border: 3px solid; width: 11rem !important;}`+
+            `td.my-team {height: 2.5rem;border: 3px solid; width: 7rem !important;}`+
             `td.my-notes {height: 2.5rem;border: 3px solid; width: 17rem !important;}`+
             `.bg-spl-leave {background-color: #ffee07;}`+
             `.bg-a-l-leave {background-color: #007bff;}`+

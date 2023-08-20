@@ -122,7 +122,7 @@
         teamMembers: distributeTeamMemberInfoType[] = [];
 
         fields = [
-            {key:'myteam',  label:'Name', tdClass:'px-1 mx-0 align-middle my-team', thStyle:'text-align: center; font-size: 8pt; width: 11rem;'},
+            {key:'myteam',  label:'Name', tdClass:'px-1 mx-0 align-middle my-team', thStyle:'text-align: center; font-size: 8pt; width: 7.5rem;'},
             {key:'Sun',     label:'',     tdClass:'px-1 mx-0 py-0', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
             {key:'Mon',     label:'',     tdClass:'px-1 mx-0 py-0', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},
             {key:'Tue',     label:'',     tdClass:'px-1 mx-0 py-0', thStyle:'text-align: center; font-size: 7pt; width: 6.5rem;'},

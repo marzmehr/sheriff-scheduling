@@ -3,8 +3,8 @@
         <b-table-simple small borderless>
             <b-tbody>
                 <b-tr>
-                    <b-td>
-                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 18rem">
+                    <b-td style="width:35%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;">
                             <label class="h6 ml-1 mb-0 pb-0" > {{type}}: </label> 
                             <b-form-input
                                 size = "sm"
@@ -15,61 +15,57 @@
                             </b-form-input>
                         </b-form-group>           
                     </b-td>
-                    <!-- <b-td v-if="type == 'Training'">
-                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 8.5rem">
-                            <label class="h6 ml-1 mb-0 pb-0" > Frequency: </label> 
+                    <b-td v-if="type == 'Training'" style="width:15%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0rem;">
+                            <label class="h6 ml-1 mb-0 pb-0" > Validity: </label> 
                             <b-form-select
-                                size = "sm"                                
-                                v-model="selectedTrainingFrequencyType">                            
-                                    <b-form-select-option
-                                        v-for="frequencyType in trainingFrequencyTypes" 
-                                        :key="frequencyType"                                
-                                        :value="frequencyType">
-                                            {{frequencyType}}
-                                    </b-form-select-option>     
+                                size = "sm"
+                                :options="trainingValidityPeriod"
+                                v-model="selectedTrainingValidityPeriod">
                             </b-form-select>
                         </b-form-group>           
                     </b-td>
-                    <b-td v-if="type == 'Training'">
-                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 11rem">
-                            <label class="h6 ml-1 mb-0 pb-0" > Training Type: </label> 
+                    <b-td v-if="type == 'Training'" style="width:9%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0rem;">
+                            <label class="h6 ml-1 mb-0 pb-0" > Mandatory: </label> 
+                            <b-form-checkbox
+                                class="text-center"
+                                size = "lg"                                
+                                v-model="selectedTrainingMandatory">                                                                 
+                            </b-form-checkbox>
+                        </b-form-group>           
+                    </b-td>
+                    <b-td v-if="type == 'Training'" style="width:15%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0rem;">
+                            <label class="h6 ml-1 mb-0 pb-0" > Advance Notice: </label> 
                             <b-form-select
-                                size = "sm"                                
-                                v-model="selectedTrainingMandatory">                            
-                                    <b-form-select-option
-                                        v-for="type in trainingTypes" 
-                                        :key="type.name"                                
-                                        :value="type.value">
-                                            {{type.name}}
-                                    </b-form-select-option>     
+                                size = "sm"
+                                :options="trainingAdvanceNotice"                                
+                                v-model="selectedTrainingAdvanceNotice">                                                                   
                             </b-form-select>
                         </b-form-group>           
                     </b-td>
-                    <b-td v-if="type == 'Training'">
-                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 10rem">
-                            <label class="h6 ml-1 mb-0 pb-0" > Delivery Method: </label> 
-                            <b-form-select
-                                size = "sm"                                
-                                v-model="selectedTrainingDeliveryMethod">                            
-                                    <b-form-select-option
-                                        v-for="deliveryMethod in trainingDeliveryMethods" 
-                                        :key="deliveryMethod"                                
-                                        :value="deliveryMethod">
-                                            {{deliveryMethod}}
-                                    </b-form-select-option>     
-                            </b-form-select>
-                        </b-form-group>           
-                    </b-td> -->
 
-                    <b-td >
+                    <b-td v-if="type == 'Training'" style="width:10%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0rem;">
+                            <label class="h6 ml-1 mb-0 pb-0" > Category: </label> 
+                            <b-form-select
+                                size = "sm"
+                                :options="trainingCategory"
+                                v-model="selectedTrainingCategory">
+                            </b-form-select>
+                        </b-form-group>
+                    </b-td>
+
+                    <b-td style="width:15%;" >
                         <b-button                                    
-                            style="margin: 1.5rem .5rem 0 0; padding:0 .5rem 0 .5rem;"
+                            style="margin: 1.9rem .5rem 0 1.2rem; padding:0 .5rem;"
                             variant="secondary"
                             @click="closeForm()">
                             Cancel
                         </b-button>   
                         <b-button                                    
-                            style="margin: 1.5rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
+                            style="margin: 1.9rem 0 0 0; padding:0 0.8rem; "
                             variant="success"                        
                             @click="saveForm()">
                             Save
@@ -147,22 +143,30 @@
         originalLeaveTraining = '';
         selectedLeaveTraining = '';
 
-        // trainingFrequencyTypes = [
-        //     'One Time',
-        //     'Annually',
-        //     'Every Two Years',
-        //     'Every Three Years'
-        // ];
+        trainingValidityPeriod = [
+            {value:'',   text:'One Time'},
+            {value:90,   text:'3 Months (90 days)'},
+            {value:180,  text:'6 Months (180 days)'},
+            {value:365,  text:'Annually (365 days)'},
+            {value:730,  text:'Every Two Years (730 days)'},
+            {value:1095, text:'Every Three Years (1095 days)'}
+        ];
 
-        // trainingTypes = [
-        //     {name: 'Mandatory', value: true},
-        //     {name: 'Optional', value: false}
-        // ];
+        trainingAdvanceNotice = [
+            {value:'',   text:'Not Required'},
+            {value:7,    text:'1 Week'},
+            {value:14,   text:'2 Weeks'},
+            {value:30,   text:'1 Month (30 days)'},
+            {value:60,   text:'2 Months (60 days)'},
+            {value:90,   text:'3 Months (90 days)'},            
+        ]
 
-        // trainingDeliveryMethods = [
-        //     'Online',
-        //     'In Person'
-        // ];
+        trainingCategory = [            
+            {value:'Provincial Standard', text:'Provincial Standard'},
+            {value:'Local', text:'Local'},
+            {value:'Branch', text:'Branch'},            
+        ];
+
         
         leaveTrainingState = true;
 
@@ -170,15 +174,16 @@
         showCancelWarning = false;
         showSaveWarning = false;
 
-        // selectedLeaveTraining = '';
-        // selectedTrainingFrequencyType = 'Annually';
-        // selectedTrainingDeliveryMethod = 'Online';
-        // selectedTrainingMandatory = true;
-
-        // originalLeaveTraining = '';
-        // originalTrainingFrequencyType = '';
-        // originalTrainingDeliveryMethod = '';
-        // originalTrainingMandatory = true;
+       
+        selectedTrainingValidityPeriod: number | ""= ""
+        selectedTrainingCategory = '';
+        selectedTrainingAdvanceNotice: number | ""= "";
+        selectedTrainingMandatory = true;
+       
+        originalTrainingValidityPeriod: number | ""= "";
+        originalTrainingCategory = '';
+        originalTrainingAdvanceNotice: number | ""= "";
+        originalTrainingMandatory = true;
         
         mounted()
         { 
@@ -191,11 +196,12 @@
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:0;
             this.originalLeaveTraining = this.selectedLeaveTraining = this.formData.code;
-            // if (this.type == 'Training'){
-            //     this.originalTrainingFrequencyType = this.selectedTrainingFrequencyType = this.formData.frequency?this.formData.frequency:'';
-            //     this.originalTrainingDeliveryMethod = this.selectedTrainingDeliveryMethod = this.formData.deliveryMethod?this.formData.deliveryMethod:'';
-            //     this.originalTrainingMandatory = this.selectedTrainingMandatory = this.formData.mandatory?this.formData.mandatory:false;
-            // }           
+            if (this.type == 'Training'){
+                this.originalTrainingValidityPeriod = this.selectedTrainingValidityPeriod = this.formData.validityPeriod? this.formData.validityPeriod : '';
+                this.originalTrainingAdvanceNotice = this.selectedTrainingAdvanceNotice = this.formData.advanceNotice? this.formData.advanceNotice:'';
+                this.originalTrainingCategory = this.selectedTrainingCategory = this.formData.category? this.formData.category:'';
+                this.originalTrainingMandatory = this.selectedTrainingMandatory = this.formData.mandatory?this.formData.mandatory:false;
+            }         
             
         }
 
@@ -214,33 +220,20 @@
             }else{
                 this.leaveTrainingState  = true;
 
-                // let body = {};
-
-                // if (this.type == 'Training'){
-                //     console.log(this.type)
-                //     body = {
-                //         code: this.selectedLeaveTraining,
-                //         locationId: null,
-                //         id: this.formDataId,
-                //         frequency: this.selectedTrainingFrequencyType,
-                //         mandatory: this.selectedTrainingMandatory,
-                //         deliveryMethod: this.selectedTrainingDeliveryMethod,
-                //         sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
-                //     }
-                // } else {
-                //     body = {
-                //         code: this.selectedLeaveTraining,
-                //         locationId: null,
-                //         id: this.formDataId,
-                //         sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
-                //     }
-                // }                
                 const body = {
                     code: this.selectedLeaveTraining,
                     locationId: null,
                     id: this.formDataId,
                     sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
                 }
+
+                if (this.type == 'Training'){                    
+                    body['validityPeriod'] = this.selectedTrainingValidityPeriod
+                    body['mandatory'] = this.selectedTrainingMandatory
+                    body['advanceNotice'] = this.selectedTrainingAdvanceNotice
+                    body['category'] = this.selectedTrainingCategory
+                }              
+                
                 this.$emit('submit', body, this.isCreate);                  
             }
         }
@@ -258,21 +251,20 @@
                 if( this.selectedLeaveTraining) return true;
                 return false;
 
-            } else {
-                if(this.originalLeaveTraining != this.selectedLeaveTraining) return true;
-                return false;
-                // if (this.type == 'Training'){
-                //     if( this.originalLeaveTraining != this.selectedLeaveTraining ||
-                //         this.originalTrainingFrequencyType != this.selectedTrainingFrequencyType ||
-                //         this.originalTrainingDeliveryMethod != this.selectedTrainingDeliveryMethod ||
-                //         this.originalTrainingMandatory != this.selectedTrainingMandatory) {
-                //         return true;
-                //     } 
-                //     return false;
-                // } else {
-                //     if(this.originalLeaveTraining != this.selectedLeaveTraining) return true;
-                //     return false;
-                // }                
+            } else {                
+                if (this.type == 'Training'){
+                    if( this.originalLeaveTraining != this.selectedLeaveTraining ||
+                        this.originalTrainingValidityPeriod != this.selectedTrainingValidityPeriod ||
+                        this.originalTrainingAdvanceNotice != this.selectedTrainingAdvanceNotice ||
+                        this.originalTrainingCategory != this.selectedTrainingCategory ||
+                        this.originalTrainingMandatory != this.selectedTrainingMandatory) {
+                        return true;
+                    } 
+                    return false;
+                } else {
+                    if(this.originalLeaveTraining != this.selectedLeaveTraining) return true;
+                    return false;
+                }                
             }
         }
 

@@ -97,7 +97,7 @@
                         <b v-if="duty.isOvertime">*</b>                            
                         <b> {{duty.startTime}}-{{duty.endTime}}</b>  
                         <span > {{duty.dutySubType}} </span>
-                        {{ duty.dutyType }}
+                        ({{ duty.dutyType.replace('Role','').replace('Assignment','').replace('EscortRun','Transport') }})
                     </div>                            
                 </div>
             </template>
