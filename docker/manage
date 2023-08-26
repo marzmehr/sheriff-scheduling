@@ -80,7 +80,7 @@ build-api() {
     -e "CORS_DOMAIN=http://localhost:8080" \
     -e "DOTNET_STARTUP_PROJECT=./api/api.csproj" \
     '..' \
-    'registry.centos.org/dotnet/dotnet-50-centos7' \
+    'registry.redhat.io/rhel8/dotnet-50' \
     'ss-api'
   echo -e "===================================================================================================="
 }

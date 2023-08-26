@@ -24,6 +24,7 @@ export interface leaveInfoType {
 export interface trainingInfoType {
     code: string;
     id: number;
+    validityPeriod?: number;
     description?: string;
 }
 
