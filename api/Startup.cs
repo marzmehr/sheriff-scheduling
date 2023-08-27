@@ -26,6 +26,8 @@ using SS.Api.infrastructure.middleware;
 using SS.Api.services.ef;
 using SS.Db.models;
 using Microsoft.Extensions.Logging;
+using Quartz;
+using SS.Api.cronjobs;
 
 namespace SS.Api
 {
@@ -137,6 +139,12 @@ namespace SS.Api
             });
 
             services.AddSwaggerGenNewtonsoftSupport();
+            
+            services.AddQuartz(q =>  
+            {     
+                q.AddJobAndTrigger<TrainingNotification>(Configuration);                           
+            });
+            services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

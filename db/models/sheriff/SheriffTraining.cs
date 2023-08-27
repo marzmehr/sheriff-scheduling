@@ -13,5 +13,7 @@ namespace SS.Db.models.sheriff
         public DateTimeOffset? TrainingCertificationExpiry { get; set; }
         [MaxLength(200)]
         public string Note { get; set; }
+
+        public Boolean FirstNotice { get; set; }
     }
 }

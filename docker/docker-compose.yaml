@@ -42,6 +42,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${KestrelPassword}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=${KestrelPath}
       - PdfUrl=${PdfUrl}
+      - TrainingNotification=${TrainingNotification}
     ports:
       - 5000:5000
     volumes:
