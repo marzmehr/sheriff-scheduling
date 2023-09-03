@@ -105,7 +105,8 @@
                                 lastName: userData.lastName,
                                 roles: userData.roles,
                                 homeLocationId: userData.homeLocationId,
-                                permissions: userData.permissions
+                                permissions: userData.permissions,
+                                userId: userData.userId
                             }) 
                             this.getAllLocations()  
                         }                      
@@ -128,8 +129,9 @@
                         this.userDetails.roles.length>0 && this.locationList.length>0)
                         {                              
                             this.isCommonDataReady = true;
-                            if(this.$route.name == 'Home')
-                                this.$router.push({path:'/manage-duty-roster'})
+                            //console.log(this.$route.path)
+                            if(this.$route.path!='/' && this.$route.name == 'Home')
+                                this.$router.push({path:'/'})
                         }
                         this.getRegions();
                     }                   

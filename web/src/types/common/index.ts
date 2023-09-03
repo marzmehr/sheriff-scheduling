@@ -34,6 +34,7 @@ export interface userInfoType {
     roles: string[];
     homeLocationId: number;
     permissions: string[];
+    userId: string;
 }
 
 export interface commonInfoType {
@@ -60,4 +61,10 @@ export interface reportInfoType {
     region: string;
     location: string;
     sheriffName: string;
+}
+
+export interface dateRangeInfoType {
+    startDate: string;
+    endDate: string;
+    valid: boolean;
 }

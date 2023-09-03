@@ -48,6 +48,27 @@ Vue.filter('beautify-time', function(date){
         return ''
 })
 
+Vue.filter('event-date-time', function(date){
+    
+    if(date){
+        if(date.substr(11,5)=='00:00')
+            return moment(date).format('MMM DD, YYYY');
+        else
+            return moment(date).format('MMM DD, YYYY @HH:mm');
+    }
+    else
+        return ''
+})
+
+Vue.filter('expiry-date', function(date){
+    
+    if(date){        
+        return moment(date).format('MMM DD, YYYY');        
+    }
+    else
+        return ''
+})
+
 Vue.filter('capitalize', function(str: string){
     
     if(str)

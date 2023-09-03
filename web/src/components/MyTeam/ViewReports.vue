@@ -6,39 +6,13 @@
             </b-col>            
         </b-row>
 
-        <b-card class="border-0 text-center"> 
-
-            <b-row class="h4 ml-1 mb-3 text-primary">
-                Search Criteria:
-            </b-row>
-            
-            <b-row class="ml-1 mt-3">                
-                <!-- <b-col>                    
-                    <b-form-group>  
-                        <label class="h4 mb-2 p-0 float-left"> From: </label>
-                        <b-form-datepicker
-                            class="mb-1"                        
-                            v-model="reportParameters.startDate"
-                            placeholder="Start Date"
-                            :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                            locale="en-US">
-                        </b-form-datepicker>
-                    </b-form-group>
-                </b-col>
-                <b-col>                    
-                    <b-form-group>  
-                        <label class="h4 mb-2 p-0 float-left"> To: </label>
-                        <b-form-datepicker
-                            class="mb-1"
-                            v-model="reportParameters.endDate"
-                            placeholder="End Date"                            
-                            :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"                            
-                            locale="en-US">
-                        </b-form-datepicker>
-                    </b-form-group>
-                </b-col> -->
-                <b-col>
-                    <b-form-group style="margin: 0.05rem 0 0 0.5rem; height: 2rem;">
+        <b-row class="ml-1 mb-0 mx-4 text-primary">
+            <b style="font-size:15pt;"><i>Search Criteria:</i></b>
+        </b-row>
+        <b-card class="search-box mb-4 text-center">
+            <b-row class="ml-1 mt-n2 mx-0"> 
+                <b-col cols="2">
+                    <b-form-group style="margin:0; height: 2rem;">
                         <label class="h4 mb-2 p-0 float-left">Region</label> 
                         <b-form-select                                                                                                           
                             v-model="reportParameters.region"
@@ -55,10 +29,11 @@
                         </b-form-select>
                     </b-form-group>
                 </b-col>
-                <b-col>
-                    <b-form-group :key="updateRegionId" style="margin: 0.05rem 0 0 0.5rem; height: 2rem;">
+                <b-col cols="4">
+                    <b-form-group :key="updateRegionId" style="margin:0; height: 2rem;">
                         <label class="h4 mb-2 p-0 float-left">Location</label> 
-                        <b-form-select                                                                                                           
+                        <b-form-select
+                            @change="clearReports()"                                                                                                           
                             v-model="reportParameters.location">
                             <b-form-select-option value="All">
                                 All Locations
@@ -72,10 +47,11 @@
                         </b-form-select>
                     </b-form-group>
                 </b-col>   
-                <b-col>
-                    <b-form-group style="margin: 0.05rem 0 0 0.5rem;"> 
-                        <label class="h4 mb-2 p-0 float-left"> Report Type: </label>
-                        <b-form-select                          
+                <b-col cols="2">
+                    <b-form-group style="margin:0;"> 
+                        <label class="h4 mb-2 p-0 float-left"> Report Type </label>
+                        <b-form-select
+                            @change="clearReports()"
                             v-model="reportParameters.reportType"
                             :state = "reportTypeState?null:false">
                                 <b-form-select-option
@@ -87,17 +63,12 @@
                                 </b-form-select-option>     
                         </b-form-select>
                     </b-form-group>
-                </b-col>
-            </b-row>
-            <b-row v-if="reportParameters.reportType && reportParameters.reportType == 'Training'"  class="ml-1 mt-3">
-                <b-col>                    
-                </b-col> 
-                <b-col>                    
-                </b-col>   
-                <b-col>
-                    <b-form-group style="margin: 0.05rem 0 0 0.5rem;"> 
-                        <label class="h4 mb-2 p-0 float-left"> Training Type: </label>
-                        <b-form-select                          
+                </b-col>           
+                <b-col v-if="reportParameters.reportType && reportParameters.reportType == 'Training'" >
+                    <b-form-group style="margin:0;"> 
+                        <label class="h4 mb-2 p-0 float-left"> Training Type </label>
+                        <b-form-select 
+                            @change="clearReports()"                         
                             v-model="reportParameters.reportSubtype"
                             :state = "reportSubTypeState?null:false">
                                 <b-form-select-option value="All">
@@ -114,59 +85,93 @@
                     </b-form-group>
                 </b-col>
             </b-row>
-            <b-row class="mt-5">
-                <b-col cols="10"></b-col>
-                <b-col cols="2">
+            <b-row class="mt-4 mx-0">                
+                <b-col cols="4">
+                    <date-range :dateRange="reportDateRange" @rangeChanged="clearReports()"/>
+                </b-col>                
+                <b-col cols="5" class="text-left">                    
+                    <label class="h4 mb-2 p-0 ml-4" >Filter By</label>                                        
+                    <b-form-checkbox-group  
+                        class="ml-4"
+                        @change="filterReports()"                  
+                        v-model="reportFilter"
+                        size="lg"
+                        :options="Object.values(statusOptions)"                        
+                    />
+                </b-col>
+                <b-col cols="1"/>
+                <b-col cols="2">                    
                     <b-button                        
-                        style="margin-top: 0rem; padding: 0.25rem 1rem;" 
-                        :disabled="searching"
-                        v-on:keyup.enter="find()"
-                        variant="success"
+                        style="float:right; padding: 0.25rem 1rem; margin-top:1.5rem;" 
+                        :disabled="searching"                        
+                        variant="primary"
                         @click="find()"
-                        ><spinner color="#FFF" v-if="searching" style="margin:0; padding: 0; height:2rem; transform:translate(0px,-24px);"/>
+                        ><spinner color="#FFF" v-if="searching" style="margin:0; padding:0 3rem; height:2rem; transform:translate(0px,-24px);"/>
                         <span style="font-size: 18px;" v-else><b-icon-table class="mr-2"/>Generate Report</span>
                     </b-button>
                 </b-col> 
-            </b-row>
-                   
+            </b-row>                   
         </b-card> 
 
         <loading-spinner color="#000" v-if="searching && !dataLoaded" waitingText="Loading ..." />  
+                  
+        <b-card class="table-box" v-else-if="!searching && dataLoaded"> 
+            <b-row v-if="filteredTrainingReportData.length == 0" class="h4 mb-0 text-primary">
+                No Records Found.
+            </b-row>
+            <div v-else>
+                <b-table            
+                    :items="filteredTrainingReportData"
+                    :fields="trainingFields"     
+                    sort-by="name"
+                    class="mt-3"       
+                    bordered
+                    head-variant="light"            
+                    small 
+                    responsive="sm">
+                    <template v-slot:cell(end) ="data"> {{data.value | beautify-date}} </template>
+                    <template v-slot:cell(status) ="data">                   
+                        <b-badge :variant="data.item['_rowVariant']" style="width:6rem;" >{{data.value}}</b-badge>                        
+                    </template>
+                    <template v-slot:cell(expiryDate) ="data">{{data.value | beautify-date}}</template>
+                    <template v-slot:cell(excluded) ="data"><b-form-checkbox v-model="data.item.excluded" @change="splitExcludedReports(true, data.item.sheriffId)"/></template>
+                </b-table>
 
-        <b-row v-if="!searching && dataLoaded && trainingReportData.length == 0" class="h4 ml-3 mb-3 text-primary">
-            No Records Found.
-        </b-row>  
-        
-        <b-card class="text-center" v-if="trainingReportData.length > 0">  
-
-            <b-table            
-                :items="trainingReportData"
-                :fields="trainingFields"     
-                sort-by="start"       
-                bordered            
-                small 
-                responsive="sm">
-                <template v-slot:cell(start) ="data">{{data.value | beautify-date}}</template>
-                <template v-slot:cell(end) ="data">{{data.value | beautify-date}}</template>
-                <template v-slot:cell(expiryDate) ="data">{{data.value | beautify-date}}</template>
-            </b-table>
-
-            <b-row class="mt-5">
-                <b-col cols="10"></b-col>
-                <b-col cols="2">
+                <b-row class="mt-5 mx-0">                
                     <b-button                        
-                        style="margin-top: 0rem; padding: 0.25rem 1rem;" 
-                        :disabled="generatingReport"
-                        v-on:keyup.enter="downloadReport()"
+                        style="margin:0 0 0 auto; padding: 0.25rem 1rem;" 
+                        :disabled="generatingReport"                   
                         variant="primary"
                         @click="downloadReport()"
                         ><spinner color="#FFF" v-if="generatingReport" style="margin:0; padding: 0; height:2rem; transform:translate(0px,-24px);"/>
                         <span style="font-size: 18px;" v-else><b-icon-download class="mr-2"/>Download SCV File</span>
-                    </b-button>
-                </b-col> 
-            </b-row>            
-
+                    </b-button>                
+                </b-row>
+            </div>
         </b-card>
+
+        <b-card class="excluded-table-box my-5" v-if="!searching && dataLoaded && excludedTrainingReportData.length > 0">
+            <b-row class="h3 ml-1 mb-1 mx-0 text-primary">
+                Excluded From Report:
+            </b-row>
+            <b-table            
+                :items="excludedTrainingReportData"
+                :fields="trainingFields"     
+                sort-by="start"
+                class="mt-3"       
+                bordered
+                head-variant="light"            
+                small 
+                responsive="sm">                
+                <template v-slot:cell(end) ="data"> {{data.value | beautify-date}} </template>
+                <template v-slot:cell(status) ="data">                   
+                    <b-badge :variant="data.item['_rowVariant']" style="width:6rem;" >{{data.value}}</b-badge>                        
+                </template>
+                <template v-slot:cell(expiryDate) ="data">{{data.value | beautify-date}}</template>
+                <template v-slot:head(excluded)>Excluded</template>
+                <template v-slot:cell(excluded) ="data"><b-form-checkbox v-model="data.item.excluded" @change="splitExcludedReports(false, data.item.sheriffId)"/></template>
+            </b-table>
+        </b-card>         
 
     </b-card>
 </template>
@@ -182,15 +187,17 @@
     const commonState = namespace("CommonInformation");      
     import PageHeader from "@components/common/PageHeader.vue";
     import Spinner from "@components/Spinner.vue";
+    import DateRange from "./Components/DateRange.vue"
     
-    import {reportInfoType, locationInfoType, regionInfoType} from '@/types/common';
+    import {reportInfoType, locationInfoType, regionInfoType, dateRangeInfoType} from '@/types/common';
     import { trainingReportInfoType } from '@/types/MyTeam';
     import { leaveTrainingTypeInfoType } from '@/types/ManageTypes';
 
     @Component({
         components: {
             PageHeader,
-            Spinner
+            Spinner,
+            DateRange
         }
     })
     export default class ViewReports extends Vue {
@@ -206,41 +213,51 @@
         error = '';
         updateRegionId = 0;
         printReady = false;
-        reportParameters = {region: 'All', location: 'All', reportSubtype: 'All'} as reportInfoType;        
+        reportParameters = {region: 'All', location: 'All', reportSubtype: 'All', reportType:'Training'} as reportInfoType;        
+        reportDateRange  = { startDate:'', endDate:'', valid:false} as dateRangeInfoType
         trainingReportData: trainingReportInfoType[] = []
+        filteredTrainingReportData: trainingReportInfoType[] = []
+        excludedTrainingReportData: trainingReportInfoType[] = []
         searching = false;
         generatingReport = false;
         reportTypeOptions = ['Training']
         reportTypeState = true;        
         trainingTypeOptions: leaveTrainingTypeInfoType[] = [];
-        reportSubTypeState = true; 
-
-        locationOptionsList: locationInfoType[] = []; 
+        reportSubTypeState = true;        
+        reportFilter: string[] = []
+        locationOptionsList: locationInfoType[] = [];
+        
+        statusOptions = {danger:'Not Met', warning:'Expired', court:'Expiring Soon'}
 
         trainingFields = [
-            {key:"name",         label:"Name",                      thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true},
-            {key:"trainingType", label:"Training Type",             thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true},
-            {key:"start",        label:"Start",                     thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true},
-            {key:"end",          label:"End",                       thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true},
-            {key:"expiryDate",   label:"Certification Expiry Date", thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true}            
+            {key:"excluded",     label:"Exclude",                   thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: false,thStyle:'width:5%; line-height:1rem;'},
+            {key:"name",         label:"Name",                      thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:30%;'},
+            {key:"trainingType", label:"Training Type",             thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:15%;'},            
+            {key:"end",          label:"Completion Date",           thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:20%;'},
+            {key:"expiryDate",   label:"Certification Expiry Date", thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:20%;'},
+            {key:"status",       label:"Status",                    thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:10%;'}
         ];
         
         mounted() {   
             this.dataReady = false;
-            this.trainingReportData = [];  
+            this.clearReports();
             this.reportParameters.region = 'All';     
             this.reportParameters.location = 'All';  
             this.reportParameters.reportSubtype = 'All';   
-            this.searching = false;              
-            this.dataLoaded = false;            
+            this.searching = false;          
             this.generatingReport = false;     
             this.locationOptionsList = this.locationList;
             this.getTrainingTypes();
         }
+
+        public clearReports(){
+            this.dataLoaded = false;
+            this.trainingReportData = [];
+            this.excludedTrainingReportData = [];
+        }
         
         public find(){ 
-
-            this.trainingReportData = [];
+            this.clearReports()
             this.reportTypeState = true;
             this.reportSubTypeState = true;
             if (!this.reportParameters.reportType){
@@ -248,20 +265,25 @@
             } else if (!this.reportParameters.reportSubtype){
                 this.reportSubTypeState = false;
             } else {
-
-                this.dataLoaded = false;
-                this.searching = true;
                 
-                this.$http.get("api/sheriff/training")
-                .then((response) => {            
-                    if(response?.data){                     
-                        this.extractData(response.data);                                          
-                    }                    
-                    
-                },(err) => {
-                    this.searching = false;
-                    this.error = err.response.data           
-                });
+                this.searching = true;
+                const calls: any[] =[]
+                calls.push(this.$http.get("api/sheriff/training"));
+                calls.push(this.$http.get("api/sheriff"));
+
+                Promise.all(calls).then(values => {
+                    if(values[0]?.data && values[0]?.data){                        
+                        const sheriffWithTrainings = values[0].data;
+                        const sheriffs = values[1].data;
+                        const sheriffWithTrainingIds = sheriffWithTrainings.map(sheriff => sheriff.id)
+                        for(const sheriff of sheriffs){
+                            if(!sheriffWithTrainingIds.includes(sheriff.id)){
+                                sheriffWithTrainings.push(sheriff)
+                            }
+                        }
+                        this.extractData(sheriffWithTrainings);
+                    }
+                }, err =>{this.searching = false;this.error = err.response.data})
             } 
         }
 
@@ -279,6 +301,7 @@
             } else {
                 this.locationOptionsList = this.locationList;
             }
+            this.clearReports();
             this.updateRegionId ++; 
         }
 
@@ -292,33 +315,70 @@
             } else {
                 reportInfo = data.filter(sheriff=>(this.locationOptionsList.some(location => sheriff.homeLocationId == location.id)))
             }
-
+            
+            const mandetoryTrainings = this.trainingTypeOptions.filter(training => training.mandatory)
+            
             for (const sheriffData of reportInfo){
 
-                if (sheriffData.training && sheriffData.isEnabled){
-                    for (const trainingData of sheriffData.training){
-                        if (this.reportParameters.reportSubtype != 'All' && this.reportParameters.reportSubtype == trainingData.trainingType.id){
-                            this.addTrainingToReport(sheriffData, trainingData);
-                        } else if (this.reportParameters.reportSubtype == 'All') {
+                if (sheriffData.isEnabled){
+                    const sheriffTrainingsId = sheriffData.training? sheriffData.training.map(training => training.trainingTypeId): [];
+                    const sheriffTrainings = sheriffData.training? JSON.parse(JSON.stringify(sheriffData.training)) : [];
+                    
+                    for(const training of mandetoryTrainings){
+                        if(!sheriffTrainingsId.includes(training.id)){
+                            sheriffTrainings.push({
+                                comment: "",
+                                endDate: "",
+                                firstNotice: false,
+                                id: null,
+                                sheriffId: sheriffData.id,
+                                startDate: "",
+                                timezone: "",
+                                trainingCertificationExpiry: "",
+                                trainingType: training,
+                                trainingTypeId: training.id
+                            })
+                        }
+                    }
+
+                    for (const trainingData of sheriffTrainings){
+                        if (  (this.reportParameters.reportSubtype != 'All' && this.reportParameters.reportSubtype == trainingData.trainingType.id) 
+                            || this.reportParameters.reportSubtype == 'All'){
                             this.addTrainingToReport(sheriffData, trainingData);
                         }
                     }
                 }
             } 
-            
+            if(this.reportDateRange.valid){
+                this.trainingReportData = this.trainingReportData.filter(training => 
+                    training.end>=this.reportDateRange.startDate  &&
+                    training.end<=this.reportDateRange.endDate
+                )
+            }
+            this.filterReports()
             this.searching = false;
             this.dataLoaded = true;            
         }
 
         public addTrainingToReport(sheriffData, trainingData){
-
+            //console.log(sheriffData)
+            let rowType = ''
             const trainingInfo = {} as trainingReportInfoType;
             trainingInfo.name = sheriffData.firstName + ' ' + sheriffData.lastName;
+            trainingInfo.sheriffId = sheriffData.id;
             trainingInfo.trainingType = trainingData.trainingType.description;
             const timezone = trainingData.timezone?trainingData.timezone:'America/Vancouver';
-            trainingInfo.start = moment(trainingData.startDate).tz(timezone).format();
-            trainingInfo.end = moment(trainingData.endDate).tz(timezone).format();
-            trainingInfo.expiryDate = trainingData.trainingCertificationExpiry?moment(trainingData.trainingCertificationExpiry).tz(timezone).format():'';
+            trainingInfo.end = trainingData.endDate? moment(trainingData.endDate).tz(timezone).format():'';
+            trainingInfo.expiryDate = trainingData.trainingCertificationExpiry? moment(trainingData.trainingCertificationExpiry).tz(timezone).format():'';
+            trainingInfo.excluded = false;
+            const todayDate = moment().tz(timezone).format();
+            const advanceNoticeDate = moment().tz(timezone).add(trainingData.trainingType.advanceNotice, 'days').format()
+
+            if(!trainingData.endDate) rowType ='danger'
+            else if(trainingInfo.expiryDate && todayDate>trainingInfo.expiryDate) rowType ='warning'
+            else if(trainingInfo.expiryDate && trainingData.trainingType.advanceNotice && advanceNoticeDate>trainingInfo.expiryDate) rowType ='court'
+            trainingInfo['_rowVariant'] = rowType; //danger warning court
+            trainingInfo.status = rowType? this.statusOptions[rowType] : ''
             this.trainingReportData.push(trainingInfo);
         }
 
@@ -338,24 +398,24 @@
                 useTextFile: false,
                 useBom: true,
                 useKeysAsHeaders: false,
-                headers: ['Name', 'Training Type', 'Start Date', 'End Date', 'Expiry Date']
+                headers: ['Name', 'Training Type', 'End Date', 'Expiry Date', 'Status']
             };
 
             const reportData: trainingReportInfoType[] = [];
 
-            for (const trainingData of this.trainingReportData){
-
+            for (const trainingData of this.filteredTrainingReportData){
+                if(trainingData.excluded) continue
                 const trainingInfo = {} as trainingReportInfoType;
                 trainingInfo.name = trainingData.name;
-                trainingInfo.trainingType = trainingData.trainingType;
-                trainingInfo.start = trainingData.start?.length>0?Vue.filter('beautify-date')(trainingData.start):'';
+                trainingInfo.trainingType = trainingData.trainingType;                
                 trainingInfo.end = trainingData.end?.length>0?Vue.filter('beautify-date')(trainingData.end):'';
                 trainingInfo.expiryDate = trainingData.expiryDate?.length>0?Vue.filter('beautify-date')(trainingData.expiryDate):''; 
+                trainingInfo.status = trainingData.status;
                 reportData.push(trainingInfo)                
             }
 
             const csvExporter = new ExportToCsv(options);
-            csvExporter.generateCsv(reportData);
+            csvExporter.generateCsv(_.sortBy(reportData, 'name'));
             this.generatingReport = false;
         }
 
@@ -365,38 +425,41 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        this.extractTrainingTypes(response.data);                        
+                        this.trainingTypeOptions = response.data;                  
                     }
+                    this.dataReady = true;
                    
                 },err => {
                     console.log(err.response)
-                    this.dataLoaded = true; 
+                    this.dataReady = true; 
                 }) 
                   
         }
 
-        public extractTrainingTypes(trainingTypesJson) {
-
-            this.trainingTypeOptions = [];
-            let sortIndex = trainingTypesJson.length? 5000+trainingTypesJson.length : 0;
-            for(const trainingJson of trainingTypesJson)
-            {                
-                const leaveTraining = {} as leaveTrainingTypeInfoType;
-                leaveTraining.id = trainingJson.id;
-                leaveTraining.code = trainingJson.code;
-                
-                leaveTraining['_rowVariant'] = '';
-                let sortOrderOffset = 0;
-                if(trainingJson.expiryDate){
-                    leaveTraining['_rowVariant'] = 'info';
-                    sortOrderOffset = 10000;
+        public splitExcludedReports(exclude, sheriffId){
+            Vue.nextTick(()=>{
+                if(exclude){
+                    const trainings = this.trainingReportData.filter(training => training.sheriffId==sheriffId);                                        
+                    this.excludedTrainingReportData.push(...trainings) 
+                    this.trainingReportData = this.trainingReportData.filter(training => training.sheriffId!=sheriffId);
+                }else {
+                    const trainings = this.excludedTrainingReportData.filter(training => training.sheriffId==sheriffId);                     
+                    this.trainingReportData.push(...trainings) 
+                    this.excludedTrainingReportData = this.excludedTrainingReportData.filter(training => training.sheriffId!=sheriffId);
                 }
-                leaveTraining.sortOrder = trainingJson.sortOrderForLocation?trainingJson.sortOrderForLocation.sortOrder:(sortOrderOffset+sortIndex++);
-                leaveTraining.type = trainingJson.type;
-                this.trainingTypeOptions.push(leaveTraining)                
-            }
-            this.dataReady = true;
-           
+                this.excludedTrainingReportData.forEach(training => training.excluded = true);
+                this.trainingReportData.forEach(training => training.excluded = false);
+                this.filterReports()
+            })            
+        }
+
+        public filterReports() {
+            Vue.nextTick(() => {
+                this.filteredTrainingReportData = JSON.parse(JSON.stringify(this.trainingReportData))
+                if(this.reportFilter.length>0){
+                    this.filteredTrainingReportData =this.filteredTrainingReportData.filter(training => training.status && this.reportFilter.includes(training.status))
+                }
+            })
         }
 
 }
@@ -406,6 +469,32 @@
 
     .card {
         border: white;
+    }
+
+    .search-box {
+        margin: 0 1.5rem;
+        background: #c7d6dd;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    }
+
+    .table-box {
+        margin: 0 1.5rem;
+        padding: 0 1rem;
+        background: #f7f8f9;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1), 0 6px 20px 0 rgba(0, 0, 0, 0.09);
+    }
+
+    .excluded-table-box {
+        margin: 0 1.5rem;
+        padding: 0 1rem;
+        background: #eaf0f7;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1), 0 6px 20px 0 rgba(0, 0, 0, 0.09);
+    }
+
+    ::v-deep .custom-control-label {
+        font-size: 13pt;
+        padding-top: 0.15rem;
+        padding-right: 1rem;
     }
 
 </style>
