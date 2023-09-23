@@ -14,6 +14,7 @@
                                 <b-form-select
                                     tabindex="1"
                                     size = "sm"
+                                    @change="setExpiryDate()"
                                     :disabled="!editable"
                                     v-model="selectedTrainingType"
                                     :state = "trainingTypeState?null:false">
@@ -30,7 +31,7 @@
                                 <b-form-input
                                     tabindex="2"
                                     class="mt-1 mb-0"
-                                    v-if="selectedTrainingType.code=='Other'"
+                                    v-if="selectedTrainingType && selectedTrainingType.code=='Other'"
                                     v-model="selectedTrainingTypeComment"
                                     :disabled="!editable"
                                     placeholder="Comment*"
@@ -47,7 +48,8 @@
                             <b-form-datepicker
                                 tabindex="3"
                                 class="mb-1"
-                                size="sm"
+                                @input="setExpiryDate()"
+                                size="sm"                                
                                 :disabled="!editable"
                                 v-model="selectedStartDate"
                                 placeholder="Start Date*"
@@ -91,6 +93,7 @@
                             tabindex="4"
                             class="mb-1 mt-0 pt-0"
                             size="sm"
+                            @input="setExpiryDate()"
                             :disabled="!editable"
                             v-model="selectedEndDate"
                             placeholder="End Date*"
@@ -118,6 +121,7 @@
                         <label class="h6 m-0 p-0"> Expiry Date: </label>
                         <b-form-datepicker
                             tabindex="5"
+                            disabled
                             class="mb-1 mt-0 pt-0"
                             size="sm"
                             v-model="selectedExpiryDate"
@@ -198,6 +202,7 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
+    import moment from 'moment-timezone';
     
     import {teamMemberInfoType ,userTrainingInfoType} from '@/types/MyTeam';
     import {trainingInfoType} from '@/types/common';
@@ -340,15 +345,15 @@
                 this.endDateState   = true;
                 this.endTimeState   = true;
                 this.startTimeState = false;
-            }else if(this.selectedExpiryDate == ""){
-                this.trainingTypeState  = true;
-                this.trainingTypeCommentState = true;
-                this.startDateState = true;
-                this.endDateState   = true;
-                this.endTimeState   = true;
-                this.startTimeState = true;
-                this.showSaveWarning = true;
-                this.expiryDateState = false;
+            // }else if(this.selectedExpiryDate == ""){
+            //     this.trainingTypeState  = true;
+            //     this.trainingTypeCommentState = true;
+            //     this.startDateState = true;
+            //     this.endDateState   = true;
+            //     this.endTimeState   = true;
+            //     this.startTimeState = true;
+            //     this.showSaveWarning = true;
+            //     this.expiryDateState = false;
 
             }else{
                 this.confirmedSave(); 
@@ -465,6 +470,19 @@
         public commentFormat(value) {
 			return value.slice(0,100);
 		}
+
+        public setExpiryDate() {
+            Vue.nextTick(() => {
+                if(this.selectedEndDate && this.selectedTrainingType?.validityPeriod){
+                    console.log(this.selectedTrainingType.validityPeriod)
+                    this.selectedExpiryDate = moment(this.selectedEndDate)
+                    .add(this.selectedTrainingType.validityPeriod, 'days')
+                    .format("YYYY-MM-DD")
+                }else{
+                    this.selectedExpiryDate = ''
+                }
+            })
+        }
     }
 </script>
 

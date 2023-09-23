@@ -30,7 +30,9 @@
 
         <loading-spinner v-if= "!isLeaveTrainingDataMounted" />
 
-        <b-card v-else no-body style="width: 50rem; margin: 0 auto 8rem auto">                                        
+        <b-card v-else no-body 
+            :style="{width:(selectedLeaveTrainingType.name=='LeaveType'?'40rem':'75rem'), margin:'0 auto 8rem auto'}"
+            >
             <b-card id="LeaveTrainingError" no-body>
                 <h2 v-if="leaveTrainingError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="leaveTrainingErrorMsgDesc"  variant="danger"> {{leaveTrainingErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveTrainingError = false" /></b-badge></h2>
             </b-card>
@@ -54,7 +56,7 @@
                     <b-table
                         :key="updateTable"
                         :items="leaveTrainingList"
-                        :fields="fields"                        
+                        :fields="selectedLeaveTrainingType.name=='LeaveType'?fields:trainingFields"                        
                         sort-icon-left
                         head-row-variant="primary"
                         :striped="!expiredViewChecked"
@@ -78,6 +80,10 @@
 
                             <template v-slot:cell(sortOrder)= "data" >
                                 <span v-if="!data.item['_rowVariant']"><b-icon class="handle ml-3" icon="arrows-expand"/></span> 
+                            </template>
+
+                            <template v-slot:cell(mandatory)="data">
+                                <b-checkbox v-model="data.value" disabled/>
                             </template>
 
                             <template v-slot:cell(edit)="data" >                                       
@@ -223,14 +229,15 @@
             {key:'edit', label:'',  sortable:false, tdClass: 'border-top', thClass:'',},       
         ];
 
-        // trainingFields = [     
-        //     {key:'sortOrder',      label:'',                sortable:false, tdClass: 'border-top' },       
-        //     {key:'code',           label:'Training',        sortable:false, tdClass: 'border-top'  },
-        //     {key:'frequency',      label:'Frequency',       sortable:false, tdClass: 'border-top'  },
-        //     {key:'trainingType',   label:'Training Type',   sortable:false, tdClass: 'border-top'  },
-        //     {key:'deliveryMethod', label:'Delivery Method', sortable:false, tdClass: 'border-top'  },
-        //     {key:'edit',           label:'',                sortable:false, tdClass: 'border-top', thClass:'',},       
-        // ];
+        trainingFields = [     
+            {key:'sortOrder',      label:'',                   sortable:false, tdClass: 'border-top',             thClass:'',                         thStyle:'width:2%;' },       
+            {key:'code',           label:'Training',           sortable:false, tdClass: 'border-top',             thClass:'align-middle',             thStyle:'width:35%;'},
+            {key:'validityPeriod', label:'Validity (days)',    sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'line-height:1.2rem; width:10%;'},
+            {key:'mandatory',      label:'Mandatory',          sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'width:10%;'},
+            {key:'advanceNotice',label:'Advance Notice (days)',sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'line-height:1.2rem; width:15%;'},
+            {key:'category',       label:'Category',           sortable:false, tdClass: 'border-top',             thClass:'align-middle',             thStyle:'width:20%;'},
+            {key:'edit',           label:'',                   sortable:false, tdClass: 'border-top',             thClass:'',                         thStyle:'width:8%;'},
+        ];
 
         @Watch('sortingLeaveTrainingInfo', { immediate: true })
         sortingLeaveTrainingInfoChange()
@@ -297,6 +304,10 @@
                 const leaveTraining = {} as leaveTrainingTypeInfoType;
                 leaveTraining.id = leaveTrainingJson.id;
                 leaveTraining.code = leaveTrainingJson.code;
+                leaveTraining.validityPeriod = leaveTrainingJson.validityPeriod? leaveTrainingJson.validityPeriod: ''
+                leaveTraining.advanceNotice = leaveTrainingJson.advanceNotice? leaveTrainingJson.advanceNotice : ''
+                leaveTraining.category = leaveTrainingJson.category
+                leaveTraining.mandatory = leaveTrainingJson.mandatory
                 
                 leaveTraining['_rowVariant'] = '';
                 let sortOrderOffset = 0;
@@ -361,7 +372,7 @@
             }else
             {
                 this.addNewLeaveTrainingForm = true;
-                this.$nextTick(()=>{location.href = '#addLeaveTrainingForm';})
+                // this.$nextTick(()=>{location.href = '#addLeaveTrainingForm';})
             }
         }
 
@@ -425,7 +436,7 @@
                     else
                         this.modifyLeaveTrainingList(response.data);
                     
-                    this.closeLeaveTrainingForm();
+                    this.getLeaveTraining();
                 }, err=>{
                     const errMsg = err.response.data.error;
                     this.leaveTrainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');

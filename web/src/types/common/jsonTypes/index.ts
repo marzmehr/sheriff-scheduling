@@ -26,6 +26,7 @@ export interface trainingTypeJson {
     id: number;
     type: string;
     code: string;
+    validityPeriod?: number;
     description: string;
     concurrencyToken: number;
 }

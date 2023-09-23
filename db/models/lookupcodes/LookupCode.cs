@@ -26,5 +26,11 @@ namespace ss.db.models
         public List<LookupSortOrder> SortOrder { get; set; }
         [NotMapped] 
         public LookupSortOrder SortOrderForLocation;
+
+        public Boolean Mandatory { get; set; }
+        public int ValidityPeriod { get; set; }
+        public string Category { get; set; }
+        public int AdvanceNotice { get; set; }
+
     }
 }

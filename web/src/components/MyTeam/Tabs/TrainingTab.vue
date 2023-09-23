@@ -80,7 +80,7 @@
 
                             <template v-slot:row-details="data">
                                 <b-card :id="'Tr-Date-'+data.item.startDate.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
-                                    <add-training-form :formData="data.item" :editable="data.item['_rowVariant']?false:true" :isCreate="false" :trainingTypeInfoList="trainingTypeInfoList" v-on:submit="saveTraining" v-on:cancel="closeTrainingForm" />
+                                    <add-training-form :formData="data.item" :editable="true" :isCreate="false" :trainingTypeInfoList="trainingTypeInfoList" v-on:submit="saveTraining" v-on:cancel="closeTrainingForm" />
                                 </b-card>
                             </template>                            
                     </b-table> 
@@ -264,6 +264,7 @@
                 const trainingTypeInfo = {} as trainingInfoType;
                 trainingTypeInfo.id = trainingType.id;
                 trainingTypeInfo.code = trainingType.code;
+                trainingTypeInfo.validityPeriod = trainingType.validityPeriod
                 trainingTypeInfo.description = trainingType.description;
                 this.trainingTypeInfoList.push(trainingTypeInfo)
             }

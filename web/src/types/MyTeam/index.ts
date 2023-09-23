@@ -110,7 +110,10 @@ export interface userLeaveInfoType{
 export interface trainingReportInfoType {
     name: string;
     trainingType: string;
-    start: string;
+    start?: string;
     end: string;
     expiryDate: string;
+    excluded?: boolean;
+    sheriffId?: string;
+    status?: string;
 }
