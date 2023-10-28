@@ -168,7 +168,7 @@
                     <b-badge :variant="data.item['_rowVariant']" style="width:6rem;" >{{data.value}}</b-badge>                        
                 </template>
                 <template v-slot:cell(expiryDate) ="data">{{data.value | beautify-date}}</template>
-                <template v-slot:head(excluded)>Excluded</template>
+                <template v-slot:head(excluded)>Excused</template>
                 <template v-slot:cell(excluded) ="data"><b-form-checkbox v-model="data.item.excluded" @change="splitExcludedReports(false, data.item.sheriffId)"/></template>
             </b-table>
         </b-card>         
@@ -227,10 +227,10 @@
         reportFilter: string[] = []
         locationOptionsList: locationInfoType[] = [];
         
-        statusOptions = {danger:'Not Met', warning:'Expired', court:'Expiring Soon'}
+        statusOptions = {danger:'Not Taken', warning:'Expired', court:'Expiring Soon'}
 
         trainingFields = [
-            {key:"excluded",     label:"Exclude",                   thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: false,thStyle:'width:5%; line-height:1rem;'},
+            {key:"excluded",     label:"Excused",                   thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: false,thStyle:'width:5%; line-height:1rem;'},
             {key:"name",         label:"Name",                      thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:30%;'},
             {key:"trainingType", label:"Training Type",             thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:15%;'},            
             {key:"end",          label:"Completion Date",           thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:20%;'},

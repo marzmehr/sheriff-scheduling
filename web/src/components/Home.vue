@@ -34,7 +34,7 @@
                                 <b-card-header class="h3 bg-primary text-white">Training Status</b-card-header>
                                 <b-card-body>                        
                                     <b-alert
-                                        v-for="item,inx in training.notmet"
+                                        v-for="item,inx in training.nottaken"
                                         :key="'not-met-'+inx"
                                         class="mx-2 my-3"
                                         variant="danger"
@@ -116,12 +116,12 @@ export default class Home extends Vue {
     location = {} as locationInfoType;
     
     trainingTypeOptions: leaveTrainingTypeInfoType[] = [];
-    statusOptions = {danger:'Not Met', warning:'Expired', court:'Expiring Soon'}
+    statusOptions = {danger:'Not Taken', warning:'Expired', court:'Expiring Soon'}
     training: { 
-        notmet: trainingReportInfoType[]; 
+        nottaken: trainingReportInfoType[]; 
         expired: trainingReportInfoType[]; 
         expiringsoon: trainingReportInfoType[]; 
-    } = { notmet: [], expired: [], expiringsoon: [] }
+    } = { nottaken: [], expired: [], expiringsoon: [] }
 
     trainingAlert=false;
 
@@ -208,7 +208,7 @@ export default class Home extends Vue {
                 })
             }
         }
-        this.training = { notmet:[], expired:[],expiringsoon:[] }
+        this.training = { nottaken:[], expired:[],expiringsoon:[] }
         for (const trainingData of sheriffTrainings){
             this.addTrainingToReport(sheriffData, trainingData);            
         }
@@ -257,12 +257,15 @@ export default class Home extends Vue {
     public extractAwayLocations(sheriffData){
         for (const awayInfo of sheriffData.awayLocation){
             const start = awayInfo.startDate? moment(awayInfo.startDate).tz(awayInfo.timezone).format():'';
-            this.sheriffEvents.push({
-                name: awayInfo.location.name,
-                type: 'Loaned',
-                start: start,
-                comment: awayInfo.comment
-            })
+            const currentDay = moment().tz(awayInfo.timezone).startOf("day").format();            
+            if(start && currentDay <= start){
+                this.sheriffEvents.push({
+                    name: awayInfo.location.name,
+                    type: 'Loaned',
+                    start: start,
+                    comment: awayInfo.comment
+                })
+            }
         }
     }
 
