@@ -39,8 +39,15 @@
                                         class="mx-2 my-3"
                                         variant="danger"
                                         :show="true">
-                                            {{item.trainingType}}
-                                        <b class="float-right">{{item.status}}</b>
+                                        <b-row class="mx-0">
+                                            <div style="width:70%;">
+                                                {{item.trainingType}}
+                                            </div>
+                                            <div style="width:5%;"/>
+                                            <div style="width:25%;">
+                                                <b class="float-right">{{item.status}}</b>
+                                            </div>
+                                        </b-row>
                                     </b-alert>
                                     <b-alert
                                         v-for="item,inx in training.expired"
@@ -48,8 +55,15 @@
                                         class="mx-2 my-3"
                                         variant="warning"
                                         :show="true">
-                                            {{item.trainingType}}
-                                        <b class="float-right">{{item.status}}</b>
+                                            <b-row class="mx-0">
+                                                <div style="width:70%;">
+                                                    {{item.trainingType}}
+                                                </div>
+                                                <div style="width:5%;"/>
+                                                <div style="width:25%;">
+                                                    <b class="float-right">{{item.status}}</b>
+                                                </div>
+                                            </b-row>
                                     </b-alert>
                                     <b-alert
                                         v-for="item,inx in training.expiringsoon"
@@ -57,9 +71,16 @@
                                         class="mx-2 my-3"
                                         variant="court"
                                         :show="true">
-                                            {{item.trainingType}}                                         
-                                            <i class="float-right ml-2"> ({{item.expiryDate | expiry-date}}) </i>
-                                            <b class="float-right"> {{item.status}} </b>
+                                            <b-row class="mx-0">
+                                            <div style="width:63%;">
+                                                {{item.trainingType}}
+                                            </div>
+                                            <div style="width:5%;"/>
+                                            <div style="width:32%;">
+                                                <b class="float-right"> {{item.status}} </b>
+                                                <i class="float-right"> ({{item.expiryDate | expiry-date}}) </i>                                                
+                                            </div>
+                                        </b-row>
                                     </b-alert>
                                 </b-card-body>
                             </b-card>
