@@ -134,7 +134,7 @@
                         <b-badge :variant="data.item['_rowVariant']" style="width:6rem;" >{{data.value}}</b-badge>                        
                     </template>
                     <template v-slot:cell(expiryDate) ="data">{{data.value | beautify-date}}</template>
-                    <template v-slot:cell(excluded) ="data"><b-form-checkbox v-model="data.item.excluded" @change="splitExcludedReports(true, data.item.sheriffId)"/></template>
+                    <template v-slot:cell(excluded) ="data"><b-form-checkbox v-model="data.item.excluded" @change="excludeFromReports(true, data.item.sheriffId)"/></template>
                 </b-table>
 
                 <b-row class="mt-5 mx-0">                
@@ -169,7 +169,7 @@
                 </template>
                 <template v-slot:cell(expiryDate) ="data">{{data.value | beautify-date}}</template>
                 <template v-slot:head(excluded)>Excused</template>
-                <template v-slot:cell(excluded) ="data"><b-form-checkbox v-model="data.item.excluded" @change="splitExcludedReports(false, data.item.sheriffId)"/></template>
+                <template v-slot:cell(excluded) ="data"><b-form-checkbox v-model="data.item.excluded" @change="excludeFromReports(false, data.item.sheriffId)"/></template>
             </b-table>
         </b-card>         
 
@@ -370,7 +370,7 @@
             const timezone = trainingData.timezone?trainingData.timezone:'America/Vancouver';
             trainingInfo.end = trainingData.endDate? moment(trainingData.endDate).tz(timezone).format():'';
             trainingInfo.expiryDate = trainingData.trainingCertificationExpiry? moment(trainingData.trainingCertificationExpiry).tz(timezone).format():'';
-            trainingInfo.excluded = false;
+            trainingInfo.excluded = sheriffData.excused;
             const todayDate = moment().tz(timezone).format();
             const advanceNoticeDate = moment().tz(timezone).add(trainingData.trainingType.advanceNotice, 'days').format()
 
@@ -436,26 +436,32 @@
                   
         }
 
-        public splitExcludedReports(exclude, sheriffId){
+        public excludeFromReports(exclude, sheriffId){
             Vue.nextTick(()=>{
-                if(exclude){
-                    const trainings = this.trainingReportData.filter(training => training.sheriffId==sheriffId);                                        
-                    this.excludedTrainingReportData.push(...trainings) 
-                    this.trainingReportData = this.trainingReportData.filter(training => training.sheriffId!=sheriffId);
-                }else {
-                    const trainings = this.excludedTrainingReportData.filter(training => training.sheriffId==sheriffId);                     
-                    this.trainingReportData.push(...trainings) 
-                    this.excludedTrainingReportData = this.excludedTrainingReportData.filter(training => training.sheriffId!=sheriffId);
+                const body = {               
+                    excused: exclude,
+                    id: sheriffId
                 }
-                this.excludedTrainingReportData.forEach(training => training.excluded = true);
-                this.trainingReportData.forEach(training => training.excluded = false);
-                this.filterReports()
-            })            
+
+                const url = 'api/sheriff/updateExcused';
+                this.$http.put(url, body)
+                    .then(response => {
+                        this.find()                                   
+                    }, err => {               
+                        this.error = err.response.data.error;
+                        this.find()                   
+                    });
+            })
         }
 
         public filterReports() {
             Vue.nextTick(() => {
-                this.filteredTrainingReportData = JSON.parse(JSON.stringify(this.trainingReportData))
+                this.excludedTrainingReportData = JSON.parse(JSON.stringify(this.trainingReportData))
+                this.excludedTrainingReportData = this.excludedTrainingReportData.filter(training => training.excluded)
+
+                this.filteredTrainingReportData = JSON.parse(JSON.stringify(this.trainingReportData))                
+                this.filteredTrainingReportData = this.filteredTrainingReportData.filter(training => !training.excluded)
+                
                 if(this.reportFilter.length>0){
                     this.filteredTrainingReportData =this.filteredTrainingReportData.filter(training => training.status && this.reportFilter.includes(training.status))
                 }

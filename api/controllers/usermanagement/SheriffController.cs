@@ -155,6 +155,15 @@ namespace SS.Api.controllers.usermanagement
             return Ok(sheriff.Adapt<SheriffDto>());
         }
 
+        [HttpPut]
+        [Route("updateExcused")]
+        [PermissionClaimAuthorize(perm: Permission.GenerateReports)]        
+        public async Task<ActionResult<SheriffDto>> UpdateExcused(Sheriff excusedSheriff)
+        {
+            var sheriff = await SheriffService.UpdateSheriffExcused(excusedSheriff);
+            return Ok(sheriff.Adapt<SheriffDto>());
+        }
+
         #endregion Sheriff
 
         #region SheriffAwayLocation
