@@ -4,10 +4,10 @@
             <loading-spinner />
         </div>
         <div v-else>
-            <b-row>
+            <b-row class="mb-5">
                 <b-col cols="2" class="">
                     <b-img style="width:100%; margin:0 0 0 0;" 
-                        src="./images/bcss-crest.png"                                                         
+                        src="./images/bcss-crest-lw.png"                                                         
                         alt="B.C. Gov"/>
                 </b-col>
                 <b-col cols="10">

@@ -32,15 +32,17 @@ namespace SS.Api.controllers.usermanagement
         private ShiftService ShiftService { get; }
         private DutyRosterService DutyRosterService { get; }
         private SheriffDbContext Db { get; }
+        private TrainingService TrainingService { get; }
 
         // ReSharper disable once InconsistentNaming
         private readonly long _uploadPhotoSizeLimitKB;
 
-        public SheriffController(SheriffService sheriffService, DutyRosterService dutyRosterService, ShiftService shiftService, UserService userUserService, IConfiguration configuration, SheriffDbContext db) : base(userUserService)
+        public SheriffController(SheriffService sheriffService, DutyRosterService dutyRosterService, ShiftService shiftService, UserService userUserService,TrainingService trainingService, IConfiguration configuration, SheriffDbContext db) : base(userUserService)
         {
             SheriffService = sheriffService;
             ShiftService = shiftService;
             DutyRosterService = dutyRosterService;
+            TrainingService = trainingService;
             Db = db;
             _uploadPhotoSizeLimitKB = Convert.ToInt32(configuration.GetNonEmptyValue("UploadPhotoSizeLimitKB"));
         }
@@ -276,6 +278,18 @@ namespace SS.Api.controllers.usermanagement
         }
 
         #endregion SheriffLeave
+
+        #region SheriffTrainingReports
+
+        [HttpPost]
+        [Route("training/reports")]
+        [PermissionClaimAuthorize(perm: Permission.GenerateReports)]
+        public async Task<ActionResult<TrainingReportDto>> GetSheriffsTrainingReports(TrainingReportSearchDto trainingReportSearch)
+        {
+            var sheriffs = await TrainingService.GetSheriffsTrainingReports(trainingReportSearch);
+            return Ok(sheriffs.Adapt<List<TrainingReportDto>>());
+        }
+        #endregion SheriffTrainingReports
 
         #region SheriffTraining
 
