@@ -111,14 +111,15 @@ namespace SS.Api.services.usermanagement
                     else
                     {
                         var takenTraining = sheriff.Training.Find(t => t.TrainingTypeId == training.Id);
-                        var trainingStatus = GetTrainingStatus(takenTraining.TrainingCertificationExpiry, takenTraining.Timezone, training.AdvanceNotice);
+                        var timezone = takenTraining.Timezone == null? "America/Vancouver" : takenTraining.Timezone; 
+                        var trainingStatus = GetTrainingStatus(takenTraining.TrainingCertificationExpiry, timezone, training.AdvanceNotice);
                         
                         sheriffTrainings.Add(new TrainingReportDto()
                         {
                             name = sheriff.FirstName + ' ' + sheriff.LastName,
                             trainingType = training.Description,
-                            end = takenTraining.EndDate.ConvertToTimezone(takenTraining.Timezone),                          
-                            expiryDate = takenTraining.TrainingCertificationExpiry != null ? ((DateTimeOffset)takenTraining.TrainingCertificationExpiry).ConvertToTimezone(takenTraining.Timezone): null,
+                            end = takenTraining.EndDate.ConvertToTimezone(timezone),                          
+                            expiryDate = takenTraining.TrainingCertificationExpiry != null ? ((DateTimeOffset)takenTraining.TrainingCertificationExpiry).ConvertToTimezone(timezone): null,
                             excluded = sheriff.Excused,
                             sheriffId = sheriff.Id,
                             status = trainingStatus.status,
