@@ -33,55 +33,10 @@
                             <b-card class="border training-box" no-body>
                                 <b-card-header class="h3 bg-primary text-white">Training Status</b-card-header>
                                 <b-card-body>                        
-                                    <b-alert
-                                        v-for="item,inx in training.nottaken"
-                                        :key="'not-met-'+inx"
-                                        class="mx-2 my-3"
-                                        variant="danger"
-                                        :show="true">
-                                        <b-row class="mx-0">
-                                            <div style="width:70%;">
-                                                {{item.trainingType}}
-                                            </div>
-                                            <div style="width:5%;"/>
-                                            <div style="width:25%;">
-                                                <b class="float-right">{{item.status}}</b>
-                                            </div>
-                                        </b-row>
-                                    </b-alert>
-                                    <b-alert
-                                        v-for="item,inx in training.expired"
-                                        :key="'expired-'+inx"
-                                        class="mx-2 my-3"
-                                        variant="warning"
-                                        :show="true">
-                                            <b-row class="mx-0">
-                                                <div style="width:70%;">
-                                                    {{item.trainingType}}
-                                                </div>
-                                                <div style="width:5%;"/>
-                                                <div style="width:25%;">
-                                                    <b class="float-right">{{item.status}}</b>
-                                                </div>
-                                            </b-row>
-                                    </b-alert>
-                                    <b-alert
-                                        v-for="item,inx in training.expiringsoon"
-                                        :key="'expiring-soon-'+inx"
-                                        class="mx-2 my-3"
-                                        variant="court"
-                                        :show="true">
-                                            <b-row class="mx-0">
-                                            <div style="width:63%;">
-                                                {{item.trainingType}}
-                                            </div>
-                                            <div style="width:5%;"/>
-                                            <div style="width:32%;">
-                                                <b class="float-right"> {{item.status}} </b>
-                                                <i class="float-right"> ({{item.expiryDate | expiry-date}}) </i>                                                
-                                            </div>
-                                        </b-row>
-                                    </b-alert>
+                                    <training-status-card :training="training.danger" />
+                                    <training-status-card :training="training.alert" />  
+                                    <training-status-card :training="training.warning" />
+                                    <training-status-card :training="training.notify" />
                                 </b-card-body>
                             </b-card>
                         </b-col>
@@ -120,29 +75,28 @@ import * as _ from 'underscore';
 import "@store/modules/CommonInformation";
 import { locationInfoType, userInfoType } from '@/types/common';
 import { teamMemberJsonType, userEventsInfoType } from '@/types/MyTeam/jsonTypes';
-import { trainingReportInfoType } from '@/types/MyTeam';
+import { trainingReportInfoType, trainingStatusCardInfoType, trainingStatusInfoType } from '@/types/MyTeam';
 import { leaveTrainingTypeInfoType } from '@/types/ManageTypes';
+import TrainingStatusCard from './common/TrainingStatusCard.vue'
 
 const commonState = namespace("CommonInformation");    
 
-@Component
+@Component({
+    components:{
+        TrainingStatusCard
+    }
+})
 export default class Home extends Vue {
-
     
     @commonState.State
     public userDetails!: userInfoType;
-
 
     sheriffName = ''
     location = {} as locationInfoType;
     
     trainingTypeOptions: leaveTrainingTypeInfoType[] = [];
-    statusOptions = {danger:'Not Taken', warning:'Expired', court:'Expiring Soon'}
-    training: { 
-        nottaken: trainingReportInfoType[]; 
-        expired: trainingReportInfoType[]; 
-        expiringsoon: trainingReportInfoType[]; 
-    } = { nottaken: [], expired: [], expiringsoon: [] }
+    statusOptions: trainingStatusInfoType = { danger:'Not Taken', alert:'Expired', warning:'Requalification <br> Requierd', notify:'Requalify Soon' };
+    training: trainingStatusCardInfoType = { danger: [], alert: [], warning: [], notify: [] };
 
     trainingAlert=false;
 
@@ -229,7 +183,7 @@ export default class Home extends Vue {
                 })
             }
         }
-        this.training = { nottaken:[], expired:[],expiringsoon:[] }
+        this.training = { danger:[], alert:[], warning:[], notify:[] }
         for (const trainingData of sheriffTrainings){
             this.addTrainingToReport(sheriffData, trainingData);            
         }
@@ -246,21 +200,22 @@ export default class Home extends Vue {
         trainingInfo.start = trainingData.startDate? moment(trainingData.startDate).tz(timezone).format():'';
         trainingInfo.end = trainingData.endDate? moment(trainingData.endDate).tz(timezone).format():'';
         trainingInfo.expiryDate = trainingData.trainingCertificationExpiry? moment(trainingData.trainingCertificationExpiry).tz(timezone).format():'';
+        const fullExpiryDate = trainingData.trainingCertificationExpiry? moment(trainingData.trainingCertificationExpiry).tz(timezone).add(1,'year').format():'';
         trainingInfo.excluded = false;
         const todayDate = moment().tz(timezone).format();
         const advanceNoticeDate = moment().tz(timezone).add(trainingData.trainingType.advanceNotice, 'days').format()
 
         if(!trainingData.endDate) rowType ='danger'
+        else if(fullExpiryDate && todayDate>fullExpiryDate) rowType ='alert'
         else if(trainingInfo.expiryDate && todayDate>trainingInfo.expiryDate) rowType ='warning'
-        else if(trainingInfo.expiryDate && trainingData.trainingType.advanceNotice && advanceNoticeDate>trainingInfo.expiryDate) rowType ='court'
-        trainingInfo['_rowVariant'] = rowType; //danger warning court
+        else if(trainingInfo.expiryDate && trainingData.trainingType.advanceNotice && advanceNoticeDate>trainingInfo.expiryDate) rowType ='notify'
+        trainingInfo['_rowVariant'] = rowType; //danger alert warning notify
         trainingInfo.status = rowType? this.statusOptions[rowType] : ''
         // console.log(trainingInfo)
         
         if(rowType){
             this.trainingAlert=true;
-            const type = this.statusOptions[rowType].replace(' ','').toLowerCase()
-            this.training[type].push(trainingInfo)
+            this.training[rowType].push(trainingInfo)
         }
         const currentDate = moment().format()
         const nextWeekDate = moment().add(7,'days').format()

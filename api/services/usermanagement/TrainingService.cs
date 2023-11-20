@@ -146,22 +146,28 @@ namespace SS.Api.services.usermanagement
 
         #region Help Methods
         
-        private  TrainingStatus GetTrainingStatus(DateTimeOffset? expiryDate, string timezone, int advanceNotice)
+        private  TrainingStatus GetTrainingStatus(DateTimeOffset? requalificationDate, string timezone, int advanceNotice)
         {
             TrainingStatus trainingStatus = new TrainingStatus();
             
             var todayDate = DateTimeOffset.UtcNow.ConvertToTimezone(timezone);
             var advanceNoticeDate = DateTimeOffset.UtcNow.AddDays(advanceNotice).ConvertToTimezone(timezone);
+            var expiryDate = requalificationDate?.AddYears(1);
 
             if(todayDate > expiryDate)
+            {
+                trainingStatus.rowType = "alert";
+                trainingStatus.status = TrainingStatusTypes.alert;
+            }
+            else if(todayDate > requalificationDate)
             {
                 trainingStatus.rowType = "warning";
                 trainingStatus.status = TrainingStatusTypes.warning;
             }
-            else if(advanceNoticeDate > expiryDate) 
+            else if(advanceNoticeDate > requalificationDate) 
             {
-                trainingStatus.rowType = "court";
-                trainingStatus.status = TrainingStatusTypes.court;
+                trainingStatus.rowType = "notify";
+                trainingStatus.status = TrainingStatusTypes.notify;
             }
             else
             {

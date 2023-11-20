@@ -209,7 +209,7 @@
     import CustomPagination from "./Components/CustomPagination.vue"
 
     import {reportInfoType, locationInfoType, regionInfoType, dateRangeInfoType} from '@/types/common';
-    import { trainingReportInfoType } from '@/types/MyTeam';
+    import { trainingReportInfoType, trainingStatusInfoType } from '@/types/MyTeam';
     import { leaveTrainingTypeInfoType } from '@/types/ManageTypes';
 
     @Component({
@@ -257,7 +257,7 @@
         paginationExcludedKey = 0;
         totalExcludedRows = 0;
 
-        statusOptions = {danger:'Not Taken', warning:'Expired', court:'Expiring Soon'}
+        statusOptions: trainingStatusInfoType = {danger:'Not Taken', alert:'Expired', warning:'Requalification',  notify:'Notified'}
 
         trainingFields = [
             {key:"excluded",     label:"Excuse",                    thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: false,thStyle:'width:5%; line-height:1rem;'},
