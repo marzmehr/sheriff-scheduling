@@ -489,16 +489,17 @@
 
         public setExpiryDate() {
             Vue.nextTick(() => {
+                const timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
                 if(this.selectedEndDate && this.selectedTrainingType?.validityPeriod){
                     // console.log(this.selectedTrainingType.validityPeriod)
                     if(this.selectedTrainingType.validityPeriod == 365){
-                        this.selectedExpiryDate = moment(this.selectedEndDate).endOf('year').format("YYYY-MM-DD");                        
+                        this.selectedExpiryDate = moment.tz(this.selectedEndDate, timezone).endOf('year').format();                                               
                     }else if(this.selectedTrainingType.validityPeriod == 730){
-                        this.selectedExpiryDate = moment(this.selectedEndDate).endOf('year').add(1,'year').format("YYYY-MM-DD");
+                        this.selectedExpiryDate = moment.tz(this.selectedEndDate, timezone).endOf('year').add(1,'year').format();
                     }else if(this.selectedTrainingType.validityPeriod == 1095){
-                        this.selectedExpiryDate = moment(this.selectedEndDate).endOf('year').add(2,'year').format("YYYY-MM-DD");
+                        this.selectedExpiryDate = moment.tz(this.selectedEndDate, timezone).endOf('year').add(2,'year').format();
                     }else{
-                        this.selectedExpiryDate = moment(this.selectedEndDate).add(this.selectedTrainingType.validityPeriod, 'days').format("YYYY-MM-DD");
+                        this.selectedExpiryDate = moment.tz(this.selectedEndDate, timezone).add(this.selectedTrainingType.validityPeriod, 'days').format();
                     }
                 }else{
                     this.selectedExpiryDate = ''
