@@ -143,9 +143,43 @@ namespace SS.Api.services.usermanagement
         #endregion Training Reports
 
 
-
-        #region Help Methods
+        #region Training Expiry Adjustment
+        public async Task TrainingExpiryAdjustment()
+        {
+            var trainingsQuery = Db.SheriffTraining
+                .AsNoTracking()
+                .Where(t => t.ExpiryDate == null)
+                .Include(t => t.TrainingType);
+            var allTrainings = await trainingsQuery.ToListAsync();
+            
+            foreach (var training in allTrainings)
+            {
+                if(training.TrainingType.ValidityPeriod > 0){   
+                    var timezone = training.Timezone == null? "America/Vancouver" : training.Timezone; 
+                    if(training.TrainingType.ValidityPeriod == 365){
+                        training.TrainingCertificationExpiry = training.EndDate.EndOfYearWithTimezone(0,timezone);//moment(this.selectedEndDate).endOf('year').format("YYYY-MM-DD");                        
+                    }else if(training.TrainingType.ValidityPeriod == 730){
+                        training.TrainingCertificationExpiry = training.EndDate.EndOfYearWithTimezone(1,timezone);//moment(this.selectedEndDate).endOf('year').add(1,'year').format("YYYY-MM-DD");
+                    }else if(training.TrainingType.ValidityPeriod == 1095){
+                        training.TrainingCertificationExpiry = training.EndDate.EndOfYearWithTimezone(2,timezone);//moment(this.selectedEndDate).endOf('year').add(2,'year').format("YYYY-MM-DD");
+                    }else{
+                        training.TrainingCertificationExpiry = training.EndDate.AddDays(training.TrainingType.ValidityPeriod).ConvertToTimezone(timezone);//moment(this.selectedEndDate).add(this.selectedTrainingType.validityPeriod, 'days').format("YYYY-MM-DD");
+                    }
+                }
+                else{
+                    training.TrainingCertificationExpiry = null;
+                }
+                Db.Entry(training).Property(x => x.TrainingCertificationExpiry).IsModified = true;
+                Db.SaveChanges();
+            }
         
+        }
+
+        #endregion Training Expiry Adjustment
+
+
+        #region Help Methods        
+
         private  TrainingStatus GetTrainingStatus(DateTimeOffset? requalificationDate, string timezone, int advanceNotice)
         {
             TrainingStatus trainingStatus = new TrainingStatus();

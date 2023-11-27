@@ -289,6 +289,16 @@ namespace SS.Api.controllers.usermanagement
             var sheriffs = await TrainingService.GetSheriffsTrainingReports(trainingReportSearch);
             return Ok(sheriffs.Adapt<List<TrainingReportDto>>());
         }
+
+        [HttpGet]
+        [Route("training/adjust-expiry")]
+        [PermissionClaimAuthorize(perm: Permission.AdjustTrainingExpiry)]
+        public async Task<ActionResult> TrainingExpiryAdjustment()
+        {
+            await TrainingService.TrainingExpiryAdjustment();
+            return Ok(new { result = "success"});
+        }
+
         #endregion SheriffTrainingReports
 
         #region SheriffTraining
