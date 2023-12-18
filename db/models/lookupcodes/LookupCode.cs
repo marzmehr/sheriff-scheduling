@@ -31,6 +31,7 @@ namespace ss.db.models
         public int ValidityPeriod { get; set; }
         public string Category { get; set; }
         public int AdvanceNotice { get; set; }
+        public Boolean Rotating { get; set; }
 
     }
 }

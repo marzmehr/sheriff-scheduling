@@ -28,6 +28,7 @@ export interface trainingTypeJson {
     code: string;
     validityPeriod?: number;
     description: string;
+    rotating?: boolean;
     concurrencyToken: number;
 }
 

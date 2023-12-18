@@ -19,6 +19,7 @@ namespace SS.Api.models.dto.generated
         public int ValidityPeriod { get; set; }
         public string Category { get; set; }
         public int AdvanceNotice { get; set; }
+        public bool Rotating { get; set; }
         public uint ConcurrencyToken { get; set; }
         public LookupSortOrderDto SortOrderForLocation { get; set; }
     }

@@ -266,6 +266,7 @@
                 trainingTypeInfo.code = trainingType.code;
                 trainingTypeInfo.validityPeriod = trainingType.validityPeriod
                 trainingTypeInfo.description = trainingType.description;
+                trainingTypeInfo.rotating = trainingType.rotating;
                 this.trainingTypeInfoList.push(trainingTypeInfo)
             }
             this.trainingTabDataReady = true;

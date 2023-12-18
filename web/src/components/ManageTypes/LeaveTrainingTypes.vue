@@ -82,7 +82,21 @@
                                 <span v-if="!data.item['_rowVariant']"><b-icon class="handle ml-3" icon="arrows-expand"/></span> 
                             </template>
 
+                            <template v-slot:cell(validityPeriod)="data">
+                                <span style="font-size:12pt;">{{validityYears(data.value)}}</span>
+                                <span style="font-size:9pt; color:#777777;"><i>{{validityYearsTxt(data.value)}}</i></span>
+                            </template>
+
+                            <template v-slot:cell(advanceNotice)="data">
+                                <span style="font-size:12pt;">{{data.value}}</span>
+                                <span v-if="data.value" style="font-size:9pt; color:#777777;"><i> days</i></span>
+                            </template>
+
                             <template v-slot:cell(mandatory)="data">
+                                <b-checkbox v-model="data.value" disabled/>
+                            </template>
+
+                            <template v-slot:cell(rotating)="data">
                                 <b-checkbox v-model="data.value" disabled/>
                             </template>
 
@@ -231,11 +245,12 @@
 
         trainingFields = [     
             {key:'sortOrder',      label:'',                   sortable:false, tdClass: 'border-top',             thClass:'',                         thStyle:'width:2%;' },       
-            {key:'code',           label:'Training',           sortable:false, tdClass: 'border-top',             thClass:'align-middle',             thStyle:'width:35%;'},
-            {key:'validityPeriod', label:'Validity (days)',    sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'line-height:1.2rem; width:10%;'},
+            {key:'code',           label:'Training',           sortable:false, tdClass: 'border-top',             thClass:'align-middle',             thStyle:'width:30%;'},
+            {key:'validityPeriod', label:'Validity',    sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'line-height:1.2rem; width:10%;'},
             {key:'mandatory',      label:'Mandatory',          sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'width:10%;'},
-            {key:'advanceNotice',label:'Advance Notice (days)',sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'line-height:1.2rem; width:15%;'},
-            {key:'category',       label:'Category',           sortable:false, tdClass: 'border-top',             thClass:'align-middle',             thStyle:'width:20%;'},
+            {key:'advanceNotice',label:'Advance Notice',sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'line-height:1.2rem; width:15%;'},
+            {key:'rotating',       label:'Rotating',           sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'width:8%;'},
+            {key:'category',       label:'Category',           sortable:false, tdClass: 'border-top',             thClass:'align-middle',             thStyle:'width:17%;'},
             {key:'edit',           label:'',                   sortable:false, tdClass: 'border-top',             thClass:'',                         thStyle:'width:8%;'},
         ];
 
@@ -308,6 +323,7 @@
                 leaveTraining.advanceNotice = leaveTrainingJson.advanceNotice? leaveTrainingJson.advanceNotice : ''
                 leaveTraining.category = leaveTrainingJson.category
                 leaveTraining.mandatory = leaveTrainingJson.mandatory
+                leaveTraining.rotating = leaveTrainingJson.rotating
                 
                 leaveTraining['_rowVariant'] = '';
                 let sortOrderOffset = 0;
@@ -498,6 +514,22 @@
                 this.expiredViewChecked = false;
                 this.getLeaveTraining();
             }
+        }
+        
+        yearsInDays = [365, 730, 1095, 1461, 1826, 2191, 2556, 2922, 3287, 3652];
+        
+        public validityYears(validityPeriod){            
+            if(this.yearsInDays.includes(validityPeriod))
+                return Math.floor(validityPeriod/365)
+            else 
+                return validityPeriod
+        }
+
+        public validityYearsTxt(validityPeriod){            
+            if(this.yearsInDays.includes(validityPeriod))
+                return ' Year'+(Math.floor(validityPeriod/365)>1?'s':'')
+            else 
+                return (validityPeriod? ' days': '')
         }
     
 }

@@ -6,9 +6,14 @@
         <div v-else>
             <b-row class="mb-5">
                 <b-col cols="2" class="">
-                    <b-img style="width:100%; margin:0 0 0 0;" 
-                        src="./images/bcss-crest-lw.png"                                                         
-                        alt="B.C. Gov"/>
+                    <b-img-lazy v-if="imgError==false" style="width:100%; margin:0 0 0 0;" 
+                        src="./images/bcss-crest-lw.png"
+                        @error.native="handleImage(true)"                                                   
+                        alt="B.C. Sheriff System"/>
+                    <img v-if="imgError==true" style="width:100%; margin:0 0 0 0;" 
+                        src="../assets/bcss-crest-lw.png"
+                        @error="handleImage(false)"                      
+                        alt="B.C. Sheriff System"/>
                 </b-col>
                 <b-col cols="10">
                     <b-row class="info-box">
@@ -105,11 +110,17 @@ export default class Home extends Vue {
     today=""
     dataReady=false
     errorText=''
+    imgError=false;
 
     mounted() {
         this.dataReady=false;
         this.trainingAlert=false;
         this.getTrainingTypes()
+    }
+
+    handleImage(imgErr: boolean){
+        console.log(imgErr)
+        this.imgError=imgErr
     }
 
     public getTrainingTypes() {                      
@@ -200,7 +211,14 @@ export default class Home extends Vue {
         trainingInfo.start = trainingData.startDate? moment(trainingData.startDate).tz(timezone).format():'';
         trainingInfo.end = trainingData.endDate? moment(trainingData.endDate).tz(timezone).format():'';
         trainingInfo.expiryDate = trainingData.trainingCertificationExpiry? moment(trainingData.trainingCertificationExpiry).tz(timezone).format():'';
-        const fullExpiryDate = trainingData.trainingCertificationExpiry? moment(trainingData.trainingCertificationExpiry).tz(timezone).add(1,'year').format():'';
+        let fullExpiryDate = '';
+        if(trainingData.trainingCertificationExpiry){
+            if(this.isRotatingTraining(trainingData.trainingType))
+                fullExpiryDate = moment(trainingData.trainingCertificationExpiry).tz(timezone).format()
+            else
+                fullExpiryDate = moment(trainingData.trainingCertificationExpiry).tz(timezone).add(1,'year').format()
+        } 
+        
         trainingInfo.excluded = false;
         const todayDate = moment().tz(timezone).format();
         const advanceNoticeDate = moment().tz(timezone).add(trainingData.trainingType.advanceNotice, 'days').format()
@@ -243,6 +261,11 @@ export default class Home extends Vue {
                 })
             }
         }
+    }
+
+    public isRotatingTraining(trainingType){
+        const yearsInDays = [365, 730, 1095, 1461, 1826, 2191, 2556, 2922, 3287, 3652]; 
+        return trainingType.rotating || !yearsInDays.includes(trainingType.validityPeriod);               
     }
 
 }
