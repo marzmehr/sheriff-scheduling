@@ -3,7 +3,7 @@
         <b-table-simple small borderless>
             <b-tbody>
                 <b-tr>
-                    <b-td style="width:35%;">
+                    <b-td style="width:29%;">
                         <b-form-group style="margin: 0.25rem 0 0 0.5rem;">
                             <label class="h6 ml-1 mb-0 pb-0" > {{type}}: </label> 
                             <b-form-input
@@ -45,7 +45,16 @@
                             </b-form-select>
                         </b-form-group>           
                     </b-td>
-
+                    <b-td v-if="type == 'Training'" style="width:7%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0rem;">
+                            <label class="h6 ml-1 mb-0 pb-0" > Rotating: </label> 
+                            <b-form-checkbox
+                                class="text-center"
+                                size = "lg"                                
+                                v-model="selectedTrainingRotating">                                                                 
+                            </b-form-checkbox>
+                        </b-form-group>           
+                    </b-td>
                     <b-td v-if="type == 'Training'" style="width:10%;">
                         <b-form-group style="margin: 0.25rem 0 0 0rem;">
                             <label class="h6 ml-1 mb-0 pb-0" > Category: </label> 
@@ -149,7 +158,9 @@
             {value:180,  text:'6 Months (180 days)'},
             {value:365,  text:'Annually (365 days)'},
             {value:730,  text:'Every Two Years (730 days)'},
-            {value:1095, text:'Every Three Years (1095 days)'}
+            {value:1095, text:'Every Three Years (1095 days)'},
+            {value:1461, text:'Every Four Years (1461 days)'},
+            {value:1826, text:'Every Five Years (1826 days)'}
         ];
 
         trainingAdvanceNotice = [
@@ -179,11 +190,13 @@
         selectedTrainingCategory = '';
         selectedTrainingAdvanceNotice: number | ""= "";
         selectedTrainingMandatory = true;
+        selectedTrainingRotating = false;
        
         originalTrainingValidityPeriod: number | ""= "";
         originalTrainingCategory = '';
         originalTrainingAdvanceNotice: number | ""= "";
         originalTrainingMandatory = true;
+        originalTrainingRotating = false;
         
         mounted()
         { 
@@ -201,6 +214,7 @@
                 this.originalTrainingAdvanceNotice = this.selectedTrainingAdvanceNotice = this.formData.advanceNotice? this.formData.advanceNotice:'';
                 this.originalTrainingCategory = this.selectedTrainingCategory = this.formData.category? this.formData.category:'';
                 this.originalTrainingMandatory = this.selectedTrainingMandatory = this.formData.mandatory?this.formData.mandatory:false;
+                this.originalTrainingRotating = this.selectedTrainingRotating = this.formData.rotating?this.formData.rotating:false;
             }         
             
         }
@@ -230,6 +244,7 @@
                 if (this.type == 'Training'){                    
                     body['validityPeriod'] = this.selectedTrainingValidityPeriod
                     body['mandatory'] = this.selectedTrainingMandatory
+                    body['rotating'] = this.selectedTrainingRotating
                     body['advanceNotice'] = this.selectedTrainingAdvanceNotice
                     body['category'] = this.selectedTrainingCategory
                 }              
@@ -257,7 +272,8 @@
                         this.originalTrainingValidityPeriod != this.selectedTrainingValidityPeriod ||
                         this.originalTrainingAdvanceNotice != this.selectedTrainingAdvanceNotice ||
                         this.originalTrainingCategory != this.selectedTrainingCategory ||
-                        this.originalTrainingMandatory != this.selectedTrainingMandatory) {
+                        this.originalTrainingMandatory != this.selectedTrainingMandatory ||
+                        this.originalTrainingRotating != this.selectedTrainingRotating) {
                         return true;
                     } 
                     return false;

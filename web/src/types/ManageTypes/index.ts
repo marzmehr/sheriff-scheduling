@@ -13,6 +13,7 @@ export interface leaveTrainingTypeInfoType {
     id: number;
     validityPeriod?: number;
     mandatory?: boolean;
+    rotating?: boolean;
     category?: string;
     advanceNotice?: number;
     type: string;

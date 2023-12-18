@@ -22,6 +22,7 @@ namespace SS.Api.services.usermanagement
         private SheriffDbContext Db { get; }
         private ManageTypesService ManageTypesService { get; }
         private ILogger<TrainingService> Logger { get; }
+        public static readonly IList<int> YearsInDays = new List<int>{365, 730, 1095, 1461, 1826, 2191, 2556, 2922, 3287, 3652};         
 
         public TrainingService(ManageTypesService manageTypesService, SheriffDbContext db, ILogger<TrainingService> logger)
         {
@@ -112,7 +113,7 @@ namespace SS.Api.services.usermanagement
                     {
                         var takenTraining = sheriff.Training.Find(t => t.TrainingTypeId == training.Id);
                         var timezone = takenTraining.Timezone == null? "America/Vancouver" : takenTraining.Timezone; 
-                        var trainingStatus = GetTrainingStatus(takenTraining.TrainingCertificationExpiry, timezone, training.AdvanceNotice);
+                        var trainingStatus = GetTrainingStatus(takenTraining.TrainingCertificationExpiry, timezone, training.AdvanceNotice, training, takenTraining.FirstNotice);
                         
                         sheriffTrainings.Add(new TrainingReportDto()
                         {
@@ -151,26 +152,34 @@ namespace SS.Api.services.usermanagement
                 .Where(t => t.ExpiryDate == null)
                 .Include(t => t.TrainingType);
             var allTrainings = await trainingsQuery.ToListAsync();
-            
+            int processCounter = 0;
+            int allTrainingsCounts = allTrainings.Count();
+
             foreach (var training in allTrainings)
             {
                 if(training.TrainingType.ValidityPeriod > 0){   
-                    var timezone = training.Timezone == null? "America/Vancouver" : training.Timezone; 
-                    if(training.TrainingType.ValidityPeriod == 365){
-                        training.TrainingCertificationExpiry = training.EndDate.EndOfYearWithTimezone(0,timezone);//moment(this.selectedEndDate).endOf('year').format("YYYY-MM-DD");                        
-                    }else if(training.TrainingType.ValidityPeriod == 730){
-                        training.TrainingCertificationExpiry = training.EndDate.EndOfYearWithTimezone(1,timezone);//moment(this.selectedEndDate).endOf('year').add(1,'year').format("YYYY-MM-DD");
-                    }else if(training.TrainingType.ValidityPeriod == 1095){
-                        training.TrainingCertificationExpiry = training.EndDate.EndOfYearWithTimezone(2,timezone);//moment(this.selectedEndDate).endOf('year').add(2,'year').format("YYYY-MM-DD");
+                    var timezone = training.Timezone == null? "America/Vancouver" : training.Timezone;                     
+                    if(!IsRotatingTraining(training.TrainingType)){
+                        int years = (training.TrainingType.ValidityPeriod / 365) - 1;
+                        training.TrainingCertificationExpiry = training.EndDate.EndOfYearWithTimezone(years, timezone);
                     }else{
                         training.TrainingCertificationExpiry = training.EndDate.AddDays(training.TrainingType.ValidityPeriod).ConvertToTimezone(timezone);//moment(this.selectedEndDate).add(this.selectedTrainingType.validityPeriod, 'days').format("YYYY-MM-DD");
+                    }
+                    var noticeDate = DateTimeOffset.UtcNow.AddDays(training.TrainingType.AdvanceNotice);
+                    if(training.TrainingCertificationExpiry > noticeDate){
+                        training.FirstNotice = false;
                     }
                 }
                 else{
                     training.TrainingCertificationExpiry = null;
+                    training.FirstNotice = false;
                 }
                 Db.Entry(training).Property(x => x.TrainingCertificationExpiry).IsModified = true;
+                Db.Entry(training).Property(x => x.FirstNotice).IsModified = true;
                 Db.SaveChanges();
+
+                processCounter++;                
+                Logger.LogInformation($"_______Training Expiry Adjustment__{processCounter}_of_{allTrainingsCounts}_______");
             }
         
         }
@@ -180,13 +189,13 @@ namespace SS.Api.services.usermanagement
 
         #region Help Methods        
 
-        private  TrainingStatus GetTrainingStatus(DateTimeOffset? requalificationDate, string timezone, int advanceNotice)
+        private  TrainingStatus GetTrainingStatus(DateTimeOffset? requalificationDate, string timezone, int advanceNotice, LookupCode trainingType, bool firstNotice)
         {
             TrainingStatus trainingStatus = new TrainingStatus();
             
             var todayDate = DateTimeOffset.UtcNow.ConvertToTimezone(timezone);
             var advanceNoticeDate = DateTimeOffset.UtcNow.AddDays(advanceNotice).ConvertToTimezone(timezone);
-            var expiryDate = requalificationDate?.AddYears(1);
+            var expiryDate = IsRotatingTraining(trainingType)? requalificationDate : requalificationDate?.AddYears(1);
 
             if(todayDate > expiryDate)
             {
@@ -198,7 +207,7 @@ namespace SS.Api.services.usermanagement
                 trainingStatus.rowType = "warning";
                 trainingStatus.status = TrainingStatusTypes.warning;
             }
-            else if(advanceNoticeDate > requalificationDate) 
+            else if((advanceNoticeDate > requalificationDate) && firstNotice) 
             {
                 trainingStatus.rowType = "notify";
                 trainingStatus.status = TrainingStatusTypes.notify;
@@ -210,6 +219,10 @@ namespace SS.Api.services.usermanagement
             }
             
             return trainingStatus;
+        }
+
+        public bool IsRotatingTraining(LookupCode trainingType){
+            return trainingType.Rotating || !YearsInDays.Contains(trainingType.ValidityPeriod);               
         }
 
         #endregion Help Methods
