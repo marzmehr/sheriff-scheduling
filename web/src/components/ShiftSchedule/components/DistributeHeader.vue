@@ -25,7 +25,7 @@
                 </b-navbar-nav>
 
                 <b-navbar-nav v-else class="custom-navbar">
-                    <b-col class="my-1">
+                    <b-col style="margin:0.7rem 0;">
                         <b-row style="width:17.75rem">
                             <b-button style=" height: 2rem;" size="sm" variant="secondary" @click="previousDateRange" class="my-0 mx-1"><b-icon-chevron-left /></b-button>
                             
@@ -50,8 +50,18 @@
                     </b-col>
                 </b-navbar-nav>
 
-                <b-navbar-nav class="mr-2">
-                    <b-input-group class="mr-2 my-0" style="height: 40px">
+                <b-navbar-nav class="mr-2 ml-n5">
+                    <b-nav-form>						
+                        <div :class="includeTimeChecked?'bg-success':''" style="border:1px solid green;border-radius:5px; margin-left: 15px; width: 10rem;">
+                            <b-form-checkbox class="mx-1 my-1" v-model="includeTimeChecked" @change="changeIncludeTime()" size="lg" switch>
+                                <div style="font-size: 16px;" class="text-white">Include Time</div>
+                            </b-form-checkbox>
+                        </div>
+                    </b-nav-form>
+                </b-navbar-nav>
+
+                <b-navbar-nav class="mr-n2">
+                    <b-input-group class="mr-0 my-0" style="height: 40px">
                         <b-input-group-prepend is-text>
                             <b-icon icon="person-fill"></b-icon>
                         </b-input-group-prepend>
@@ -71,7 +81,7 @@
 
                 <b-navbar-nav class="mr-2">
                     <b-nav-form>						
-                        <div :class="showWeekViewChecked?'bg-success':''" style="border:1px solid green;border-radius:5px; margin-left: 15px; width: 8.5rem;">
+                        <div :class="showWeekViewChecked?'bg-success':''" style="border:1px solid green;border-radius:5px; margin-left: 15px; width: 8.75rem;">
                             <b-form-checkbox class="mx-1 my-1" v-model="showWeekViewChecked" @change="getSchedule()" size="lg" switch>
                                 <div style="font-size: 16px;" class="text-white">{{viewRange}}</div>
                             </b-form-checkbox>
@@ -249,6 +259,7 @@
         contentState = true;
         allSelected = false;
         loadingPdf = false;
+        includeTimeChecked = true;
 
         selectedTeamMember = {sheriffId: '', name: 'All', email: ''} as distributeTeamMemberInfoType;
 
@@ -272,6 +283,7 @@
         mounted() {
             this.loadingPdf = false;
             this.showWeekViewChecked = true;
+            this.includeTimeChecked = true;
             this.hasPermissionToViewDutyRoster = this.userDetails.permissions.includes("ViewDutyRoster");		
             this.teamMemberEmailList = this.teamMemberList.map(member => member.email);	
             
@@ -293,6 +305,10 @@
                 this.selectedDate = this.dailyShiftRangeInfo.startDate;
                 this.$emit('change', this.showWeekViewChecked, this.selectedTeamMember.sheriffId)
             })
+        }
+
+        public changeIncludeTime(){
+            Vue.nextTick(()=> this.$emit('includeTime',this.includeTimeChecked) )
         }
 
         public emailSchedule(){

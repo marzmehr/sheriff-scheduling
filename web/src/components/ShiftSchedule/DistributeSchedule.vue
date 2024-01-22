@@ -1,7 +1,7 @@
 <template>
     <b-card bg-variant="white" class="home" no-body>
 
-        <distribute-header v-on:change="loadScheduleInformation" />
+        <distribute-header v-on:change="loadScheduleInformation" @includeTime="includeTime=$event" />
 
         <b-card id="pdf" v-if="isDistributeDataMounted" class="container" no-body>
             
@@ -38,7 +38,7 @@
                     <loading-spinner :inline="true"/>
                 </template> 
                 <div v-for="page,inx in sheriffPages" :key="'pdf-'+inx" class="ss-body">   
-                    <weekly-schedule :key="updateTable" :fields="fields"  :sheriffSchedules="sheriffSchedules.slice(page.start,page.end)" v-if="weekView" />
+                    <weekly-schedule :key="updateTable" :fields="fields"  :sheriffSchedules="sheriffSchedules.slice(page.start,page.end)" :includeTime="includeTime" v-if="weekView" />
                     <daily-schedule :key="updateDailyTable" :dailySheriffSchedules="dailySheriffSchedules.slice(page.start,page.end)" v-else/>
 
                     <div v-if="!isDistributeDataMounted && sheriffSchedules.length == 0" style="min-height:115.6px;">
@@ -114,7 +114,8 @@
         today = '';
         numberOfheaderDates = 7;
         updateTable=0;
-        updateDailyTable=0;
+        updateDailyTable=0;        
+        includeTime=true;
 
         errorText='';
 		openErrorModal=false;
