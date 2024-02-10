@@ -16,6 +16,7 @@ namespace SS.Api.models.dto.generated
         public List<SheriffTrainingDto> Training { get; set; }
         public string PhotoUrl { get; set; }
         public DateTimeOffset LastPhotoUpdate { get; set; }
+        public bool Excused { get; set; }
         public Guid Id { get; set; }
         public bool IsEnabled { get; set; }
         public string FirstName { get; set; }

@@ -120,6 +120,14 @@
                 No Records Found.
             </b-row>
             <div v-else>
+                <custom-pagination
+                    :key="'pagination-top-'+paginationKey"                                         
+                    :pages="[15,25,50,75,100]"
+                    :totalRows="totalRows"
+                    :initCurrentPage="currentPage"
+                    :initItemPerPage="itemsPerPage"
+                    @paginationChanged="paginationChanged"/>
+                
                 <b-table            
                     :items="filteredTrainingReportData"
                     :fields="trainingFields"     
@@ -127,14 +135,16 @@
                     class="mt-3"       
                     bordered
                     head-variant="light"            
-                    small 
+                    small                     
+                    :currentPage="currentPage"
+                    :perPage="itemsPerPage"
                     responsive="sm">
                     <template v-slot:cell(end) ="data"> {{data.value | beautify-date}} </template>
                     <template v-slot:cell(status) ="data">                   
                         <b-badge :variant="data.item['_rowVariant']" style="width:6rem;" >{{data.value}}</b-badge>                        
                     </template>
                     <template v-slot:cell(expiryDate) ="data">{{data.value | beautify-date}}</template>
-                    <template v-slot:cell(excluded) ="data"><b-form-checkbox v-model="data.item.excluded" @change="splitExcludedReports(true, data.item.sheriffId)"/></template>
+                    <template v-slot:cell(excluded) ="data"><b-form-checkbox v-model="data.item.excluded" @change="excludeFromReports(true, data.item.sheriffId)"/></template>
                 </b-table>
 
                 <b-row class="mt-5 mx-0">                
@@ -161,16 +171,25 @@
                 class="mt-3"       
                 bordered
                 head-variant="light"            
-                small 
+                small
+                :currentPage="currentExcludedPage"
+                :perPage="itemsPerPageExcluded" 
                 responsive="sm">                
                 <template v-slot:cell(end) ="data"> {{data.value | beautify-date}} </template>
                 <template v-slot:cell(status) ="data">                   
                     <b-badge :variant="data.item['_rowVariant']" style="width:6rem;" >{{data.value}}</b-badge>                        
                 </template>
                 <template v-slot:cell(expiryDate) ="data">{{data.value | beautify-date}}</template>
-                <template v-slot:head(excluded)>Excluded</template>
-                <template v-slot:cell(excluded) ="data"><b-form-checkbox v-model="data.item.excluded" @change="splitExcludedReports(false, data.item.sheriffId)"/></template>
+                <template v-slot:head(excluded)>Excused</template>
+                <template v-slot:cell(excluded) ="data"><b-form-checkbox v-model="data.item.excluded" @change="excludeFromReports(false, data.item.sheriffId)"/></template>
             </b-table>
+            <custom-pagination
+                :key="'pagination-excluded-'+paginationExcludedKey"                                         
+                :pages="[15,25,50,75,100]"
+                :totalRows="totalExcludedRows"
+                :initCurrentPage="currentExcludedPage"
+                :initItemPerPage="itemsPerPageExcluded"
+                @paginationChanged="paginationExcludedChanged"/>
         </b-card>         
 
     </b-card>
@@ -179,7 +198,6 @@
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
-    import moment from 'moment-timezone';
     import * as _ from 'underscore';  
     import { ExportToCsv } from 'export-to-csv';
 
@@ -188,16 +206,18 @@
     import PageHeader from "@components/common/PageHeader.vue";
     import Spinner from "@components/Spinner.vue";
     import DateRange from "./Components/DateRange.vue"
-    
+    import CustomPagination from "./Components/CustomPagination.vue"
+
     import {reportInfoType, locationInfoType, regionInfoType, dateRangeInfoType} from '@/types/common';
-    import { trainingReportInfoType } from '@/types/MyTeam';
+    import { trainingReportInfoType, trainingStatusInfoType } from '@/types/MyTeam';
     import { leaveTrainingTypeInfoType } from '@/types/ManageTypes';
 
     @Component({
         components: {
             PageHeader,
             Spinner,
-            DateRange
+            DateRange,
+            CustomPagination
         }
     })
     export default class ViewReports extends Vue {
@@ -226,15 +246,25 @@
         reportSubTypeState = true;        
         reportFilter: string[] = []
         locationOptionsList: locationInfoType[] = [];
-        
-        statusOptions = {danger:'Not Met', warning:'Expired', court:'Expiring Soon'}
+
+        currentPage = 1;
+        itemsPerPage = 15;// Default
+        paginationKey = 0;
+        totalRows = 0;
+
+        currentExcludedPage = 1;
+        itemsPerPageExcluded = 15;// Default
+        paginationExcludedKey = 0;
+        totalExcludedRows = 0;
+
+        statusOptions: trainingStatusInfoType = {danger:'Not Taken', alert:'Expired', warning:'Requalification',  notify:'Notified'}
 
         trainingFields = [
-            {key:"excluded",     label:"Exclude",                   thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: false,thStyle:'width:5%; line-height:1rem;'},
-            {key:"name",         label:"Name",                      thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:30%;'},
-            {key:"trainingType", label:"Training Type",             thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:15%;'},            
-            {key:"end",          label:"Completion Date",           thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:20%;'},
-            {key:"expiryDate",   label:"Certification Expiry Date", thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:20%;'},
+            {key:"excluded",     label:"Excuse",                    thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: false,thStyle:'width:5%; line-height:1rem;'},
+            {key:"name",         label:"Name",                      thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:25%;'},
+            {key:"trainingType", label:"Training Type",             thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:35%;'},            
+            {key:"end",          label:"Completion Date",           thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:10%;'},
+            {key:"expiryDate",   label:"Certification Expiry Date", thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:15%;'},
             {key:"status",       label:"Status",                    thClass: 'border-bottom align-middle text-center', tdClass:'align-middle text-center', sortable: true, thStyle:'width:10%;'}
         ];
         
@@ -256,42 +286,44 @@
             this.excludedTrainingReportData = [];
         }
         
-        public find(){ 
+        public find(){
+             
             this.clearReports()
             this.reportTypeState = true;
             this.reportSubTypeState = true;
+
             if (!this.reportParameters.reportType){
                 this.reportTypeState = false;
-            } else if (!this.reportParameters.reportSubtype){
-                this.reportSubTypeState = false;
-            } else {
-                
-                this.searching = true;
-                const calls: any[] =[]
-                calls.push(this.$http.get("api/sheriff/training"));
-                calls.push(this.$http.get("api/sheriff"));
-
-                Promise.all(calls).then(values => {
-                    if(values[0]?.data && values[0]?.data){                        
-                        const sheriffWithTrainings = values[0].data;
-                        const sheriffs = values[1].data;
-                        const sheriffWithTrainingIds = sheriffWithTrainings.map(sheriff => sheriff.id)
-                        for(const sheriff of sheriffs){
-                            if(!sheriffWithTrainingIds.includes(sheriff.id)){
-                                sheriffWithTrainings.push(sheriff)
-                            }
-                        }
-                        this.extractData(sheriffWithTrainings);
-                    }
-                }, err =>{this.searching = false;this.error = err.response.data})
             } 
-        }
+            else if (!this.reportParameters.reportSubtype){
+                this.reportSubTypeState = false;
+            } 
+            else {
+                
+                const body = {
+                    regionId: this.reportParameters.region == 'All'? null : this.reportParameters.region,
+                    locationId: this.reportParameters.location == 'All'? null : this.reportParameters.location, 
+                    // reportType: this.reportParameters.reportType,
+                    reportSubtypeId: this.reportParameters.reportSubtype == 'All'? null : this.reportParameters.reportSubtype,
+                    startDate: this.reportDateRange.valid? this.reportDateRange.startDate : null,
+                    endDate: this.reportDateRange.valid? this.reportDateRange.endDate : null
+                }
 
-        public extractData(data){ 
-
-            if (this.reportParameters.reportType == 'Training'){
-                this.gatherTrainingReportData(data)
-            }             
+                this.searching = true;
+                this.$http.post("api/sheriff/training/reports", body)
+                .then(response => {
+                    if(response.data){                        
+                        this.trainingReportData = response.data;
+                        this.filterReports()
+                        this.dataLoaded = true;
+                    }
+                    this.searching = false;                   
+                },err => {
+                    console.log(err.response)
+                    this.error = err.response.data
+                    this.searching = false;
+                })
+            } 
         }
 
         public updateRegion(){
@@ -303,83 +335,6 @@
             }
             this.clearReports();
             this.updateRegionId ++; 
-        }
-
-        public gatherTrainingReportData(data: any[]){
-
-            let reportInfo: any[] = [];               
-            
-            if (this.reportParameters.location && this.reportParameters.location != 'All'){
-                reportInfo = data.filter(sheriff=>(sheriff.homeLocationId == this.reportParameters.location));               
-                
-            } else {
-                reportInfo = data.filter(sheriff=>(this.locationOptionsList.some(location => sheriff.homeLocationId == location.id)))
-            }
-            
-            const mandetoryTrainings = this.trainingTypeOptions.filter(training => training.mandatory)
-            
-            for (const sheriffData of reportInfo){
-
-                if (sheriffData.isEnabled){
-                    const sheriffTrainingsId = sheriffData.training? sheriffData.training.map(training => training.trainingTypeId): [];
-                    const sheriffTrainings = sheriffData.training? JSON.parse(JSON.stringify(sheriffData.training)) : [];
-                    
-                    for(const training of mandetoryTrainings){
-                        if(!sheriffTrainingsId.includes(training.id)){
-                            sheriffTrainings.push({
-                                comment: "",
-                                endDate: "",
-                                firstNotice: false,
-                                id: null,
-                                sheriffId: sheriffData.id,
-                                startDate: "",
-                                timezone: "",
-                                trainingCertificationExpiry: "",
-                                trainingType: training,
-                                trainingTypeId: training.id
-                            })
-                        }
-                    }
-
-                    for (const trainingData of sheriffTrainings){
-                        if (  (this.reportParameters.reportSubtype != 'All' && this.reportParameters.reportSubtype == trainingData.trainingType.id) 
-                            || this.reportParameters.reportSubtype == 'All'){
-                            this.addTrainingToReport(sheriffData, trainingData);
-                        }
-                    }
-                }
-            } 
-            if(this.reportDateRange.valid){
-                this.trainingReportData = this.trainingReportData.filter(training => 
-                    training.end>=this.reportDateRange.startDate  &&
-                    training.end<=this.reportDateRange.endDate
-                )
-            }
-            this.filterReports()
-            this.searching = false;
-            this.dataLoaded = true;            
-        }
-
-        public addTrainingToReport(sheriffData, trainingData){
-            //console.log(sheriffData)
-            let rowType = ''
-            const trainingInfo = {} as trainingReportInfoType;
-            trainingInfo.name = sheriffData.firstName + ' ' + sheriffData.lastName;
-            trainingInfo.sheriffId = sheriffData.id;
-            trainingInfo.trainingType = trainingData.trainingType.description;
-            const timezone = trainingData.timezone?trainingData.timezone:'America/Vancouver';
-            trainingInfo.end = trainingData.endDate? moment(trainingData.endDate).tz(timezone).format():'';
-            trainingInfo.expiryDate = trainingData.trainingCertificationExpiry? moment(trainingData.trainingCertificationExpiry).tz(timezone).format():'';
-            trainingInfo.excluded = false;
-            const todayDate = moment().tz(timezone).format();
-            const advanceNoticeDate = moment().tz(timezone).add(trainingData.trainingType.advanceNotice, 'days').format()
-
-            if(!trainingData.endDate) rowType ='danger'
-            else if(trainingInfo.expiryDate && todayDate>trainingInfo.expiryDate) rowType ='warning'
-            else if(trainingInfo.expiryDate && trainingData.trainingType.advanceNotice && advanceNoticeDate>trainingInfo.expiryDate) rowType ='court'
-            trainingInfo['_rowVariant'] = rowType; //danger warning court
-            trainingInfo.status = rowType? this.statusOptions[rowType] : ''
-            this.trainingReportData.push(trainingInfo);
         }
 
         public downloadReport(){ 
@@ -432,34 +387,58 @@
                 },err => {
                     console.log(err.response)
                     this.dataReady = true; 
-                }) 
-                  
+                })                   
         }
 
-        public splitExcludedReports(exclude, sheriffId){
+        public excludeFromReports(exclude, sheriffId){
             Vue.nextTick(()=>{
-                if(exclude){
-                    const trainings = this.trainingReportData.filter(training => training.sheriffId==sheriffId);                                        
-                    this.excludedTrainingReportData.push(...trainings) 
-                    this.trainingReportData = this.trainingReportData.filter(training => training.sheriffId!=sheriffId);
-                }else {
-                    const trainings = this.excludedTrainingReportData.filter(training => training.sheriffId==sheriffId);                     
-                    this.trainingReportData.push(...trainings) 
-                    this.excludedTrainingReportData = this.excludedTrainingReportData.filter(training => training.sheriffId!=sheriffId);
+                const body = {               
+                    excused: exclude,
+                    id: sheriffId
                 }
-                this.excludedTrainingReportData.forEach(training => training.excluded = true);
-                this.trainingReportData.forEach(training => training.excluded = false);
-                this.filterReports()
-            })            
+
+                const url = 'api/sheriff/updateExcused';
+                this.$http.put(url, body)
+                    .then(response => {
+                        this.find()                                   
+                    }, err => {               
+                        this.error = err.response.data.error;
+                        this.find()                   
+                    });
+            })
         }
 
         public filterReports() {
             Vue.nextTick(() => {
-                this.filteredTrainingReportData = JSON.parse(JSON.stringify(this.trainingReportData))
+                
+                this.excludedTrainingReportData = this.trainingReportData.filter(training => training.excluded)
+
                 if(this.reportFilter.length>0){
-                    this.filteredTrainingReportData =this.filteredTrainingReportData.filter(training => training.status && this.reportFilter.includes(training.status))
+                    this.filteredTrainingReportData = this.trainingReportData.filter(training => !training.excluded && training.status && this.reportFilter.includes(training.status))
                 }
+                else
+                    this.filteredTrainingReportData = this.trainingReportData.filter(training => !training.excluded)
+                
+                this.totalRows = this.filteredTrainingReportData.length;
+                this.currentPage = 1;
+                this.paginationChanged(this.currentPage, this.itemsPerPage)
+
+                this.totalExcludedRows = this.excludedTrainingReportData.length;
+                this.currentExcludedPage = 1;
+                this.paginationExcludedChanged(this.currentExcludedPage, this.itemsPerPageExcluded)
             })
+        }
+
+        public paginationChanged(currentPage, itemsPerPage){
+            this.currentPage = currentPage
+            this.itemsPerPage = itemsPerPage
+            this.paginationKey++;
+        }
+
+        public paginationExcludedChanged(currentPage, itemsPerPage){
+            this.currentExcludedPage = currentPage
+            this.itemsPerPageExcluded = itemsPerPage
+            this.paginationExcludedKey++;
         }
 
 }

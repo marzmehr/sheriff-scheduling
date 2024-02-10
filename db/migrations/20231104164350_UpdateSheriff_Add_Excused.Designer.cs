@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -10,9 +11,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231104164350_UpdateSheriff_Add_Excused")]
+    partial class UpdateSheriff_Add_Excused
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -523,14 +525,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Generate Reports based on Sheriff's activity",
                             Name = "GenerateReports"
-                        },
-                        new
-                        {
-                            Id = 44,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "Adjust Training Expiry Dates based on new rules",
-                            Name = "AdjustTrainingExpiry"
                         });
                 });
 
@@ -1610,9 +1604,6 @@ namespace SS.Db.Migrations
                     b.Property<bool>("Mandatory")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("Rotating")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("SubCode")
                         .HasColumnType("text");
 
@@ -1652,7 +1643,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Chief Sheriff",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 7,
                             ValidityPeriod = 0
                         },
@@ -1666,7 +1656,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Superintendent",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 7,
                             ValidityPeriod = 0
                         },
@@ -1680,7 +1669,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Staff Inspector",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 7,
                             ValidityPeriod = 0
                         },
@@ -1694,7 +1682,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Inspector",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 7,
                             ValidityPeriod = 0
                         },
@@ -1708,7 +1695,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Staff Sergeant",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 7,
                             ValidityPeriod = 0
                         },
@@ -1722,7 +1708,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Sergeant",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 7,
                             ValidityPeriod = 0
                         },
@@ -1736,7 +1721,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Deputy Sheriff",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 7,
                             ValidityPeriod = 0
                         },
@@ -1750,7 +1734,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "CEW (Taser)",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 6,
                             ValidityPeriod = 0
                         },
@@ -1764,7 +1747,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "DNA",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 6,
                             ValidityPeriod = 0
                         },
@@ -1778,7 +1760,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "FRO",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 6,
                             ValidityPeriod = 0
                         },
@@ -1792,7 +1773,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Fire Arm",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 6,
                             ValidityPeriod = 0
                         },
@@ -1806,7 +1786,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "First Aid",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 6,
                             ValidityPeriod = 0
                         },
@@ -1820,7 +1799,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Advanced Escort SPC (AESOC)",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 6,
                             ValidityPeriod = 0
                         },
@@ -1834,7 +1812,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Extenuating Circumstances SPC (EXSPC)",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 6,
                             ValidityPeriod = 0
                         },
@@ -1848,7 +1825,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Search Gate",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 6,
                             ValidityPeriod = 0
                         },
@@ -1862,7 +1838,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Other",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 6,
                             ValidityPeriod = 0
                         },
@@ -1876,7 +1851,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "STIP",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 5,
                             ValidityPeriod = 0
                         },
@@ -1890,7 +1864,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Annual",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 5,
                             ValidityPeriod = 0
                         },
@@ -1904,7 +1877,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Illness",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 5,
                             ValidityPeriod = 0
                         },
@@ -1918,7 +1890,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Special",
                             Mandatory = false,
-                            Rotating = false,
                             Type = 5,
                             ValidityPeriod = 0
                         });

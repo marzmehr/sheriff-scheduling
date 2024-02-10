@@ -47,7 +47,7 @@
             </template>               
             
             <template v-slot:cell() = "data">
-                <weekly-assignment-card :scheduleInfo="data.item[data.field.key]" />                
+                <weekly-assignment-card :scheduleInfo="data.item[data.field.key]" :includeTime="includeTime" />                
             </template>                
             
         </b-table>
@@ -79,6 +79,9 @@
 
         @Prop({required: true})
         fields!: any[];
+
+        @Prop({required: true})
+        includeTime!: boolean;
 
         @commonState.State
         public location!: locationInfoType;    

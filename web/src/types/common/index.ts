@@ -26,6 +26,7 @@ export interface trainingInfoType {
     id: number;
     validityPeriod?: number;
     description?: string;
+    rotating?: boolean;
 }
 
 export interface userInfoType {

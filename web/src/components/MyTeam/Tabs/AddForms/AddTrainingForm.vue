@@ -118,11 +118,20 @@
                         </b-input-group>
                     </b-td>
                     <b-td >
-                        <label class="h6 m-0 p-0"> Expiry Date: </label>
+                        <label class="h6 m-0 p-0"> Expiry Date: 
+                            <b-button
+                                @click="refreshExpiryDate()"
+                                class="refresh-expiry-date"                                
+                                style="margin:0 0.5rem; padding:0; transform:translate(0,-2px);"
+                                variant="trasparant">
+                                <b-icon-arrow-repeat scale="1.2" :animation="refresh? 'spin': 'none'" class="text-success m-0 p-0"/>
+                            </b-button> 
+                        </label>
                         <b-form-datepicker
                             tabindex="5"
                             disabled
-                            class="mb-1 mt-0 pt-0"
+                            style="margin:-.2rem 0 .5rem 0;"
+                            class="pt-0"
                             size="sm"
                             v-model="selectedExpiryDate"
                             placeholder="Expiry Date"
@@ -261,6 +270,7 @@
         selectedComment = '';
 
         addTime = false;
+        refresh = false;
 
         formDataId = 0;
         showCancelWarning = false;
@@ -471,13 +481,27 @@
 			return value.slice(0,100);
 		}
 
+        refreshExpiryDate(){
+            this.refresh = true;
+            this.setExpiryDate()
+            setTimeout(() => this.refresh = false, 500)
+        }
+
+        public isRotatingTraining(trainingType){
+            const yearsInDays = [365, 730, 1095, 1461, 1826, 2191, 2556, 2922, 3287, 3652]; 
+            return trainingType.rotating || !yearsInDays.includes(trainingType.validityPeriod);               
+        }
+
         public setExpiryDate() {
             Vue.nextTick(() => {
-                if(this.selectedEndDate && this.selectedTrainingType?.validityPeriod){
-                    console.log(this.selectedTrainingType.validityPeriod)
-                    this.selectedExpiryDate = moment(this.selectedEndDate)
-                    .add(this.selectedTrainingType.validityPeriod, 'days')
-                    .format("YYYY-MM-DD")
+                const timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
+                if(this.selectedEndDate && this.selectedTrainingType?.validityPeriod){                    
+                    if(!this.isRotatingTraining(this.selectedTrainingType)){
+                        const years = Math.floor(this.selectedTrainingType.validityPeriod /365) -1;
+                        this.selectedExpiryDate = moment.tz(this.selectedEndDate, timezone).endOf('year').add(years,'year').format();
+                    }else{
+                        this.selectedExpiryDate = moment.tz(this.selectedEndDate, timezone).add(this.selectedTrainingType.validityPeriod, 'days').format();
+                    }
                 }else{
                     this.selectedExpiryDate = ''
                 }
@@ -489,8 +513,11 @@
 <style scoped>
     td {
         margin: 0rem 0.5rem 0.1rem 0rem;
-        padding: 0rem 0.5rem 0.1rem 0rem;
-        
+        padding: 0rem 0.5rem 0.1rem 0rem;        
         background-color: white ;
+    }
+    .refresh-expiry-date:focus{       
+        outline: none !important;
+        box-shadow: none;
     }
 </style>

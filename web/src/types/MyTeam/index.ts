@@ -117,3 +117,17 @@ export interface trainingReportInfoType {
     sheriffId?: string;
     status?: string;
 }
+
+export interface trainingStatusCardInfoType { 
+    danger: trainingReportInfoType[]; 
+    alert: trainingReportInfoType[];
+    warning: trainingReportInfoType[];
+    notify: trainingReportInfoType[]; 
+};
+
+export interface trainingStatusInfoType { 
+    danger: string; 
+    alert: string;
+    warning: string;
+    notify: string; 
+};

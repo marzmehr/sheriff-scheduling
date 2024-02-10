@@ -15,7 +15,7 @@
                     <div style="font-size: 6pt; border: none; line-height: 0.55rem;" class="m-0 p-0" v-for="duty,inx in sortEvents(sheriffEvent.duties)" :key="'duty-name-'+inx+'-'+duty.startTime">                                
                         <div :style="'color: ' + duty.color">
                             <b v-if="duty.isOvertime">*</b>                            
-                            <b> {{duty.startTime}}-{{duty.endTime}}</b>  
+                            <b v-if="includeTime"> {{duty.startTime}}-{{duty.endTime}}</b>  
                             <span v-if="duty.dutyType!='Training' && duty.dutyType!='Leave' && duty.dutyType!='Loaned'" > {{duty.dutySubType}} </span>
                             {{ duty.dutyType | getTypeAbrv }}
                         </div>                            
@@ -74,6 +74,9 @@
 
         @Prop({required: true})
         scheduleInfo!: manageAssignmentsScheduleInfoType[];
+
+        @Prop({required: true})
+        includeTime!: boolean;
 
         @commonState.State
         public location!: locationInfoType;

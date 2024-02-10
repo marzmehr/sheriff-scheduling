@@ -39,10 +39,14 @@ namespace SS.Api.cronjobs
                 Logger.LogInformation(training.Sheriff.Email);
                 
                 if(training.TrainingCertificationExpiry < noticeDate){
-                    var emailBody = GetEmailBody(training);
+
+                    bool rotatingTraining = TrainingService.IsRotatingTraining(training.TrainingType);
+                    var emailBody = rotatingTraining? GetEmailRotatingBody(training) : GetEmailEndOfYearBody(training);
+                    var emailTitle = rotatingTraining? "Training Expiry Notice" : "Training Requalification Notice"; 
+
                     var emailSent = await ChesEmailService.SendEmail(
                         emailBody,
-                        "Training Expiry Notice", 
+                        emailTitle, 
                         training.Sheriff.Email
                     );
                     if(emailSent)
@@ -52,13 +56,25 @@ namespace SS.Api.cronjobs
             Logger.LogInformation("CronJob Done");            
         }
 
-        public string GetEmailBody(SheriffTraining training)
+        public string GetEmailRotatingBody(SheriffTraining training)
         {
             var expiryDate = training.TrainingCertificationExpiry.Value.ToString("MMMM dd, yyyy");
             var emailBody = 
-                $"Dear {training.Sheriff.FirstName} {training.Sheriff.LastName}, \n"+
+                $"Dear {training.Sheriff.FirstName} {training.Sheriff.LastName}, \n\n"+
                 $"Your \'{training.TrainingType.Code}\' certification will expire on \'{expiryDate}\'. \n"+
                 "Please ensure your certification is renewed before this date.";
+            
+            return emailBody;
+        }
+
+        public string GetEmailEndOfYearBody(SheriffTraining training)
+        {            
+            var expiryYear = training.TrainingCertificationExpiry.Value.AddDays(-1).AddYears(1).ToString("yyyy");
+            var emailBody = 
+                $"Dear {training.Sheriff.FirstName} {training.Sheriff.LastName}, \n\n"+
+                $"Your \'{training.TrainingType.Code}\' certification will require renewal for the calendar year \'{expiryYear}\'. \n"+
+                $"Please ensure you renew your certification between January 1st and December 31, {expiryYear}. \n\n" +
+                "It is recommended to schedule training early in the year to ensure end of year compliance.";
             
             return emailBody;
         }
