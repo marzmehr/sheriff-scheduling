@@ -1,5 +1,7 @@
 import {} from '../common';
+import { manageAssignmentsScheduleInfoType } from '../DutyRoster';
 import {} from '../DutyRoster/jsonTypes/index';
+import { actingRankJsontype } from '../MyTeam/jsonTypes';
 
 export interface shiftInfoType {
     id: number;
@@ -25,6 +27,7 @@ export interface editedShiftInfoType {
 export interface distributeTeamMemberInfoType {        
     sheriffId: string;
     name: string;
+    email: string;
 }
 
 export interface weekShiftInfoType {
@@ -126,8 +129,22 @@ export interface weekScheduleInfoType {
 export interface distributeScheduleInfoType {
     sheriffId: string;
     conflicts: scheduleInfoType[];
+    sheriffEvent?: manageAssignmentsScheduleInfoType;
     name: string;
     homeLocation: string;
+    rank: string;
+    badgeNumber: string;
+    actingRank: actingRankJsontype[];    
+}
+
+export interface dailyDistributeScheduleInfoType {
+    sheriffId: string;    
+    sheriffEvent: manageAssignmentsScheduleInfoType;
+    name: string;
+    homeLocation: string;
+    rank: string;
+    badgeNumber: string;
+    actingRank: actingRankJsontype[];    
 }
 
 export interface scheduleInfoType {
@@ -138,7 +155,45 @@ export interface scheduleInfoType {
     startTime:string;
     endTime:string;
     type: string;
-    subType?: string;
+    subType?: string;    
+    duties?: distributeScheduleDutyInfoType[];
     workSection: string; 
     workSectionColor: string;
+    fullday?: boolean;
+    overtime?: number; 
+}
+
+export interface distributeScheduleDutyInfoType {    
+    startTime?: string;
+    endTime?: string;
+    dutyType: string;
+    dutySubType: string;
+    color: string;
+    dutyNotes?: string; 
+    assignmentNotes?: string;   
+}
+
+export interface actingRankInfoType {    
+    startTime:string;
+    endTime:string;
+    rank: string;
+}
+
+export interface sheriffPagesInfoType {    
+    start:number;
+    end:number;
+}
+
+export interface sentEmailContentInfoType {
+    attachments: string;
+    body: string;
+    from: string;
+    subject: string;
+    to: string;
+}
+
+export interface selectShiftInfoType {
+    id: string;
+    sheriff: string;
+    date: string;
 }

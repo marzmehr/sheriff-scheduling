@@ -11,6 +11,11 @@ namespace SS.Api.models.dto
         public DateTimeOffset? EffectiveDate { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public int? LocationId { get; set; }
+        public bool? Mandatory { get; set; }
+        public bool? Rotating { get; set; }
+        public int? ValidityPeriod { get; set; }
+        public string? Category { get; set; }
+        public int? AdvanceNotice { get; set; }
         public AddLookupSortOrderDto SortOrderForLocation { get; set; }
     }
 }

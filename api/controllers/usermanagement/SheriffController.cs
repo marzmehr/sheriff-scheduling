@@ -32,15 +32,17 @@ namespace SS.Api.controllers.usermanagement
         private ShiftService ShiftService { get; }
         private DutyRosterService DutyRosterService { get; }
         private SheriffDbContext Db { get; }
+        private TrainingService TrainingService { get; }
 
         // ReSharper disable once InconsistentNaming
         private readonly long _uploadPhotoSizeLimitKB;
 
-        public SheriffController(SheriffService sheriffService, DutyRosterService dutyRosterService, ShiftService shiftService, UserService userUserService, IConfiguration configuration, SheriffDbContext db) : base(userUserService)
+        public SheriffController(SheriffService sheriffService, DutyRosterService dutyRosterService, ShiftService shiftService, UserService userUserService,TrainingService trainingService, IConfiguration configuration, SheriffDbContext db) : base(userUserService)
         {
             SheriffService = sheriffService;
             ShiftService = shiftService;
             DutyRosterService = dutyRosterService;
+            TrainingService = trainingService;
             Db = db;
             _uploadPhotoSizeLimitKB = Convert.ToInt32(configuration.GetNonEmptyValue("UploadPhotoSizeLimitKB"));
         }
@@ -152,6 +154,15 @@ namespace SS.Api.controllers.usermanagement
             if (!fileBytes.IsImage()) return BadRequest("The uploaded file was not a valid GIF/JPEG/PNG.");
 
             var sheriff = await SheriffService.UpdateSheriffPhoto(id, badgeNumber, fileBytes);
+            return Ok(sheriff.Adapt<SheriffDto>());
+        }
+
+        [HttpPut]
+        [Route("updateExcused")]
+        [PermissionClaimAuthorize(perm: Permission.GenerateReports)]        
+        public async Task<ActionResult<SheriffDto>> UpdateExcused(Sheriff excusedSheriff)
+        {
+            var sheriff = await SheriffService.UpdateSheriffExcused(excusedSheriff);
             return Ok(sheriff.Adapt<SheriffDto>());
         }
 
@@ -267,6 +278,28 @@ namespace SS.Api.controllers.usermanagement
         }
 
         #endregion SheriffLeave
+
+        #region SheriffTrainingReports
+
+        [HttpPost]
+        [Route("training/reports")]
+        [PermissionClaimAuthorize(perm: Permission.GenerateReports)]
+        public async Task<ActionResult<TrainingReportDto>> GetSheriffsTrainingReports(TrainingReportSearchDto trainingReportSearch)
+        {
+            var sheriffs = await TrainingService.GetSheriffsTrainingReports(trainingReportSearch);
+            return Ok(sheriffs.Adapt<List<TrainingReportDto>>());
+        }
+
+        [HttpGet]
+        [Route("training/adjust-expiry")]
+        [PermissionClaimAuthorize(perm: Permission.AdjustTrainingExpiry)]
+        public async Task<ActionResult> TrainingExpiryAdjustment()
+        {
+            await TrainingService.TrainingExpiryAdjustment();
+            return Ok(new { result = "success"});
+        }
+
+        #endregion SheriffTrainingReports
 
         #region SheriffTraining
 

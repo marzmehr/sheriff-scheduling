@@ -58,8 +58,8 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import { localTimeInfoType, commonInfoType } from '../../types/common';
-    import { dutyRangeInfoType, myTeamShiftInfoType} from '../../types/DutyRoster';
+    import { localTimeInfoType, commonInfoType } from '@/types/common';
+    import { dutyRangeInfoType, myTeamShiftInfoType} from '@/types/DutyRoster';
     
     @Component({
         components: {

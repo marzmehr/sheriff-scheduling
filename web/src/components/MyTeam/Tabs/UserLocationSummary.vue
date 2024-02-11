@@ -54,10 +54,12 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import {loanedLocationInfoType} from '../../../types/MyTeam';
-    import {awayLocationsJsontype} from '../../../types/MyTeam/jsonTypes';
-    import {locationInfoType} from '../../../types/common';
     import { namespace } from 'vuex-class';
+
+    import {loanedLocationInfoType} from '@/types/MyTeam';
+    import {awayLocationsJsontype} from '@/types/MyTeam/jsonTypes';
+    import {locationInfoType} from '@/types/common';
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 

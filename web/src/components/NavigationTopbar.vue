@@ -23,6 +23,7 @@
 				<b-nav-item-dropdown text="Duty Roster" dropdown :disabled="!hasPermissionToViewDutyRosterPage">
                     <b-dropdown-item to="/manage-duty-roster">Manage Duties</b-dropdown-item>
                     <b-dropdown-item to="/view-duty-roster">View Duties</b-dropdown-item>
+                    <b-dropdown-item to="/manage-assignments" :disabled="!hasPermissionToViewSchedulePages">Manage Assignments</b-dropdown-item>
                 </b-nav-item-dropdown>
                 <b-nav-item-dropdown text="Shift Schedule" dropdown :disabled="!hasPermissionToViewSchedulePages">
                     <b-dropdown-item v-if="hasPermissionToViewManageSchedule" to="/manage-shift-schedule">Manage Schedule</b-dropdown-item>
@@ -61,6 +62,7 @@
                         <b-icon-person-circle></b-icon-person-circle>
                     </template>
                     <b-dropdown-text class="text-primary"><b-icon-person/> {{userDetails.firstName}} {{userDetails.lastName}}</b-dropdown-text>
+                    <b-dropdown-item-button variant="success" @click="dashboard()"><b-icon-display/> Dashboard</b-dropdown-item-button>
                     <b-dropdown-item-button variant="danger" @click="signout()"><b-icon-box-arrow-right/> Sign out</b-dropdown-item-button>
                 </b-nav-item-dropdown>
 			</b-navbar-nav>
@@ -72,7 +74,7 @@
 	import { Component, Vue} from 'vue-property-decorator';
 	import { namespace } from "vuex-class";
 	import "@store/modules/CommonInformation";  
-	import {commonInfoType, locationInfoType, userInfoType} from '../types/common';  
+	import {commonInfoType, locationInfoType, userInfoType} from '@/types/common';  
 	const commonState = namespace("CommonInformation");
     import store from "@/store";
 
@@ -160,6 +162,11 @@
             store.commit('CommonInformation/setTokenExpiry','');
             Vue.$cookies.set("logout","1",)
             window.location.replace(`${process.env.BASE_URL}api/auth/logout`);            
+        }
+
+        public dashboard(){
+            if(this.$route.path!='/' )
+                this.$router.push({path:'/'})
         }
 
 	}
