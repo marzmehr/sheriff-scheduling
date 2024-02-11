@@ -12,5 +12,13 @@ namespace SS.Api.helpers
                 ? throw new ConfigurationException($"Configuration '{key}' is invalid or missing.")
                 : configurationValue;
         }
+
+        public static string GetBoolValue(this IConfiguration configuration, string key)
+        {
+            var configurationValue = configuration.GetValue<string>(key);
+            return string.IsNullOrEmpty(configurationValue)
+                ? "false"
+                : configurationValue;
+        }
     }
 }

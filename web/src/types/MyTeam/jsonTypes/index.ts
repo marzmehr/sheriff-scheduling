@@ -171,3 +171,11 @@ export interface userLocationJsonType {
   timezone : string;
   concurrencyToken : number;
 }
+
+export interface userEventsInfoType {
+  name: string;
+  type: string;
+  start: string;
+  end?: string;
+  comment?: string;
+}

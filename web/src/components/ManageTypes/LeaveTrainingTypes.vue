@@ -30,7 +30,9 @@
 
         <loading-spinner v-if= "!isLeaveTrainingDataMounted" />
 
-        <b-card v-else no-body style="width: 50rem; margin: 0 auto 8rem auto">                                        
+        <b-card v-else no-body 
+            :style="{width:(selectedLeaveTrainingType.name=='LeaveType'?'40rem':'75rem'), margin:'0 auto 8rem auto'}"
+            >
             <b-card id="LeaveTrainingError" no-body>
                 <h2 v-if="leaveTrainingError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="leaveTrainingErrorMsgDesc"  variant="danger"> {{leaveTrainingErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveTrainingError = false" /></b-badge></h2>
             </b-card>
@@ -46,15 +48,15 @@
             </div>
 
             <div>
-                <b-card no-body border-variant="white" bg-variant="white" v-if="!leaveTrainingList.length" style="width: 50rem; margin: 0 auto 8rem auto">
+                <b-card no-body border-variant="white" bg-variant="white" v-if="!leaveTrainingList.length" style="margin: 0 auto 8rem auto">
                     <span class="text-muted ml-4 my-5">No {{selectedLeaveTrainingType.label}}s exist.</span>
                 </b-card>
 
-                <b-card v-else  no-body border-variant="light" bg-variant="white" style="width: 50rem; margin: 0 auto 8rem auto">
+                <b-card v-else  no-body border-variant="light" bg-variant="white" style="margin: 0 auto 8rem auto">
                     <b-table
                         :key="updateTable"
                         :items="leaveTrainingList"
-                        :fields="fields"                        
+                        :fields="selectedLeaveTrainingType.name=='LeaveType'?fields:trainingFields"                        
                         sort-icon-left
                         head-row-variant="primary"
                         :striped="!expiredViewChecked"
@@ -66,6 +68,9 @@
                             <template v-slot:table-colgroup>
                                 <col style="width:4rem">
                                 <col>
+                                <!-- <col>
+                                <col>
+                                <col> -->
                                 <col style="width:6rem">
                             </template>
                                               
@@ -75,6 +80,24 @@
 
                             <template v-slot:cell(sortOrder)= "data" >
                                 <span v-if="!data.item['_rowVariant']"><b-icon class="handle ml-3" icon="arrows-expand"/></span> 
+                            </template>
+
+                            <template v-slot:cell(validityPeriod)="data">
+                                <span style="font-size:12pt;">{{validityYears(data.value)}}</span>
+                                <span style="font-size:9pt; color:#777777;"><i>{{validityYearsTxt(data.value)}}</i></span>
+                            </template>
+
+                            <template v-slot:cell(advanceNotice)="data">
+                                <span style="font-size:12pt;">{{data.value}}</span>
+                                <span v-if="data.value" style="font-size:9pt; color:#777777;"><i> days</i></span>
+                            </template>
+
+                            <template v-slot:cell(mandatory)="data">
+                                <b-checkbox v-model="data.value" disabled/>
+                            </template>
+
+                            <template v-slot:cell(rotating)="data">
+                                <b-checkbox v-model="data.value" disabled/>
                             </template>
 
                             <template v-slot:cell(edit)="data" >                                       
@@ -142,15 +165,18 @@
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
     import moment from 'moment-timezone';
+    import * as _ from 'underscore';
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
     import "@store/modules/ManageTypesInformation";
     const manageTypesState = namespace("ManageTypesInformation");
+
     import PageHeader from "@components/common/PageHeader.vue"; 
-    import AddLeaveTrainingForm from "../ManageTypes/AddLeaveTrainingForm.vue"
-    import {locationInfoType, userInfoType} from '../../types/common'; 
-    import {leaveTrainingTypeInfoType}  from '../../types/ManageTypes/index'
-    import * as _ from 'underscore';
+    import AddLeaveTrainingForm from "../ManageTypes/AddLeaveTrainingForm.vue";
+    import {locationInfoType, userInfoType} from '@/types/common'; 
+    import {leaveTrainingTypeInfoType}  from '@/types/ManageTypes/index';
+
     import sortLeaveTrainingType from './utils/sortLeaveTrainingType';
     
     @Component({
@@ -211,11 +237,21 @@
             {name:'TrainingType', label:'Training'}
         ]
 
-        fields =  
-        [     
+        fields = [     
             {key:'sortOrder', label:'', sortable:false, tdClass: 'border-top' },       
             {key:'code', label:'', sortable:false, tdClass: 'border-top'  },
             {key:'edit', label:'',  sortable:false, tdClass: 'border-top', thClass:'',},       
+        ];
+
+        trainingFields = [     
+            {key:'sortOrder',      label:'',                   sortable:false, tdClass: 'border-top',             thClass:'',                         thStyle:'width:2%;' },       
+            {key:'code',           label:'Training',           sortable:false, tdClass: 'border-top',             thClass:'align-middle',             thStyle:'width:30%;'},
+            {key:'validityPeriod', label:'Validity',    sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'line-height:1.2rem; width:10%;'},
+            {key:'mandatory',      label:'Mandatory',          sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'width:10%;'},
+            {key:'advanceNotice',label:'Advance Notice',sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'line-height:1.2rem; width:15%;'},
+            {key:'rotating',       label:'Rotating',           sortable:false, tdClass: 'text-center border-top', thClass:'text-center align-middle', thStyle:'width:8%;'},
+            {key:'category',       label:'Category',           sortable:false, tdClass: 'border-top',             thClass:'align-middle',             thStyle:'width:17%;'},
+            {key:'edit',           label:'',                   sortable:false, tdClass: 'border-top',             thClass:'',                         thStyle:'width:8%;'},
         ];
 
         @Watch('sortingLeaveTrainingInfo', { immediate: true })
@@ -283,6 +319,11 @@
                 const leaveTraining = {} as leaveTrainingTypeInfoType;
                 leaveTraining.id = leaveTrainingJson.id;
                 leaveTraining.code = leaveTrainingJson.code;
+                leaveTraining.validityPeriod = leaveTrainingJson.validityPeriod? leaveTrainingJson.validityPeriod: ''
+                leaveTraining.advanceNotice = leaveTrainingJson.advanceNotice? leaveTrainingJson.advanceNotice : ''
+                leaveTraining.category = leaveTrainingJson.category
+                leaveTraining.mandatory = leaveTrainingJson.mandatory
+                leaveTraining.rotating = leaveTrainingJson.rotating
                 
                 leaveTraining['_rowVariant'] = '';
                 let sortOrderOffset = 0;
@@ -347,7 +388,7 @@
             }else
             {
                 this.addNewLeaveTrainingForm = true;
-                this.$nextTick(()=>{location.href = '#addLeaveTrainingForm';})
+                // this.$nextTick(()=>{location.href = '#addLeaveTrainingForm';})
             }
         }
 
@@ -411,7 +452,7 @@
                     else
                         this.modifyLeaveTrainingList(response.data);
                     
-                    this.closeLeaveTrainingForm();
+                    this.getLeaveTraining();
                 }, err=>{
                     const errMsg = err.response.data.error;
                     this.leaveTrainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
@@ -473,6 +514,22 @@
                 this.expiredViewChecked = false;
                 this.getLeaveTraining();
             }
+        }
+        
+        yearsInDays = [365, 730, 1095, 1461, 1826, 2191, 2556, 2922, 3287, 3652];
+        
+        public validityYears(validityPeriod){            
+            if(this.yearsInDays.includes(validityPeriod))
+                return Math.floor(validityPeriod/365)
+            else 
+                return validityPeriod
+        }
+
+        public validityYearsTxt(validityPeriod){            
+            if(this.yearsInDays.includes(validityPeriod))
+                return ' Year'+(Math.floor(validityPeriod/365)>1?'s':'')
+            else 
+                return (validityPeriod? ' days': '')
         }
     
 }

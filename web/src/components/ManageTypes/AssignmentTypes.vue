@@ -147,17 +147,22 @@
 
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
-    import { namespace } from 'vuex-class';
-    import "@store/modules/CommonInformation";
+    import { namespace } from 'vuex-class';    
     import moment from 'moment-timezone';
+    import * as _ from 'underscore';
+
+    import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
+
     import "@store/modules/ManageTypesInformation";
     const manageTypesState = namespace("ManageTypesInformation");
+
     import PageHeader from "@components/common/PageHeader.vue"; 
-    import AddAssignmentForm from "../ManageTypes/AddAssignmentForm.vue"
-    import {locationInfoType, userInfoType} from '../../types/common'; 
-    import {assignmentTypeInfoType}  from '../../types/ManageTypes/index'
-    import * as _ from 'underscore';
+    import AddAssignmentForm from "../ManageTypes/AddAssignmentForm.vue";
+    
+    import {locationInfoType, userInfoType} from '@/types/common'; 
+    import {assignmentTypeInfoType}  from '@/types/ManageTypes/index';
+
     import sortAssignmentType from './utils/sortAssignmentType';
     
     @Component({
@@ -218,7 +223,7 @@
             {name:'CourtRoom', label:'Court Room'},
             {name:'CourtRole', label:'Court Assignment'},
             {name:'JailRole', label:'Jail Assignment'},
-            {name:'EscortRun', label:'Escort Assignment'},
+            {name:'EscortRun', label:'Transport Assignment'},
             {name:'OtherAssignment', label:'Other Assignment'},
         ]
 

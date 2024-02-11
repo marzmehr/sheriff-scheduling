@@ -57,7 +57,7 @@
    
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-    import { commonInfoType, locationInfoType } from '../../types/common';
+    import { commonInfoType, locationInfoType } from '@/types/common';
    
     import moment from 'moment-timezone';
     import * as _ from 'underscore';

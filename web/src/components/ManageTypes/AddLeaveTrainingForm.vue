@@ -3,8 +3,8 @@
         <b-table-simple small borderless>
             <b-tbody>
                 <b-tr>
-                    <b-td>
-                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 18rem">
+                    <b-td style="width:29%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;">
                             <label class="h6 ml-1 mb-0 pb-0" > {{type}}: </label> 
                             <b-form-input
                                 size = "sm"
@@ -14,16 +14,67 @@
                                 :state = "leaveTrainingState?null:false">                                           
                             </b-form-input>
                         </b-form-group>           
-                    </b-td>                    
-                    <b-td >
+                    </b-td>
+                    <b-td v-if="type == 'Training'" style="width:15%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0rem;">
+                            <label class="h6 ml-1 mb-0 pb-0" > Validity: </label> 
+                            <b-form-select
+                                size = "sm"
+                                :options="trainingValidityPeriod"
+                                v-model="selectedTrainingValidityPeriod">
+                            </b-form-select>
+                        </b-form-group>           
+                    </b-td>
+                    <b-td v-if="type == 'Training'" style="width:9%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0rem;">
+                            <label class="h6 ml-1 mb-0 pb-0" > Mandatory: </label> 
+                            <b-form-checkbox
+                                class="text-center"
+                                size = "lg"                                
+                                v-model="selectedTrainingMandatory">                                                                 
+                            </b-form-checkbox>
+                        </b-form-group>           
+                    </b-td>
+                    <b-td v-if="type == 'Training'" style="width:15%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0rem;">
+                            <label class="h6 ml-1 mb-0 pb-0" > Advance Notice: </label> 
+                            <b-form-select
+                                size = "sm"
+                                :options="trainingAdvanceNotice"                                
+                                v-model="selectedTrainingAdvanceNotice">                                                                   
+                            </b-form-select>
+                        </b-form-group>           
+                    </b-td>
+                    <b-td v-if="type == 'Training'" style="width:7%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0rem;">
+                            <label class="h6 ml-1 mb-0 pb-0" > Rotating: </label> 
+                            <b-form-checkbox
+                                class="text-center"
+                                size = "lg"                                
+                                v-model="selectedTrainingRotating">                                                                 
+                            </b-form-checkbox>
+                        </b-form-group>           
+                    </b-td>
+                    <b-td v-if="type == 'Training'" style="width:10%;">
+                        <b-form-group style="margin: 0.25rem 0 0 0rem;">
+                            <label class="h6 ml-1 mb-0 pb-0" > Category: </label> 
+                            <b-form-select
+                                size = "sm"
+                                :options="trainingCategory"
+                                v-model="selectedTrainingCategory">
+                            </b-form-select>
+                        </b-form-group>
+                    </b-td>
+
+                    <b-td style="width:15%;" >
                         <b-button                                    
-                            style="margin: 1.5rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
+                            style="margin: 1.9rem .5rem 0 1.2rem; padding:0 .5rem;"
                             variant="secondary"
                             @click="closeForm()">
                             Cancel
                         </b-button>   
                         <b-button                                    
-                            style="margin: 1.5rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
+                            style="margin: 1.9rem 0 0 0; padding:0 0.8rem; "
                             variant="success"                        
                             @click="saveForm()">
                             Save
@@ -72,10 +123,11 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {leaveTrainingTypeInfoType}  from '../../types/ManageTypes/index';
-    import {locationInfoType} from '../../types/common'; 
-    
     import { namespace } from 'vuex-class';
+    
+    import {leaveTrainingTypeInfoType}  from '@/types/ManageTypes/index';
+    import {locationInfoType} from '@/types/common';     
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
@@ -99,12 +151,52 @@
 
         originalLeaveTraining = '';
         selectedLeaveTraining = '';
+
+        trainingValidityPeriod = [
+            {value:'',   text:'One Time'},
+            {value:90,   text:'3 Months (90 days)'},
+            {value:180,  text:'6 Months (180 days)'},
+            {value:365,  text:'Annually (365 days)'},
+            {value:730,  text:'Every Two Years (730 days)'},
+            {value:1095, text:'Every Three Years (1095 days)'},
+            {value:1461, text:'Every Four Years (1461 days)'},
+            {value:1826, text:'Every Five Years (1826 days)'}
+        ];
+
+        trainingAdvanceNotice = [
+            {value:'',   text:'Not Required'},
+            {value:7,    text:'1 Week'},
+            {value:14,   text:'2 Weeks'},
+            {value:30,   text:'1 Month (30 days)'},
+            {value:60,   text:'2 Months (60 days)'},
+            {value:90,   text:'3 Months (90 days)'},            
+        ]
+
+        trainingCategory = [            
+            {value:'Provincial Standard', text:'Provincial Standard'},
+            {value:'Local', text:'Local'},
+            {value:'Branch', text:'Branch'},            
+        ];
+
+        
         leaveTrainingState = true;
 
         formDataId = 0;
         showCancelWarning = false;
-
         showSaveWarning = false;
+
+       
+        selectedTrainingValidityPeriod: number | ""= ""
+        selectedTrainingCategory = '';
+        selectedTrainingAdvanceNotice: number | ""= "";
+        selectedTrainingMandatory = true;
+        selectedTrainingRotating = false;
+       
+        originalTrainingValidityPeriod: number | ""= "";
+        originalTrainingCategory = '';
+        originalTrainingAdvanceNotice: number | ""= "";
+        originalTrainingMandatory = true;
+        originalTrainingRotating = false;
         
         mounted()
         { 
@@ -116,10 +208,15 @@
 
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:0;
-            this.originalLeaveTraining = this.selectedLeaveTraining = this.formData.code            
-            //console.log(this.formDataId)
-            //console.log(this.originalLeaveTraining)
-            // console.log(this.originalLocationScope)
+            this.originalLeaveTraining = this.selectedLeaveTraining = this.formData.code;
+            if (this.type == 'Training'){
+                this.originalTrainingValidityPeriod = this.selectedTrainingValidityPeriod = this.formData.validityPeriod? this.formData.validityPeriod : '';
+                this.originalTrainingAdvanceNotice = this.selectedTrainingAdvanceNotice = this.formData.advanceNotice? this.formData.advanceNotice:'';
+                this.originalTrainingCategory = this.selectedTrainingCategory = this.formData.category? this.formData.category:'';
+                this.originalTrainingMandatory = this.selectedTrainingMandatory = this.formData.mandatory?this.formData.mandatory:false;
+                this.originalTrainingRotating = this.selectedTrainingRotating = this.formData.rotating?this.formData.rotating:false;
+            }         
+            
         }
 
         public saveForm(){
@@ -136,13 +233,22 @@
                 this.leaveTrainingState  = false;
             }else{
                 this.leaveTrainingState  = true;
-                
+
                 const body = {
                     code: this.selectedLeaveTraining,
                     locationId: null,
                     id: this.formDataId,
                     sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
                 }
+
+                if (this.type == 'Training'){                    
+                    body['validityPeriod'] = this.selectedTrainingValidityPeriod
+                    body['mandatory'] = this.selectedTrainingMandatory
+                    body['rotating'] = this.selectedTrainingRotating
+                    body['advanceNotice'] = this.selectedTrainingAdvanceNotice
+                    body['category'] = this.selectedTrainingCategory
+                }              
+                
                 this.$emit('submit', body, this.isCreate);                  
             }
         }
@@ -156,11 +262,25 @@
 
         public isChanged(){
             if(this.isCreate){
+
                 if( this.selectedLeaveTraining) return true;
                 return false;
-            }else{
-                if(this.originalLeaveTraining != this.selectedLeaveTraining) return true;
-                return false;
+
+            } else {                
+                if (this.type == 'Training'){
+                    if( this.originalLeaveTraining != this.selectedLeaveTraining ||
+                        this.originalTrainingValidityPeriod != this.selectedTrainingValidityPeriod ||
+                        this.originalTrainingAdvanceNotice != this.selectedTrainingAdvanceNotice ||
+                        this.originalTrainingCategory != this.selectedTrainingCategory ||
+                        this.originalTrainingMandatory != this.selectedTrainingMandatory ||
+                        this.originalTrainingRotating != this.selectedTrainingRotating) {
+                        return true;
+                    } 
+                    return false;
+                } else {
+                    if(this.originalLeaveTraining != this.selectedLeaveTraining) return true;
+                    return false;
+                }                
             }
         }
 

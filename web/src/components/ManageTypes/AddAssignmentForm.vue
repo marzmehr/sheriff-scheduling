@@ -83,8 +83,8 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {assignmentTypeInfoType}  from '../../types/ManageTypes/index';
-    import {locationInfoType} from '../../types/common'; 
+    import {assignmentTypeInfoType}  from '@/types/ManageTypes/index';
+    import {locationInfoType} from '@/types/common'; 
     
     import { namespace } from 'vuex-class';
     import "@store/modules/CommonInformation";
