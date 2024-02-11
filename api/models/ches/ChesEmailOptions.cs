@@ -22,4 +22,12 @@ namespace SS.Api.models.ches
             SenderName.ThrowConfigurationExceptionIfNull($"{Position}:{SenderName}");
         }
     }
+
+    public class ChesEmailAttachment
+    {
+        public string content { get; set; }
+        public string contentType { get; set; }
+        public string encoding { get; set; }
+        public string filename { get; set; }
+    }
 }

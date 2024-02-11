@@ -57,10 +57,10 @@
                     /></b-badge>                    
                 </b-row> 
 
-                <b-row class="mx-1 my-3">
+                <b-row class="mx-0 my-3">
                     <b-form-group class="bg-light">
                         <b-row> 
-                            <label class="h6 ml-3 mr-5">Days<span class="text-danger">*</span></label>  
+                            <label class="h6" style="margin:0.2rem 0 0 1.1rem" >Days<span class="text-danger">*</span></label>  
                             <b-form-checkbox
                                 size="sm"
                                 class="ml-auto mr-4 text-jail"									
@@ -86,15 +86,15 @@
                                 v-for="day in dayOptions"
                                 :key="day.diff">
                                 <b-tr style="float:left">
-                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Unavailable" type="Unavailable" :index="day.diff" /></b-td>
-                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.AllShifts" type="Shift" :index="day.diff" /></b-td>
-                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Loaned" type="Loaned" :index="day.diff" /></b-td>
-                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Leave" type="Leave" :index="day.diff" /></b-td>                    
-                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Training" type="Training" :index="day.diff" /></b-td>                                
+                                    <b-td class="px-0"><conflicts-icon  :conflictsInfo="day.conflicts.Unavailable" type="Unavailable" :index="day.diff" /></b-td>
+                                    <b-td class="pr-0"><conflicts-icon  :conflictsInfo="day.conflicts.AllShifts" type="Shift" :index="day.diff" /></b-td>
+                                    <b-td class="px-0"><conflicts-icon  :conflictsInfo="day.conflicts.Loaned" type="Loaned" :index="day.diff" /></b-td>
+                                    <b-td class="px-0"><conflicts-icon  :conflictsInfo="day.conflicts.Leave" type="Leave" :index="day.diff" /></b-td>                    
+                                    <b-td class="px-0"><conflicts-icon  :conflictsInfo="day.conflicts.Training" type="Training" :index="day.diff" /></b-td>                                
                                 </b-tr>
                                 <b-tr>
                                     <b-td colspan="3" >
-                                        <b-form-checkbox style="width:3.32rem;"
+                                        <b-form-checkbox style="width:3.0rem;"
                                             @change="weekdaysChanged"                                            					
                                             :disabled="day.fullday"                                            
                                             :value="day.diff">
@@ -291,12 +291,17 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import { namespace } from "vuex-class";
+    import moment from 'moment-timezone';
+
     import "@store/modules/ShiftScheduleInformation";
     const shiftState = namespace("ShiftScheduleInformation");
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
+
     import "@store/modules/TeamMemberInformation";
     const TeamMemberState = namespace("TeamMemberInformation");
+
     import ConflictsIcon from './ConflictsIcon.vue'
     import LocationTab from '@/components/MyTeam/Tabs/LocationTab.vue';
     import LeaveTab from '@/components/MyTeam/Tabs/LeaveTab.vue';
@@ -305,9 +310,9 @@
     import IdentificationTab from '@/components/MyTeam/Tabs/IdentificationTab.vue';
     import RankTab from '@/components/MyTeam/Tabs/RankTab.vue'
     import UserSummaryTemplate from "@/components/MyTeam/Tabs/UserSummaryTemplate.vue";
-    import { dayOptionsInfoType, editedShiftInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '../../../types/ShiftSchedule';
-    import moment from 'moment-timezone';
-    import { locationInfoType, userInfoType } from '../../../types/common';
+
+    import { dayOptionsInfoType, editedShiftInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '@/types/ShiftSchedule';
+    import { locationInfoType, userInfoType } from '@/types/common';
     import { teamMemberInfoType } from '@/types/MyTeam';
 
     enum gender {'Male'=0, 'Female', 'Other'}

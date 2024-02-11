@@ -16,7 +16,7 @@
             :key="index+1000"
             :style="{gridColumnStart: (1+block.startBin),gridColumnEnd:(1+block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0, color:'white' }"
             v-b-tooltip.hover.bottom                             
-            :title="block.name +'-'+ block.code">
+            :title="block.code">
                 <div class="text" :style="{textTransform: 'capitalize', margin:fullview?'0.2rem 0 0 0':'0', padding:'0', fontSize: fullview?'15px':'13px', transform:'translate(0,-4px)'}">
                     {{getBlockTitle(block.name,block.code,(block.endTime - block.startTime-1)*2)}}
                 </div>                
@@ -26,14 +26,13 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import { myTeamShiftInfoType} from '../../../types/DutyRoster';
+    import { myTeamShiftInfoType} from '@/types/DutyRoster';
     
     import { namespace } from "vuex-class";
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
     import * as _ from 'underscore';
-    import moment from 'moment-timezone';
 
     @Component
     export default class SheriffAvailabilityCard extends Vue {
@@ -54,7 +53,7 @@
         styleFullview = "text-transform: capitalize; margin-top:1rem; padding: 0; font-size: 16px;"
 
         public getBlockTitle(name,code,len){
-           return Vue.filter('truncate')( name+'-'+code,len)
+           return Vue.filter('truncate')( code,len)
         }
 
     }

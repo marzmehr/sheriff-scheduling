@@ -99,15 +99,17 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
-import {teamMemberInfoType} from '../../../types/MyTeam';
-import {commonInfoType, locationInfoType, userInfoType} from '../../../types/common';
 import * as _ from 'underscore';
-
 import { namespace } from 'vuex-class';
+
 import "@store/modules/CommonInformation";
 const commonState = namespace("CommonInformation"); 
+
 import "@store/modules/TeamMemberInformation";
 const TeamMemberState = namespace("TeamMemberInformation");
+
+import {teamMemberInfoType} from '@/types/MyTeam';
+import {commonInfoType, locationInfoType, userInfoType} from '@/types/common';
 
 enum gender {'Male'=0, 'Female', 'Other'}
 
