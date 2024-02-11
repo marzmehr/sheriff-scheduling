@@ -15,6 +15,11 @@ namespace SS.Api.models.dto.generated
         public DateTimeOffset? ExpiryDate { get; set; }
         public LocationDto Location { get; set; }
         public int? LocationId { get; set; }
+        public bool Mandatory { get; set; }
+        public int ValidityPeriod { get; set; }
+        public string Category { get; set; }
+        public int AdvanceNotice { get; set; }
+        public bool Rotating { get; set; }
         public uint ConcurrencyToken { get; set; }
         public LookupSortOrderDto SortOrderForLocation { get; set; }
     }

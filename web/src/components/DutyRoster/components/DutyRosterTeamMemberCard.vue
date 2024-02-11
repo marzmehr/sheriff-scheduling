@@ -209,9 +209,9 @@
     import RankTab from '@/components/MyTeam/Tabs/RankTab.vue'
     import UserSummaryTemplate from "@/components/MyTeam/Tabs/UserSummaryTemplate.vue";
     
-    import { locationInfoType, userInfoType } from '../../../types/common';
-    import { dutyRangeInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
-    import { teamMemberInfoType } from '../../../types/MyTeam';
+    import { locationInfoType, userInfoType } from '@/types/common';
+    import { dutyRangeInfoType, myTeamShiftInfoType } from '@/types/DutyRoster';
+    import { teamMemberInfoType } from '@/types/MyTeam';
 
     enum gender {'Male'=0, 'Female', 'Other'}
 

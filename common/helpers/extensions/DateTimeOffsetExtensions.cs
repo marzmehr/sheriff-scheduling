@@ -40,6 +40,15 @@ namespace SS.Common.helpers.extensions
             return zoned.ToDateTimeOffset();
         }
 
+        public static DateTimeOffset EndOfYearWithTimezone(this DateTimeOffset date, int yearOffset, string timezone)
+        { 
+            var endDate = new DateTime(date.Year+yearOffset, 12, 31, 23, 59, 59);
+            var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone];
+            var instant = Instant.FromDateTimeOffset(endDate);
+            var zoned = instant.InZone(locationTimeZone);
+            return zoned.ToDateTimeOffset();
+        }
+
         private static string GetTimezoneAbbreviation(DateTimeOffset date, string timezone)
         {
             var abbreviations = TZNames.GetAbbreviationsForTimeZone(timezone, "en-CA");

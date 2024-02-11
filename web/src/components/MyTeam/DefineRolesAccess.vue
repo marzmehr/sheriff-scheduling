@@ -94,7 +94,7 @@
                 <b-button                 
                   variant="success"
                   :disabled="!hasPermissionToEditRoles && editMode" 
-                  @click="saveRole('testing updates')"
+                  @click="saveRole()"
                 ><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
@@ -160,14 +160,16 @@
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
     import moment from 'moment-timezone';
+    import * as _ from 'underscore';
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-    import * as _ from 'underscore';    
+   
     import PageHeader from "@components/common/PageHeader.vue";  
-    import {userInfoType} from '../../types/common';
-    import {roleInfoType, permissionOptionInfoType} from '../../types/MyTeam';
-    import {roleJsonType} from '../../types/MyTeam/jsonTypes';
 
+    import {userInfoType} from '@/types/common';
+    import {roleInfoType, permissionOptionInfoType} from '@/types/MyTeam';
+    import {roleJsonType} from '@/types/MyTeam/jsonTypes';
 
     @Component({
         components: {

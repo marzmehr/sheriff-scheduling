@@ -139,6 +139,26 @@ namespace SS.Api.services
             return lookupCodes;
         }
 
+        public async Task<List<LookupCode>> GetAllForReports(int? id, LookupTypes? codeType, int? locationId, bool? mandatory, bool showExpired = false)
+        {
+            var lookupCodes = await Db.LookupCode.AsNoTracking()
+                .Include(lc => lc.SortOrder.Where(so => so.LocationId == locationId))
+                .Where(lc =>
+                    (id == null || lc.Id == id) &&
+                    (codeType == null || lc.Type == codeType) &&
+                    (locationId == null || lc.LocationId == null || lc.LocationId == locationId) &&
+                    (mandatory == null || lc.Mandatory == mandatory) &&
+                    (showExpired || lc.ExpiryDate == null))
+                .OrderBy(a => (int)a.Type)
+                .ThenBy(a => a.SortOrder.FirstOrDefault().SortOrder)
+                .ThenBy(a => a.Id)
+                .ToListAsync();
+
+            lookupCodes.ForEach(lc => lc.SortOrderForLocation = lc.SortOrder.FirstOrDefault());
+
+            return lookupCodes;
+        }
+        
         public async Task<LookupCode> Find(int id) => await Db.LookupCode.AsNoTracking().FirstOrDefaultAsync(lc => lc.Id == id);
         
         public async Task<LookupCode> Expire(int id)

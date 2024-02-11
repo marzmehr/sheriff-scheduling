@@ -29,8 +29,8 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import {userLeaveInfoType} from '../../../types/MyTeam';
-    import {leaveJsontype} from '../../../types/MyTeam/jsonTypes';
+    import {userLeaveInfoType} from '@/types/MyTeam';
+    import {leaveJsontype} from '@/types/MyTeam/jsonTypes';
 
     @Component
     export default class UserLeaveSummary extends Vue {       

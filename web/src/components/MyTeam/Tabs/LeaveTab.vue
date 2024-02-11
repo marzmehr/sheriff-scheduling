@@ -138,14 +138,18 @@
     import { Component, Vue } from 'vue-property-decorator';
     import moment from 'moment-timezone';    
     import { namespace } from 'vuex-class';
-    import AddLeaveForm from './AddForms/AddLeaveForm.vue'
+    
+    import AddLeaveForm from './AddForms/AddLeaveForm.vue';
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
+
     import "@store/modules/TeamMemberInformation";
     const TeamMemberState = namespace("TeamMemberInformation");
-    import {teamMemberInfoType, userLeaveInfoType} from '../../../types/MyTeam';
-    import {leaveInfoType, userInfoType} from '../../../types/common';
-    import { leaveTypeJson } from '../../../types/common/jsonTypes';
+
+    import {teamMemberInfoType, userLeaveInfoType} from '@/types/MyTeam';
+    import {leaveInfoType, userInfoType} from '@/types/common';
+    import { leaveTypeJson } from '@/types/common/jsonTypes';
 
     @Component({
         components: {
