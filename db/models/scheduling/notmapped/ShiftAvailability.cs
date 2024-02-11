@@ -12,23 +12,28 @@ namespace SS.Db.models.scheduling.notmapped
     {
         [NotMapped]
         public DateTimeOffset Start { get; set; }
+
         [NotMapped]
         public DateTimeOffset End { get; set; }
+
         [NotMapped]
         public List<ShiftAvailabilityConflict> Conflicts { get; set; }
+
         [NotMapped]
         public Sheriff Sheriff { get; set; }
+
         [NotMapped]
         public Guid? SheriffId { get; set; }
     }
 
+    [AdaptTo("[name]Dto")]
     public class ShiftAvailabilityConflict
     {
         public Guid? SheriffId { get; set; }
         public ShiftConflictType Conflict { get; set; }
         public DateTimeOffset Start { get; set; }
         public DateTimeOffset End { get; set; }
-        public int? LocationId { get; set;}
+        public int? LocationId { get; set; }
         public Location Location { get; set; }
         public int? ShiftId { get; set; }
         public string WorkSection { get; set; }
@@ -36,6 +41,8 @@ namespace SS.Db.models.scheduling.notmapped
         public double OvertimeHours { get; set; }
         public string SheriffEventType { get; set; }
         public string Comment { get; set; }
+
+        public ICollection<DutySlot> DutySlots { get; set; }
     }
 
     public enum ShiftConflictType
