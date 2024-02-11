@@ -346,12 +346,15 @@
 	import { Component, Vue, Prop, Emit } from 'vue-property-decorator';
 	import moment from 'moment-timezone';	
 	import { namespace } from "vuex-class";   
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
+
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
-    import { locationInfoType, userInfoType } from '../../../types/common';
-    import { assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '../../../types/DutyRoster';
+	
+    import { locationInfoType, userInfoType } from '@/types/common';
+    import { assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '@/types/DutyRoster';
 	
 	@Component
 	export default class DutyRosterHeader extends Vue {
@@ -448,7 +451,7 @@
 			{name:'CourtRoom', label:'Court Room'},
 			{name:'CourtRole', label:'Court Assignment'},
 			{name:'JailRole', label:'Jail Assignment'},
-			{name:'EscortRun', label:'Escort Assignment'},
+			{name:'EscortRun', label:'Transport Assignment'},
 			{name:'OtherAssignment', label:'Other Assignment'}
 		]
 

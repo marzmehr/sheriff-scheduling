@@ -277,8 +277,8 @@
     import * as _ from 'underscore';
     import moment from 'moment-timezone';
     import AddDutySlotWeekForm from './AddDutySlotWeekForm.vue'
-    import {dutyRangeInfoType, dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockWeekInfoType, myTeamShiftInfoType, selectedDutyCardInfoType, assignmentCardWeekInfoType } from '../../../types/DutyRoster';
-    import {localTimeInfoType, userInfoType} from '../../../types/common';
+    import {dutyRangeInfoType, dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockWeekInfoType, myTeamShiftInfoType, selectedDutyCardInfoType, assignmentCardWeekInfoType } from '@/types/DutyRoster';
+    import {localTimeInfoType, userInfoType} from '@/types/common';
     import SheriffModal from './SheriffModal.vue'
 
     import { namespace } from "vuex-class";
@@ -411,9 +411,16 @@
         }
 
         public getDutyName(){
-            if (this.dutyRosterInfo)
-                return Vue.filter('capitalize')(this.dutyRosterInfo.type.name +' - '+this.dutyRosterInfo.code) +' ('+this.dutyRosterInfo.name+')'; 
-            else return '';
+
+            let assignmentName = '';
+            if (this.dutyRosterInfo){                
+                if (this.dutyRosterInfo.name){
+                    assignmentName = Vue.filter('capitalize')(this.dutyRosterInfo.code) +' ('+this.dutyRosterInfo.name+')';
+                } else {
+                    assignmentName = Vue.filter('capitalize')(this.dutyRosterInfo.code);
+                }                
+            } 
+            return assignmentName;
         }
 
         

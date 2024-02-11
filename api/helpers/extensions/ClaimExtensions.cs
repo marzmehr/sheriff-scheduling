@@ -11,14 +11,14 @@ namespace SS.Api.helpers.extensions
         public static string GetValueByType(this IEnumerable<Claim> claims, string type) =>
             claims.FirstOrDefault(c => c.Type == type)?.Value;
 
-        public static string GetIdirUserName(this IEnumerable<Claim> claims) => 
-            claims.GetValueByType(CustomClaimTypes.IdirUserName).Replace("@idir", "");
+        public static string GetIdirUserName(this IEnumerable<Claim> claims) =>
+            claims.GetValueByType(CustomClaimTypes.IdirUserName).Replace("@idir", "").ToLower();
 
         public static Guid GetIdirId(this IEnumerable<Claim> claims) =>
             Guid.Parse(claims.GetValueByType(CustomClaimTypes.IdirId));
 
         public static Guid GetKeyCloakId(this IEnumerable<Claim> claims) =>
-            Guid.Parse(claims.GetValueByType(ClaimTypes.NameIdentifier));
+            Guid.Parse(claims.GetValueByType(ClaimTypes.NameIdentifier).Replace("@idir", ""));
 
         public static bool HasPermissions(this ClaimsPrincipal user, params string[] permissions) =>
             user.HasClaim(c => c.Type == CustomClaimTypes.Permission) && permissions.All(perm => user.HasClaim(CustomClaimTypes.Permission, perm));
@@ -42,8 +42,11 @@ namespace SS.Api.helpers.extensions
         public static string IdirId(this ClaimsPrincipal user) =>
             user.FindFirstValue(CustomClaimTypes.IdirId);
 
+        public static string Email(this ClaimsPrincipal user) =>
+             user.FindFirstValue(ClaimTypes.Email);
+
         public static string IdirUserName(this ClaimsPrincipal user) =>
-            user.FindFirstValue(CustomClaimTypes.IdirUserName).Replace("@idir","");
+            user.FindFirstValue(CustomClaimTypes.IdirUserName).Replace("@idir", "");
 
         public static Guid CurrentUserId(this ClaimsPrincipal user)
         {
@@ -52,6 +55,5 @@ namespace SS.Api.helpers.extensions
                 throw new InvalidOperationException("Missing UserId Guid from claims.");
             return userId;
         }
-
     }
 }

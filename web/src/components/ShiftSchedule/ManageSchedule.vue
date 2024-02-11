@@ -26,7 +26,7 @@
                             <schedule-card :sheriffId="data.item.myteam.sheriffId" :scheduleInfo=" data.value"/>
                         </template>
                         <template v-slot:cell(myteam) = "data" > 
-                            <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
+                            <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo="data.item.myteam" />
                         </template>
                 </b-table>
                 <div v-if="!isManageScheduleDataMounted && this.shiftSchedules.length == 0" style="min-height:115.6px;">
@@ -54,18 +54,23 @@
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from "vuex-class";
-    import ScheduleCard from './components/ScheduleCard.vue'
-    import TeamMemberCard from './components/TeamMemberCard.vue'
-    import ScheduleHeader from './components/ScheduleHeader.vue'
-    import "@store/modules/ShiftScheduleInformation";   
-    const shiftState = namespace("ShiftScheduleInformation");
-    import "@store/modules/CommonInformation";
-    const commonState = namespace("CommonInformation");
-    import { locationInfoType, commonInfoType } from '../../types/common';
-    import { sheriffAvailabilityInfoType, shiftRangeInfoType, weekShiftInfoType,conflictsInfoType } from '../../types/ShiftSchedule/index'
-    import { sheriffsAvailabilityJsonType } from '../../types/ShiftSchedule/jsonTypes';
     import moment from 'moment-timezone';
     import * as _ from 'underscore';
+
+    import ScheduleCard from './components/ScheduleCard.vue';
+    import TeamMemberCard from './components/TeamMemberCard.vue';
+    import ScheduleHeader from './components/ScheduleHeader.vue';
+
+    import "@store/modules/ShiftScheduleInformation";   
+    const shiftState = namespace("ShiftScheduleInformation");
+
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");
+
+    import { locationInfoType, commonInfoType } from '@/types/common';
+    import { sheriffAvailabilityInfoType, shiftRangeInfoType, weekShiftInfoType,conflictsInfoType } from '@/types/ShiftSchedule/index'
+    import { sheriffsAvailabilityJsonType } from '@/types/ShiftSchedule/jsonTypes';
+    
 
     @Component({
         components: {

@@ -164,6 +164,15 @@ namespace SS.Api.services.usermanagement
             return savedSheriff;
         }
 
+        public async Task<Sheriff> UpdateSheriffExcused(Sheriff sheriff)
+        {
+            var savedSheriff = await Db.Sheriff.FindAsync(sheriff.Id);
+            savedSheriff.ThrowBusinessExceptionIfNull($"No {nameof(Sheriff)} with Id: {sheriff.Id}");
+            savedSheriff.Excused = sheriff.Excused;            
+            await Db.SaveChangesAsync();
+            return savedSheriff;
+        }
+
         public async Task UpdateSheriffHomeLocation(Guid id, int locationId)
         {
             var savedSheriff = await Db.Sheriff.FindAsync(id);
@@ -329,6 +338,22 @@ namespace SS.Api.services.usermanagement
         #endregion Sheriff Leave
 
         #region Sheriff Training
+
+        public async Task<List<Sheriff>> GetSheriffsTraining()
+        {
+            var daysPrevious = int.Parse(Configuration.GetNonEmptyValue("DaysInPastToIncludeAwayLocationAndTraining"));
+            var minDateForAwayAndTraining = DateTimeOffset.UtcNow.AddDays(-daysPrevious);
+            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
+                        
+            var sheriffQuery = Db.Sheriff.AsNoTracking()
+                .AsSplitQuery()
+                .ApplyPermissionFilters(User, minDateForAwayAndTraining, sevenDaysFromNow, Db)
+                .Include(s => s.Training.Where(t => t.ExpiryDate == null))
+                .ThenInclude(t => t.TrainingType)
+                .Where(t => t.Training.Count > 0);
+
+            return await sheriffQuery.ToListAsync();
+        }
 
         public async Task<SheriffTraining> AddSheriffTraining(DutyRosterService dutyRosterService, ShiftService shiftService, SheriffTraining sheriffTraining, bool overrideConflicts)
         {

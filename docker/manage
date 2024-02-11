@@ -80,7 +80,7 @@ build-api() {
     -e "CORS_DOMAIN=http://localhost:8080" \
     -e "DOTNET_STARTUP_PROJECT=./api/api.csproj" \
     '..' \
-    'registry.centos.org/dotnet/dotnet-31-centos7' \
+    'registry.redhat.io/rhel8/dotnet-50' \
     'ss-api'
   echo -e "===================================================================================================="
 }
@@ -161,10 +161,13 @@ configureEnvironment () {
   export POSTGRESQL_USER=${POSTGRESQL_USER:-shersched}
   export POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD:-n05dmkFjio1GCUVY}
   export POSTGRESQL_ADMIN_PASSWORD=${POSTGRESQL_ADMIN_PASSWORD:-A?]qosqxBqNLdesFKWe}
-  
+  export TrainingNotification=${TrainingNotification:-"0 0/5 * * * ?"}
   # ss-web
   export API_URL=${API_URL-http://api:5000/api/}
   export WEB_BASE_HREF=${WEB_BASE_HREF-/sheriff-scheduling/}
+
+  # ss-pdf
+  export PdfUrl=${PdfUrl-http://pdf:5001}
 }
 
 getStartupParams() {

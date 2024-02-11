@@ -39,14 +39,14 @@
     const shiftState = namespace("ShiftScheduleInformation");
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-    import {conflictsInfoType, scheduleBlockInfoType} from '../../../types/ShiftSchedule/index'
+    import {conflictsInfoType, scheduleBlockInfoType} from '@/types/ShiftSchedule/index'
     import { userInfoType } from '@/types/common';
 
     @Component
     export default class ScheduleCard extends Vue {
 
         @Prop({required: true})
-        scheduleInfo!: conflictsInfoType;
+        scheduleInfo!: conflictsInfoType[];
 
         @Prop({required: true})
         sheriffId!: string;

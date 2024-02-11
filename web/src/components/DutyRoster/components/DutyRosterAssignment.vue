@@ -387,8 +387,8 @@
     import "@store/modules/DutyRosterInformation";   
 	const dutyState = namespace("DutyRosterInformation");
 	import * as _ from 'underscore';
-    import { localTimeInfoType, locationInfoType, userInfoType } from '../../../types/common';
-    import { assignmentCardInfoType, assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '../../../types/DutyRoster';
+    import { localTimeInfoType, locationInfoType, userInfoType } from '@/types/common';
+    import { assignmentCardInfoType, assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '@/types/DutyRoster';
 
     @Component
     export default class DutyRosterAssignment extends Vue {
@@ -470,7 +470,7 @@
 			{name:'CourtRoom', label:'Court Room'},
 			{name:'CourtRole', label:'Court Assignment'},
 			{name:'JailRole', label:'Jail Assignment'},
-			{name:'EscortRun', label:'Escort Assignment'},
+			{name:'EscortRun', label:'Transport Assignment'},
 			{name:'OtherAssignment', label:'Other Assignment'}
 		]
 
@@ -486,15 +486,15 @@
         deleteErrorMsgDesc = '';
 		deleteError = false;
 
-		errorText=''
+		errorText='';
 		openErrorModal=false;
 
-        mounted()
-        {
+        mounted(){
 			this.hasPermissionToEditAssignment = this.userDetails.permissions.includes("EditAssignments");
             this.hasPermissionToExpireAssignment = this.userDetails.permissions.includes("ExpireAssignments");    
             this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");    
-			this.assignmentTitle = Vue.filter('capitalize')(this.assignment.type.name) +'-' + this.assignment.code;
+			// this.assignmentTitle = Vue.filter('capitalize')(this.assignment.type.name) +'-' + this.assignment.code;
+			this.assignmentTitle = Vue.filter('capitalize')(this.assignment.code);
             this.selectedExipryDate = this.localTime.timeString;
 			this.isDeleted = this.determineExpired();
 		}

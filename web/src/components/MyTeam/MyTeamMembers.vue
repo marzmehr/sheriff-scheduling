@@ -166,14 +166,16 @@
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
     import moment from 'moment-timezone';
+    import * as _ from 'underscore';
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation"); 
+
     import "@store/modules/TeamMemberInformation";
     const TeamMemberState = namespace("TeamMemberInformation");
-    import * as _ from 'underscore';
+    
     import PageHeader from "@components/common/PageHeader.vue";    
-    import {commonInfoType, locationInfoType, userInfoType} from '../../types/common';
-    import {teamMemberInfoType} from '../../types/MyTeam';
+    
     import ExpireSheriffProfile from './Tabs/ExpireSheriffProfile.vue';
     import RoleAssignmentTab from './Tabs/RoleAssignmentTab.vue';
     import IdentificationTab from './Tabs/IdentificationTab.vue';
@@ -185,7 +187,10 @@
     import UserTrainingSummary from './Tabs/UserTrainingSummary.vue';
     import UserLeaveSummary from './Tabs/UserLeaveSummary.vue';
     import TrainingTab from './Tabs/TrainingTab.vue';
-    import { teamMemberJsonType } from '../../types/MyTeam/jsonTypes';
+
+    import { teamMemberJsonType } from '@/types/MyTeam/jsonTypes';
+    import {commonInfoType, locationInfoType, userInfoType} from '@/types/common';
+    import {teamMemberInfoType} from '@/types/MyTeam';
 
     enum gender {'Male'=0, 'Female', 'Other'}
 

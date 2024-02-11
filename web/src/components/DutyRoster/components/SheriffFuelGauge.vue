@@ -79,11 +79,9 @@
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import SheriffAvailabilityCard from './SheriffAvailabilityCard.vue'
-    import { myTeamShiftInfoType, dutiesDetailInfoType} from '../../../types/DutyRoster';
-    import { userInfoType } from '../../../types/common';
+    import { myTeamShiftInfoType, dutiesDetailInfoType} from '@/types/DutyRoster';
+    import { userInfoType } from '@/types/common';
     
-    import moment from 'moment-timezone';
-
     import { namespace } from "vuex-class";   
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
@@ -133,7 +131,7 @@
         dutyColors = [
             {name:'court' , colorCode:'#189fd4'},
             {name:'jail' ,  colorCode:'#A22BB9'},
-            {name:'escort', colorCode:'#ffb007'},
+            {name:'transport', colorCode:'#ffb007'},
             {name:'other',  colorCode:'#7a4528'},
             {name:'overtime',colorCode:'#e85a0e'},
             {name:'free',   colorCode:'#e6d9e2'}            
