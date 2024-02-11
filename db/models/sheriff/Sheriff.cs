@@ -25,5 +25,6 @@ namespace SS.Db.models.sheriff
         public string PhotoUrl => Photo?.Length > 0 ? $"/api/sheriff/getPhoto/{Id}?{LastPhotoUpdate.Ticks}" : null;
 
         public DateTimeOffset LastPhotoUpdate { get; set; }
+        public Boolean Excused { get; set; }
     }
 }

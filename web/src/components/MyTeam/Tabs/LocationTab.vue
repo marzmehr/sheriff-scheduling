@@ -129,12 +129,15 @@
 <script lang="ts">
     import { Component, Vue} from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import {teamMemberInfoType, awayLocationInfoType} from '../../../types/MyTeam';
-    import {locationInfoType, userInfoType} from '../../../types/common';
-    import AddLocationForm from './AddForms/AddLocationForm.vue'
-    import { namespace } from 'vuex-class';
+     import { namespace } from 'vuex-class';
+
+    import {teamMemberInfoType, awayLocationInfoType} from '@/types/MyTeam';
+    import {locationInfoType, userInfoType} from '@/types/common';
+    import AddLocationForm from './AddForms/AddLocationForm.vue';
+   
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
+
     import "@store/modules/TeamMemberInformation"; 
     const TeamMemberState = namespace("TeamMemberInformation");
 

@@ -277,8 +277,8 @@
     import * as _ from 'underscore';
     import moment from 'moment-timezone';
     import AddDutySlotWeekForm from './AddDutySlotWeekForm.vue'
-    import {dutyRangeInfoType, dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockWeekInfoType, myTeamShiftInfoType, selectedDutyCardInfoType, assignmentCardWeekInfoType } from '../../../types/DutyRoster';
-    import {localTimeInfoType, userInfoType} from '../../../types/common';
+    import {dutyRangeInfoType, dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockWeekInfoType, myTeamShiftInfoType, selectedDutyCardInfoType, assignmentCardWeekInfoType } from '@/types/DutyRoster';
+    import {localTimeInfoType, userInfoType} from '@/types/common';
     import SheriffModal from './SheriffModal.vue'
 
     import { namespace } from "vuex-class";

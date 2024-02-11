@@ -99,10 +99,10 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {teamMemberInfoType ,roleOptionInfoType, userRoleInfoType} from '../../../../types/MyTeam';
-    // import {leaveInfoType} from '../../../../types/common';
-    // import { leaveTypeJson } from '../../../../types/common/jsonTypes';
     import { namespace } from 'vuex-class';
+
+    import {teamMemberInfoType ,roleOptionInfoType, userRoleInfoType} from '@/types/MyTeam';
+    
     import "@store/modules/TeamMemberInformation"; 
     const TeamMemberState = namespace("TeamMemberInformation");
 

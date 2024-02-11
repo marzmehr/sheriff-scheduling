@@ -56,7 +56,7 @@ namespace SS.Api.services
             return null;
         }
 
-        public async Task SendEmail(string body, string subject, string recipientEmail)
+        public async Task<Boolean> SendEmail(string body, string subject, string recipientEmail)
         {
             body.ThrowIfNullOrEmpty(nameof(body));
             subject.ThrowIfNullOrEmpty(nameof(subject));
@@ -97,10 +97,12 @@ namespace SS.Api.services
                     throw new BadRequestException($"While sending email - Received status code: {response.StatusCode} : {contents}");
 
                 Logger.LogInformation($"Email sent to {recipientEmail} successfully.");
+                return true;
             }
             catch (Exception e)
             {
                 Logger.LogError(e, "Error happened while trying to send email.");
+                return false;
             }
         }
 

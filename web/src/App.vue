@@ -105,7 +105,8 @@
                                 lastName: userData.lastName,
                                 roles: userData.roles,
                                 homeLocationId: userData.homeLocationId,
-                                permissions: userData.permissions
+                                permissions: userData.permissions,
+                                userId: userData.userId
                             }) 
                             this.getAllLocations()  
                         }                      
@@ -128,8 +129,9 @@
                         this.userDetails.roles.length>0 && this.locationList.length>0)
                         {                              
                             this.isCommonDataReady = true;
-                            if(this.$route.name == 'Home')
-                                this.$router.push({path:'/manage-duty-roster'})
+                            //console.log(this.$route.path)
+                            if(this.$route.path!='/' && this.$route.name == 'Home')
+                                this.$router.push({path:'/'})
                         }
                         this.getRegions();
                     }                   
@@ -203,31 +205,28 @@
         
         public extractLocationInfo(locationListJson, allLocations: boolean){            
             const locations: locationInfoType[] = [];
-            for(const locationJson of locationListJson){                
-                const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name, regionId: locationJson.regionId, timezone: locationJson.timezone}
-                locations.push(locationInfo)
+            for(const locationJson of locationListJson){    
+                if (locationJson.regionId > 0) {
+                    const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name, regionId: locationJson.regionId, timezone: locationJson.timezone}
+                    locations.push(locationInfo);
+                }
             }
             if (allLocations) {
                 this.UpdateAllLocationList(_.sortBy(locations,'name'));
             } else {
                 this.UpdateLocationList(_.sortBy(locations,'name'));
-            }                       
-            
+            } 
         }
 
         public extractRegionInfo(regionListJson){ 
                       
             const regions: regionInfoType[] = regionListJson.filter(region=>(region.justinId > 0)); 
-            // for(const regionJson of regionListJson){                
-            //     const regionInfo: regionInfoType = {
-            //         id: regionJson.id, 
-            //         name: regionJson.name, regionId: regionJson.regionId, timezone: locationJson.timezone}
-            //     regions.push(regionInfo)
-            // }
+
+            const vancouverIndex = regions.findIndex((region => region.name == 'Vancouver'));
+
+            if(vancouverIndex>=0) regions[vancouverIndex].name = 'Coastal';            
             
-            this.UpdateRegionList(_.sortBy(regions,'name'));
-                                  
-            
+            this.UpdateRegionList(_.sortBy(regions,'name'));            
         }
         
      }

@@ -1,4 +1,5 @@
 import {} from '../common';
+import { manageAssignmentsScheduleInfoType } from '../DutyRoster';
 import {} from '../DutyRoster/jsonTypes/index';
 import { actingRankJsontype } from '../MyTeam/jsonTypes';
 
@@ -128,6 +129,17 @@ export interface weekScheduleInfoType {
 export interface distributeScheduleInfoType {
     sheriffId: string;
     conflicts: scheduleInfoType[];
+    sheriffEvent?: manageAssignmentsScheduleInfoType;
+    name: string;
+    homeLocation: string;
+    rank: string;
+    badgeNumber: string;
+    actingRank: actingRankJsontype[];    
+}
+
+export interface dailyDistributeScheduleInfoType {
+    sheriffId: string;    
+    sheriffEvent: manageAssignmentsScheduleInfoType;
     name: string;
     homeLocation: string;
     rank: string;
@@ -147,6 +159,8 @@ export interface scheduleInfoType {
     duties?: distributeScheduleDutyInfoType[];
     workSection: string; 
     workSectionColor: string;
+    fullday?: boolean;
+    overtime?: number; 
 }
 
 export interface distributeScheduleDutyInfoType {    
@@ -176,4 +190,10 @@ export interface sentEmailContentInfoType {
     from: string;
     subject: string;
     to: string;
+}
+
+export interface selectShiftInfoType {
+    id: string;
+    sheriff: string;
+    date: string;
 }

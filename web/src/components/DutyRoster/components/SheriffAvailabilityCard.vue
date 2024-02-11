@@ -26,14 +26,13 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import { myTeamShiftInfoType} from '../../../types/DutyRoster';
+    import { myTeamShiftInfoType} from '@/types/DutyRoster';
     
     import { namespace } from "vuex-class";
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
     import * as _ from 'underscore';
-    import moment from 'moment-timezone';
 
     @Component
     export default class SheriffAvailabilityCard extends Vue {

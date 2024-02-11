@@ -52,16 +52,16 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import {teamMemberInfoType} from '../../../types/MyTeam';
-    import {locationInfoType} from '../../../types/common';  
-
     import { namespace } from 'vuex-class';
+
+    import {teamMemberInfoType} from '@/types/MyTeam';
+    import {locationInfoType} from '@/types/common';  
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
     import VueAuthImage from 'vue-auth-image';
-
-Vue.use(VueAuthImage);
+    Vue.use(VueAuthImage);
 
     @Component
     export default class UserSummaryTemplate extends Vue {
