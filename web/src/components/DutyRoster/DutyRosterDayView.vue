@@ -48,7 +48,7 @@
         <div id="app-footer-assignment" v-if="!sheriffFullview">
             <b-row style="margin:0 0 .25rem .25rem; ">
                 <div
-                    style="width:3.8rem;"
+                    style="width:5.2rem;"
                     class="m-0 p-0"
                     v-for="color in dutyColorsCode" 
                     :key="color.colorCode"> 
@@ -91,9 +91,9 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import {locationInfoType, userInfoType, commonInfoType } from '../../types/common';
-    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType, selectedDutyCardInfoType} from '../../types/DutyRoster';
-    import { shiftInfoType } from '../../types/ShiftSchedule';
+    import {locationInfoType, userInfoType, commonInfoType } from '@/types/common';
+    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType, selectedDutyCardInfoType} from '@/types/DutyRoster';
+    import { shiftInfoType } from '@/types/ShiftSchedule';
 
     @Component({
         components: {
@@ -169,7 +169,7 @@
             {name:'courtroom',  colorCode:'#189fd4'},
             {name:'court',      colorCode:'#189fd4'},
             {name:'jail' ,      colorCode:'#A22BB9'},
-            {name:'escort',     colorCode:'#ffb007'},
+            {name:'transport',  colorCode:'#ffb007'},
             {name:'other',      colorCode:'#7a4528'}, 
             {name:'overtime',   colorCode:'#e85a0e'},
             {name:'free',       colorCode:'#e6d9e2'}                        

@@ -155,14 +155,17 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {teamMemberInfoType ,awayLocationInfoType} from '../../../../types/MyTeam';
-    import {locationInfoType} from '../../../../types/common';
+    import { Component, Vue, Prop } from 'vue-property-decorator';    
     import { namespace } from 'vuex-class';
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
+
     import "@store/modules/TeamMemberInformation"; 
     const TeamMemberState = namespace("TeamMemberInformation");
+
+    import {teamMemberInfoType ,awayLocationInfoType} from '@/types/MyTeam';
+    import {locationInfoType} from '@/types/common';
 
     @Component
     export default class AddLocationForm extends Vue {
