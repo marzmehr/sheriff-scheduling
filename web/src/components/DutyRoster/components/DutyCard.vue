@@ -280,9 +280,9 @@
     import * as _ from 'underscore';
     import moment from 'moment-timezone';
     import AddDutySlotForm from './AddDutySlotForm.vue'
-    import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType, selectedDutyCardInfoType, allEditingDutySlotsInfoType } from '../../../types/DutyRoster';
-    import {localTimeInfoType, userInfoType} from '../../../types/common';
-    import SheriffModal from './SheriffModal.vue'
+    import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType, selectedDutyCardInfoType, allEditingDutySlotsInfoType } from '@/types/DutyRoster';
+    import {localTimeInfoType, userInfoType} from '@/types/common';
+    import SheriffModal from './SheriffModal.vue';
 
     import { namespace } from "vuex-class";
     import "@store/modules/CommonInformation";

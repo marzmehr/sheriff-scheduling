@@ -91,9 +91,9 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import {locationInfoType, userInfoType, commonInfoType } from '../../types/common';
-    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType, selectedDutyCardInfoType} from '../../types/DutyRoster';
-    import { shiftInfoType } from '../../types/ShiftSchedule';
+    import {locationInfoType, userInfoType, commonInfoType } from '@/types/common';
+    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType, selectedDutyCardInfoType} from '@/types/DutyRoster';
+    import { shiftInfoType } from '@/types/ShiftSchedule';
 
     @Component({
         components: {

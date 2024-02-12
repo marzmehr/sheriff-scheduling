@@ -11,8 +11,11 @@ export interface leaveTrainingTypeInfoType {
     code: string;
     concurrencyToken?: number;
     id: number;
-    // locationId: number;
+    validityPeriod?: number;
+    mandatory?: boolean;
+    rotating?: boolean;
+    category?: string;
+    advanceNotice?: number;
     type: string;
     sortOrder: number;
 }
-

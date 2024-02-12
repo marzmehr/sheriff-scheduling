@@ -28,6 +28,7 @@ namespace SS.Api.services.jc
         private bool ExpireRegions { get; }
         private bool ExpireLocations { get; }
         private bool ExpireRooms { get; }
+        private bool SkipLocationUpdates { get; }
         private bool AssociateUsersWithNoLocationToVictoria { get; }
         private TimeSpan UpdateEvery { get; }
 
@@ -36,6 +37,7 @@ namespace SS.Api.services.jc
             LocationClient = locationClient;
             Db = dbContext;
             Configuration = configuration;
+            SkipLocationUpdates = Configuration.GetBoolValue("SkipLocationUpdates").Equals("true");
             ExpireRegions = Configuration.GetNonEmptyValue("JCSynchronization:ExpireRegions").Equals("true");
             ExpireLocations = Configuration.GetNonEmptyValue("JCSynchronization:ExpireLocations").Equals("true");
             ExpireRooms = Configuration.GetNonEmptyValue("JCSynchronization:ExpireCourtRooms").Equals("true");
@@ -55,6 +57,7 @@ namespace SS.Api.services.jc
                 return true;
             }
 
+            if(SkipLocationUpdates) return false;
             if (jcSynchronization.LastSynchronization.Add(UpdateEvery) > DateTimeOffset.UtcNow) return false;
             jcSynchronization.LastSynchronization = DateTimeOffset.UtcNow;
             await Db.SaveChangesAsync();

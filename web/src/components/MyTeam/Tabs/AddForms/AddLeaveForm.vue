@@ -151,12 +151,14 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {teamMemberInfoType ,userLeaveInfoType} from '../../../../types/MyTeam';
-    import {leaveInfoType} from '../../../../types/common';
+    import { Component, Vue, Prop } from 'vue-property-decorator';    
     import { namespace } from 'vuex-class';
+
     import "@store/modules/TeamMemberInformation"; 
     const TeamMemberState = namespace("TeamMemberInformation");
+
+    import {teamMemberInfoType ,userLeaveInfoType} from '@/types/MyTeam';
+    import {leaveInfoType} from '@/types/common';
 
     @Component
     export default class AddLeaveForm extends Vue {        

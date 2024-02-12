@@ -33,8 +33,8 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import {userTrainingInfoType} from '../../../types/MyTeam';
-    import {trainingJsontype} from '../../../types/MyTeam/jsonTypes';
+    import {userTrainingInfoType} from '@/types/MyTeam';
+    import {trainingJsontype} from '@/types/MyTeam/jsonTypes';
 
     @Component
     export default class UserTrainingSummary extends Vue {       

@@ -126,10 +126,9 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {assignDutySlotsInfoType, dutyBlockWeekInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
+    import {assignDutySlotsInfoType, dutyBlockWeekInfoType, myTeamShiftInfoType } from '@/types/DutyRoster';
     import { namespace } from 'vuex-class';
     import "@store/modules/DutyRosterInformation";
-    import { shiftInfoType } from '../../../types/ShiftSchedule';
     import moment from 'moment-timezone';
     const dutyState = namespace("DutyRosterInformation");
 

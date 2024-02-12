@@ -9,6 +9,7 @@ namespace SS.Api.models.dto.generated
         public int? TrainingTypeId { get; set; }
         public DateTimeOffset? TrainingCertificationExpiry { get; set; }
         public string Note { get; set; }
+        public bool FirstNotice { get; set; }
         public int Id { get; set; }
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }

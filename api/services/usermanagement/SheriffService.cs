@@ -164,6 +164,15 @@ namespace SS.Api.services.usermanagement
             return savedSheriff;
         }
 
+        public async Task<Sheriff> UpdateSheriffExcused(Sheriff sheriff)
+        {
+            var savedSheriff = await Db.Sheriff.FindAsync(sheriff.Id);
+            savedSheriff.ThrowBusinessExceptionIfNull($"No {nameof(Sheriff)} with Id: {sheriff.Id}");
+            savedSheriff.Excused = sheriff.Excused;            
+            await Db.SaveChangesAsync();
+            return savedSheriff;
+        }
+
         public async Task UpdateSheriffHomeLocation(Guid id, int locationId)
         {
             var savedSheriff = await Db.Sheriff.FindAsync(id);
