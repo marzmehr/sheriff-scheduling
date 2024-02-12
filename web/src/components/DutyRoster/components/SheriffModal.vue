@@ -53,7 +53,7 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import { myTeamShiftInfoType, selectedDutyCardInfoType} from '../../../types/DutyRoster';
+    import { myTeamShiftInfoType, selectedDutyCardInfoType} from '@/types/DutyRoster';
     import DutyRosterTeamMemberCard from './DutyRosterTeamMemberCard.vue'
     import SheriffAvailabilityBar from './SheriffAvailabilityBar.vue'
 

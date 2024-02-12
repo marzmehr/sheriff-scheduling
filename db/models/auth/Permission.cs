@@ -43,6 +43,7 @@ namespace SS.Db.models.auth
         public const string ViewAllFutureShifts = nameof(ViewAllFutureShifts);
         public const string ViewOtherProfiles = nameof(ViewOtherProfiles);
         public const string GenerateReports = nameof(GenerateReports);
+        public const string AdjustTrainingExpiry = nameof(AdjustTrainingExpiry);
 
         [Key]
         public int Id { get; set; }

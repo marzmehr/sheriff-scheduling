@@ -80,7 +80,7 @@
 
                             <template v-slot:row-details="data">
                                 <b-card :id="'Tr-Date-'+data.item.startDate.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
-                                    <add-training-form :formData="data.item" :editable="data.item['_rowVariant']?false:true" :isCreate="false" :trainingTypeInfoList="trainingTypeInfoList" v-on:submit="saveTraining" v-on:cancel="closeTrainingForm" />
+                                    <add-training-form :formData="data.item" :editable="true" :isCreate="false" :trainingTypeInfoList="trainingTypeInfoList" v-on:submit="saveTraining" v-on:cancel="closeTrainingForm" />
                                 </b-card>
                             </template>                            
                     </b-table> 
@@ -157,13 +157,16 @@
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import {teamMemberInfoType, userTrainingInfoType} from '../../../types/MyTeam'; 
-    import { trainingTypeJson } from '../../../types/common/jsonTypes';    
-    import { trainingInfoType, userInfoType } from '../../../types/common';    
-    import AddTrainingForm from './AddForms/AddTrainingForm.vue'   
     import { namespace } from 'vuex-class';
+
+    import {teamMemberInfoType, userTrainingInfoType} from '@/types/MyTeam'; 
+    import { trainingTypeJson } from '@/types/common/jsonTypes';    
+    import { trainingInfoType, userInfoType } from '@/types/common';    
+    import AddTrainingForm from './AddForms/AddTrainingForm.vue'   
+    
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
+
     import "@store/modules/TeamMemberInformation";    
     const TeamMemberState = namespace("TeamMemberInformation");
 
@@ -261,7 +264,9 @@
                 const trainingTypeInfo = {} as trainingInfoType;
                 trainingTypeInfo.id = trainingType.id;
                 trainingTypeInfo.code = trainingType.code;
+                trainingTypeInfo.validityPeriod = trainingType.validityPeriod
                 trainingTypeInfo.description = trainingType.description;
+                trainingTypeInfo.rotating = trainingType.rotating;
                 this.trainingTypeInfoList.push(trainingTypeInfo)
             }
             this.trainingTabDataReady = true;

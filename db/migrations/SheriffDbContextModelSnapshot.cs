@@ -523,6 +523,14 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Generate Reports based on Sheriff's activity",
                             Name = "GenerateReports"
+                        },
+                        new
+                        {
+                            Id = 44,
+                            ConcurrencyToken = 0u,
+                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Adjust Training Expiry Dates based on new rules",
+                            Name = "AdjustTrainingExpiry"
                         });
                 });
 
@@ -1462,6 +1470,9 @@ namespace SS.Db.Migrations
                     b.Property<string>("ExpiryReason")
                         .HasColumnType("text");
 
+                    b.Property<bool>("FirstNotice")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Note")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -1561,6 +1572,12 @@ namespace SS.Db.Migrations
                         .UseIdentityByDefaultColumn()
                         .HasIdentityOptions(1000L, null, null, null, null, null);
 
+                    b.Property<int>("AdvanceNotice")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Category")
+                        .HasColumnType("text");
+
                     b.Property<string>("Code")
                         .HasColumnType("text");
 
@@ -1590,6 +1607,12 @@ namespace SS.Db.Migrations
                     b.Property<int?>("LocationId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("Mandatory")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("Rotating")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("SubCode")
                         .HasColumnType("text");
 
@@ -1601,6 +1624,9 @@ namespace SS.Db.Migrations
 
                     b.Property<DateTimeOffset?>("UpdatedOn")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ValidityPeriod")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -1619,202 +1645,282 @@ namespace SS.Db.Migrations
                         new
                         {
                             Id = 1,
+                            AdvanceNotice = 0,
                             Code = "Chief Sheriff",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Chief Sheriff",
-                            Type = 7
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 7,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 2,
+                            AdvanceNotice = 0,
                             Code = "Superintendent",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Superintendent",
-                            Type = 7
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 7,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 3,
+                            AdvanceNotice = 0,
                             Code = "Staff Inspector",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Staff Inspector",
-                            Type = 7
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 7,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 4,
+                            AdvanceNotice = 0,
                             Code = "Inspector",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Inspector",
-                            Type = 7
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 7,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 5,
+                            AdvanceNotice = 0,
                             Code = "Staff Sergeant",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Staff Sergeant",
-                            Type = 7
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 7,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 6,
+                            AdvanceNotice = 0,
                             Code = "Sergeant",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Sergeant",
-                            Type = 7
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 7,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 7,
+                            AdvanceNotice = 0,
                             Code = "Deputy Sheriff",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Deputy Sheriff",
-                            Type = 7
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 7,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 8,
+                            AdvanceNotice = 0,
                             Code = "CEW (Taser)",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "CEW (Taser)",
-                            Type = 6
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 6,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 9,
+                            AdvanceNotice = 0,
                             Code = "DNA",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "DNA",
-                            Type = 6
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 6,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 10,
+                            AdvanceNotice = 0,
                             Code = "FRO",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "FRO",
-                            Type = 6
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 6,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 11,
+                            AdvanceNotice = 0,
                             Code = "Fire Arm",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Fire Arm",
-                            Type = 6
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 6,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 12,
+                            AdvanceNotice = 0,
                             Code = "First Aid",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "First Aid",
-                            Type = 6
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 6,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 13,
+                            AdvanceNotice = 0,
                             Code = "Advanced Escort SPC (AESOC)",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Advanced Escort SPC (AESOC)",
-                            Type = 6
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 6,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 14,
+                            AdvanceNotice = 0,
                             Code = "Extenuating Circumstances SPC (EXSPC)",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Extenuating Circumstances SPC (EXSPC)",
-                            Type = 6
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 6,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 15,
+                            AdvanceNotice = 0,
                             Code = "Search Gate",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Search Gate",
-                            Type = 6
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 6,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 16,
+                            AdvanceNotice = 0,
                             Code = "Other",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Other",
-                            Type = 6
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 6,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 17,
+                            AdvanceNotice = 0,
                             Code = "STIP",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "STIP",
-                            Type = 5
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 5,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 18,
+                            AdvanceNotice = 0,
                             Code = "Annual",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Annual",
-                            Type = 5
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 5,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 19,
+                            AdvanceNotice = 0,
                             Code = "Illness",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Illness",
-                            Type = 5
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 5,
+                            ValidityPeriod = 0
                         },
                         new
                         {
                             Id = 20,
+                            AdvanceNotice = 0,
                             Code = "Special",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Special",
-                            Type = 5
+                            Mandatory = false,
+                            Rotating = false,
+                            Type = 5,
+                            ValidityPeriod = 0
                         });
                 });
 
@@ -1824,6 +1930,9 @@ namespace SS.Db.Migrations
 
                     b.Property<string>("BadgeNumber")
                         .HasColumnType("text");
+
+                    b.Property<bool>("Excused")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Gender")
                         .HasColumnType("integer");

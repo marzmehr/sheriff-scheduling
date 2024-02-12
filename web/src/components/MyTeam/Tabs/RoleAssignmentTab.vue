@@ -132,16 +132,19 @@
 
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator';
-    import moment from 'moment-timezone';
-    import {roleOptionInfoType, teamMemberInfoType, userRoleInfoType} from '../../../types/MyTeam';
+    import moment from 'moment-timezone';    
     import { namespace } from 'vuex-class';
+
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation"); 
+
     import "@store/modules/TeamMemberInformation";
     const TeamMemberState = namespace("TeamMemberInformation");
-    import AddRoleForm from './AddForms/AddRoleForm.vue'
-    import { userRoleHistoryJsonType, userRoleJsonType } from '../../../types/MyTeam/jsonTypes';
-    import { locationInfoType, userInfoType } from '../../../types/common';
+
+    import AddRoleForm from './AddForms/AddRoleForm.vue';
+    import { userRoleHistoryJsonType, userRoleJsonType } from '@/types/MyTeam/jsonTypes';
+    import { locationInfoType, userInfoType } from '@/types/common';
+    import {roleOptionInfoType, teamMemberInfoType, userRoleInfoType} from '@/types/MyTeam';
 
     @Component({
         components: {

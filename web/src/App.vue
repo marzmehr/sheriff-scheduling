@@ -18,7 +18,7 @@
     import NavigationFooter from "@components/NavigationFooter.vue";
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
-    import {commonInfoType, locationInfoType, sheriffRankInfoType, userInfoType} from './types/common';
+    import {commonInfoType, locationInfoType, sheriffRankInfoType, userInfoType, regionInfoType} from './types/common';
     import {sheriffRankJsonType} from './types/common/jsonTypes'
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
@@ -51,6 +51,9 @@
 
         @commonState.Action
         public UpdateUser!: (newUser: userInfoType) => void
+
+        @commonState.Action
+        public UpdateRegionList!: (newRegionList: regionInfoType[]) => void
 
         @commonState.State
         public locationList!: locationInfoType[];
@@ -102,7 +105,8 @@
                                 lastName: userData.lastName,
                                 roles: userData.roles,
                                 homeLocationId: userData.homeLocationId,
-                                permissions: userData.permissions
+                                permissions: userData.permissions,
+                                userId: userData.userId
                             }) 
                             this.getAllLocations()  
                         }                      
@@ -125,9 +129,11 @@
                         this.userDetails.roles.length>0 && this.locationList.length>0)
                         {                              
                             this.isCommonDataReady = true;
-                            if(this.$route.name == 'Home')
-                                this.$router.push({path:'/manage-duty-roster'})
+                            //console.log(this.$route.path)
+                            if(this.$route.path!='/' && this.$route.name == 'Home')
+                                this.$router.push({path:'/'})
                         }
+                        this.getRegions();
                     }                   
                 },err => {
                     this.errorText = err + '  - ' + moment().format();
@@ -165,6 +171,21 @@
                     
                 })  
         }
+
+        public getRegions() {
+            const url = 'api/region'
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        this.extractRegionInfo(response.data);                        
+                    }                   
+                },err => {
+                    this.errorText = err + '  - ' + moment().format();
+                    if (this.errorText.indexOf('401') == -1) {                        
+                        this.displayError = true;
+                    }                    
+                }) 
+        }
         
         public getLocations() {
             const url = 'api/location'
@@ -184,16 +205,28 @@
         
         public extractLocationInfo(locationListJson, allLocations: boolean){            
             const locations: locationInfoType[] = [];
-            for(const locationJson of locationListJson){                
-                const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name, regionId: locationJson.regionId, timezone: locationJson.timezone}
-                locations.push(locationInfo)
+            for(const locationJson of locationListJson){    
+                if (locationJson.regionId > 0) {
+                    const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name, regionId: locationJson.regionId, timezone: locationJson.timezone}
+                    locations.push(locationInfo);
+                }
             }
             if (allLocations) {
                 this.UpdateAllLocationList(_.sortBy(locations,'name'));
             } else {
                 this.UpdateLocationList(_.sortBy(locations,'name'));
-            }                       
+            } 
+        }
+
+        public extractRegionInfo(regionListJson){ 
+                      
+            const regions: regionInfoType[] = regionListJson.filter(region=>(region.justinId > 0)); 
+
+            const vancouverIndex = regions.findIndex((region => region.name == 'Vancouver'));
+
+            if(vancouverIndex>=0) regions[vancouverIndex].name = 'Coastal';            
             
+            this.UpdateRegionList(_.sortBy(regions,'name'));            
         }
         
      }
