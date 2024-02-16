@@ -80,8 +80,8 @@ namespace SS.Api.services.usermanagement
 
             var sheriffs = await sheriffQuery.ToListAsync();
 
-            List<LookupCode> mandatoryTrainings = await ManageTypesService.GetAllForReports(trainingReportSearch.reportSubtypeId, LookupTypes.TrainingType, null, true, false);
-            List<LookupCode> optionalTrainings = await ManageTypesService.GetAllForReports(trainingReportSearch.reportSubtypeId, LookupTypes.TrainingType, null, false, false);
+            List<LookupCode> mandatoryTrainings = await ManageTypesService.GetAllForReports(trainingReportSearch.reportSubtypeIds, LookupTypes.TrainingType, null, true, false);
+            List<LookupCode> optionalTrainings = await ManageTypesService.GetAllForReports(trainingReportSearch.reportSubtypeIds, LookupTypes.TrainingType, null, false, false);
 
             var sheriffTrainings = new List<TrainingReportDto>();
 

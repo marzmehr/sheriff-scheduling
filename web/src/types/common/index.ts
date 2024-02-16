@@ -58,7 +58,7 @@ export interface reportInfoType {
     startDate: string;
     endDate: string;
     reportType: string;
-    reportSubtype: string;
+    reportSubtype: number[];
     region: string;
     location: string;
     sheriffName: string;
