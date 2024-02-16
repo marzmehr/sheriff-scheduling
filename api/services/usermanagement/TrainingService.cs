@@ -100,6 +100,7 @@ namespace SS.Api.services.usermanagement
                         sheriffTrainings.Add(new TrainingReportDto()
                         {
                             name = sheriff.FirstName + ' ' + sheriff.LastName,
+                            location = sheriff.HomeLocation.Name,
                             trainingType = training.Description,
                             end = null,                          
                             expiryDate = null,
@@ -118,6 +119,7 @@ namespace SS.Api.services.usermanagement
                         sheriffTrainings.Add(new TrainingReportDto()
                         {
                             name = sheriff.FirstName + ' ' + sheriff.LastName,
+                            location = sheriff.HomeLocation.Name,
                             trainingType = training.Description,
                             end = takenTraining.EndDate.ConvertToTimezone(timezone),                          
                             expiryDate = takenTraining.TrainingCertificationExpiry != null ? ((DateTimeOffset)takenTraining.TrainingCertificationExpiry).ConvertToTimezone(timezone): null,
