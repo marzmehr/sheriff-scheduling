@@ -64,25 +64,51 @@
                         </b-form-select>
                     </b-form-group>
                 </b-col>           
-                <b-col v-if="reportParameters.reportType && reportParameters.reportType == 'Training'" >
-                    <b-form-group style="margin:0;"> 
-                        <label class="h4 mb-2 p-0 float-left"> Training Type </label>
-                        <b-form-select 
-                            @change="clearReports()"                         
+                <b-col cols="4" v-if="reportParameters.reportType && reportParameters.reportType == 'Training'" >
+                    <v-app class="vuetify">
+                        <label class="h4 mb-2 p-0 float-left mr-auto"> Training Type </label>
+                        <v-select
+                            @change="clearReports()"
                             v-model="reportParameters.reportSubtype"
-                            :state = "reportSubTypeState?null:false">
-                                <b-form-select-option value="All">
-                                    All Training Types
-                                </b-form-select-option>
-                                <b-form-select-option
-                                    state=true
-                                    v-for="trainingType in trainingTypeOptions" 
-                                    :key="trainingType.id"
-                                    :value="trainingType.id">
-                                        {{trainingType.code}}
-                                </b-form-select-option>     
-                        </b-form-select>
-                    </b-form-group>
+                            :items="trainingTypeOptions"                                
+                            label="Select"
+                            item-text="code"
+							item-value="id"
+                            :error="!reportSubTypeState"                            
+                            multiple
+                            flat
+                            hide-details
+                            solo>
+                            <template v-slot:prepend-item>
+                                <v-list-item
+                                ripple
+                                @mousedown.prevent
+                                @click="toggle"
+                                >
+                                <v-list-item-action>
+                                    <v-icon :color="reportParameters.reportSubtype.length > 0 ? 'indigo darken-4' : ''">
+                                    {{ icon }}
+                                    </v-icon>
+                                </v-list-item-action>
+                                <v-list-item-content>
+                                    <v-list-item-title>
+                                    Select All
+                                    </v-list-item-title>
+                                </v-list-item-content>
+                                </v-list-item>
+                                <v-divider class="mt-2"></v-divider>
+                            </template>
+                            <template v-slot:selection="{ item, index }">
+                                <span v-if="reportParameters.reportSubtype.length==1">
+                                    {{item.code | truncate(25)}}
+                                </span>                                
+                                <span v-else-if="index === 0" class="grey--text text-caption">
+                                    <span v-if="reportParameters.reportSubtype.length<trainingTypeOptions.length">{{ reportParameters.reportSubtype.length }} training types selected</span>
+                                    <span v-else>All training types selected</span>
+                                </span>
+                            </template>
+                        </v-select>
+                    </v-app>
                 </b-col>
             </b-row>
             <b-row class="mt-4 mx-0">                
@@ -233,7 +259,7 @@
         error = '';
         updateRegionId = 0;
         printReady = false;
-        reportParameters = {region: 'All', location: 'All', reportSubtype: 'All', reportType:'Training'} as reportInfoType;        
+        reportParameters = {region: 'All', location: 'All', reportSubtype: [0], reportType:'Training'} as reportInfoType;        
         reportDateRange  = { startDate:'', endDate:'', valid:false} as dateRangeInfoType
         trainingReportData: trainingReportInfoType[] = []
         filteredTrainingReportData: trainingReportInfoType[] = []
@@ -272,16 +298,16 @@
             this.dataReady = false;
             this.clearReports();
             this.reportParameters.region = 'All';     
-            this.reportParameters.location = 'All';  
-            this.reportParameters.reportSubtype = 'All';   
+            this.reportParameters.location = 'All';
             this.searching = false;          
             this.generatingReport = false;     
             this.locationOptionsList = this.locationList;
-            this.getTrainingTypes();
+            this.getTrainingTypes();            
         }
 
         public clearReports(){
             this.dataLoaded = false;
+            this.reportSubTypeState = true
             this.trainingReportData = [];
             this.excludedTrainingReportData = [];
         }
@@ -295,7 +321,7 @@
             if (!this.reportParameters.reportType){
                 this.reportTypeState = false;
             } 
-            else if (!this.reportParameters.reportSubtype){
+            else if (this.reportParameters.reportSubtype?.length==0){
                 this.reportSubTypeState = false;
             } 
             else {
@@ -304,7 +330,7 @@
                     regionId: this.reportParameters.region == 'All'? null : this.reportParameters.region,
                     locationId: this.reportParameters.location == 'All'? null : this.reportParameters.location, 
                     // reportType: this.reportParameters.reportType,
-                    reportSubtypeId: this.reportParameters.reportSubtype == 'All'? null : this.reportParameters.reportSubtype,
+                    reportSubtypeIds: this.likesAllSubtypes? [] : this.reportParameters.reportSubtype,
                     startDate: this.reportDateRange.valid? this.reportDateRange.startDate : null,
                     endDate: this.reportDateRange.valid? this.reportDateRange.endDate : null
                 }
@@ -382,6 +408,7 @@
                     if(response.data){
                         this.trainingTypeOptions = response.data;                  
                     }
+                    this.reportParameters.reportSubtype = this.trainingTypeOptions.map(t => t.id)
                     this.dataReady = true;
                    
                 },err => {
@@ -399,7 +426,7 @@
 
                 const url = 'api/sheriff/updateExcused';
                 this.$http.put(url, body)
-                    .then(response => {
+                    .then(() => {
                         this.find()                                   
                     }, err => {               
                         this.error = err.response.data.error;
@@ -441,10 +468,61 @@
             this.paginationExcludedKey++;
         }
 
+        public toggle () {
+            Vue.nextTick(() => {
+                if (this.likesAllSubtypes) {
+                    this.reportParameters.reportSubtype = []
+                } else {
+                    this.reportParameters.reportSubtype = this.trainingTypeOptions.map(t => t.id)
+                }
+            })
+        }
+
+        get likesAllSubtypes(){
+            return this.trainingTypeOptions.length==this.reportParameters.reportSubtype.length
+        }
+        
+        get likesSomeSubtypes() {
+            return this.trainingTypeOptions.length > 0 && !this.likesAllSubtypes
+        }
+        
+        get icon () {
+            if (this.likesAllSubtypes) return 'mdi-close-box'
+            if (this.likesSomeSubtypes) return 'mdi-minus-box'
+            return 'mdi-checkbox-blank-outline'
+        }
+
 }
 </script>
 
-<style scoped>   
+<style scoped  lang="scss">
+
+    ::v-deep .vuetify{
+        @import "@/styles/vuetify.scss";
+        .v-application--wrap{
+            height: 2rem;
+            min-height:2rem !important;
+        }
+        
+        .v-text-field .v-input__control .v-input__slot {
+            min-height: 2.4rem !important;
+            display: flex !important;
+            align-items: center !important;
+            border: 1px solid #adb5bd;
+        }
+
+        .v-text-field.error--text .v-input__control .v-input__slot {
+            min-height: 2.4rem !important;
+            display: flex !important;
+            align-items: center !important;
+            border: 1px solid #f71b03;
+        }
+
+        .v-list-item__content {
+            flex: none;
+            margin-left: 1rem;
+        }
+    }
 
     .card {
         border: white;

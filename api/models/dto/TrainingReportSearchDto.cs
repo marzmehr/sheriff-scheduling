@@ -7,7 +7,7 @@ namespace SS.Api.models.dto
     {
         public int? regionId { get; set; }
         public int? locationId { get; set; }
-        public int? reportSubtypeId { get; set; }
+        public int[]? reportSubtypeIds { get; set; }
         public DateTimeOffset? startDate { get; set; }
         public DateTimeOffset? endDate { get; set; }        
     }
