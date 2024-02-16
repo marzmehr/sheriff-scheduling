@@ -83,11 +83,11 @@
                                 <v-list-item
                                 ripple
                                 @mousedown.prevent
-                                @click="toggle"
+                                @click="toggleAllSubtypes"
                                 >
                                 <v-list-item-action>
                                     <v-icon :color="reportParameters.reportSubtype.length > 0 ? 'indigo darken-4' : ''">
-                                    {{ icon }}
+                                    {{ subtypeSelectionIcon }}
                                     </v-icon>
                                 </v-list-item-action>
                                 <v-list-item-content>
@@ -165,6 +165,7 @@
                     :currentPage="currentPage"
                     :perPage="itemsPerPage"
                     responsive="sm">
+                    <template v-slot:cell(name) ="data"><div v-b-tooltip.hover.right.noninteractive.v-primary :title="data.item.location" >{{data.value}}</div></template>
                     <template v-slot:cell(end) ="data"> {{data.value | beautify-date}} </template>
                     <template v-slot:cell(status) ="data">                   
                         <b-badge :variant="data.item['_rowVariant']" style="width:6rem;" >{{data.value}}</b-badge>                        
@@ -330,7 +331,7 @@
                     regionId: this.reportParameters.region == 'All'? null : this.reportParameters.region,
                     locationId: this.reportParameters.location == 'All'? null : this.reportParameters.location, 
                     // reportType: this.reportParameters.reportType,
-                    reportSubtypeIds: this.likesAllSubtypes? [] : this.reportParameters.reportSubtype,
+                    reportSubtypeIds: this.isAllSubtypesSelected? [] : this.reportParameters.reportSubtype,
                     startDate: this.reportDateRange.valid? this.reportDateRange.startDate : null,
                     endDate: this.reportDateRange.valid? this.reportDateRange.endDate : null
                 }
@@ -379,7 +380,7 @@
                 useTextFile: false,
                 useBom: true,
                 useKeysAsHeaders: false,
-                headers: ['Name', 'Training Type', 'End Date', 'Expiry Date', 'Status']
+                headers: ['Location', 'Name', 'Training Type', 'End Date', 'Expiry Date', 'Status']
             };
 
             const reportData: trainingReportInfoType[] = [];
@@ -387,17 +388,24 @@
             for (const trainingData of this.filteredTrainingReportData){
                 if(trainingData.excluded) continue
                 const trainingInfo = {} as trainingReportInfoType;
+                trainingInfo.location = trainingData.location;
                 trainingInfo.name = trainingData.name;
                 trainingInfo.trainingType = trainingData.trainingType;                
                 trainingInfo.end = trainingData.end?.length>0?Vue.filter('beautify-date')(trainingData.end):'';
                 trainingInfo.expiryDate = trainingData.expiryDate?.length>0?Vue.filter('beautify-date')(trainingData.expiryDate):''; 
-                trainingInfo.status = trainingData.status;
+                trainingInfo.status = this.beautifyTrainingStatusForExcel(trainingData.status);
                 reportData.push(trainingInfo)                
             }
 
             const csvExporter = new ExportToCsv(options);
             csvExporter.generateCsv(_.sortBy(reportData, 'name'));
             this.generatingReport = false;
+        }
+
+        public beautifyTrainingStatusForExcel(status){
+            if(!status || status?.trim()?.length==0) return "Qualified"
+            else if(status == 'Requalification') return status+' Required'
+            else return status
         }
 
         public getTrainingTypes() {                      
@@ -468,9 +476,9 @@
             this.paginationExcludedKey++;
         }
 
-        public toggle () {
+        public toggleAllSubtypes() {
             Vue.nextTick(() => {
-                if (this.likesAllSubtypes) {
+                if (this.isAllSubtypesSelected) {
                     this.reportParameters.reportSubtype = []
                 } else {
                     this.reportParameters.reportSubtype = this.trainingTypeOptions.map(t => t.id)
@@ -478,17 +486,17 @@
             })
         }
 
-        get likesAllSubtypes(){
+        get isAllSubtypesSelected(){
             return this.trainingTypeOptions.length==this.reportParameters.reportSubtype.length
         }
         
-        get likesSomeSubtypes() {
-            return this.trainingTypeOptions.length > 0 && !this.likesAllSubtypes
+        get isSomeSubtypesSelected() {
+            return this.reportParameters.reportSubtype.length > 0 && !this.isAllSubtypesSelected
         }
         
-        get icon () {
-            if (this.likesAllSubtypes) return 'mdi-close-box'
-            if (this.likesSomeSubtypes) return 'mdi-minus-box'
+        get subtypeSelectionIcon() {
+            if (this.isAllSubtypesSelected) return 'mdi-close-box'
+            if (this.isSomeSubtypesSelected) return 'mdi-minus-box'
             return 'mdi-checkbox-blank-outline'
         }
 
