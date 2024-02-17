@@ -53,9 +53,9 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import moment from 'moment-timezone';
-    import * as _ from 'underscore';  
-    import Spinner from "@components/Spinner.vue";
+    // import moment from 'moment-timezone';
+    // import * as _ from 'underscore';  
+    // import Spinner from "@components/Spinner.vue";
     import { dateRangeInfoType } from '@/types/common';
     
 
@@ -74,17 +74,20 @@
         }
 
         public onContextStart(ctx) {
-            console.log(ctx)
+            // console.log(ctx)
             if(this.dateRange.endDate && ctx>this.dateRange.endDate)
-                this.dateRange.startDate=""
-            if(!this.dateRange.endDate) this.dateRange.endDate = this.dateRange.startDate
+                this.dateRange.endDate = "";
+            // else if(!this.dateRange.endDate) 
+            //     this.dateRange.endDate = this.dateRange.startDate;
             this.validateDates() 
         }
 
         public onContextEnd(ctx) {
-            console.log(ctx)
+            // console.log(ctx)
             if(this.dateRange.startDate && ctx<this.dateRange.startDate)
-                this.dateRange.endDate=""
+                this.dateRange.endDate = "";
+            // else if(!this.dateRange.startDate)
+            //     this.dateRange.startDate = this.dateRange.endDate;
             this.validateDates() 
         }
 
