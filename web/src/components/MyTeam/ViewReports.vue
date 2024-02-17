@@ -115,7 +115,7 @@
                 <b-col cols="4">
                     <date-range :dateRange="reportDateRange" @rangeChanged="clearReports()"/>
                 </b-col>                
-                <b-col cols="5" class="text-left">                    
+                <b-col cols="6" class="text-left">                    
                     <label class="h4 mb-2 p-0 ml-4" >Filter By</label>                                        
                     <b-form-checkbox-group  
                         class="ml-4"
@@ -125,7 +125,6 @@
                         :options="Object.values(statusOptions)"                        
                     />
                 </b-col>
-                <b-col cols="1"/>
                 <b-col cols="2">                    
                     <b-button                        
                         style="float:right; padding: 0.25rem 1rem; margin-top:1.5rem;" 
@@ -181,7 +180,13 @@
                         variant="primary"
                         @click="downloadReport()"
                         ><spinner color="#FFF" v-if="generatingReport" style="margin:0; padding: 0; height:2rem; transform:translate(0px,-24px);"/>
-                        <span style="font-size: 18px;" v-else><b-icon-download class="mr-2"/>Download SCV File</span>
+                            <b-row class="mx-1" style="font-size: 18px;" v-else>
+                                <b-icon-download class="mr-2"/>                            
+                                Download CSV File
+                                <div style="line-height:1rem; transform:translate(5px,6px)">        
+                                    <i style="font-size:20pt;" class="mdi mdi-file-excel"></i>
+                                </div>
+                            </b-row>
                     </b-button>                
                 </b-row>
             </div>
@@ -318,6 +323,11 @@
             this.clearReports()
             this.reportTypeState = true;
             this.reportSubTypeState = true;
+
+            if(!this.reportDateRange.valid){
+                this.reportDateRange.startDate = ''
+                this.reportDateRange.endDate = ''
+            }
 
             if (!this.reportParameters.reportType){
                 this.reportTypeState = false;
