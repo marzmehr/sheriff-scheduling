@@ -15,12 +15,15 @@ import store from './store/index'
 import http from "./plugins/http";
 import "./filters"
 import LoadingSpinner from "@components/LoadingSpinner.vue";
+import Vuetify from 'vuetify'
+import '@mdi/font/css/materialdesignicons.css'
 
 library.add(faGraduationCap);
 library.add(faSuitcase);
 library.add(faSignInAlt);
 library.add(faSignOutAlt);
 
+Vue.use(Vuetify)
 Vue.use(VueCookies);
 Vue.use(VueRouter);
 Vue.use(BootstrapVue);
@@ -41,6 +44,7 @@ if (location.pathname == "/")
 	history.pushState({page: "home"}, "", process.env.BASE_URL)
 
 new Vue({
+	vuetify: new Vuetify({}),
 	router,
 	store,
 	render: h => h(App)	

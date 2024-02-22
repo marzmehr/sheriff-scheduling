@@ -115,6 +115,7 @@ export interface trainingReportInfoType {
     expiryDate: string;
     excluded?: boolean;
     sheriffId?: string;
+    location?: string;
     status?: string;
 }
 

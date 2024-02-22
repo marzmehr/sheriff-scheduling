@@ -100,7 +100,7 @@ export default class Home extends Vue {
     location = {} as locationInfoType;
     
     trainingTypeOptions: leaveTrainingTypeInfoType[] = [];
-    statusOptions: trainingStatusInfoType = { danger:'Not Taken', alert:'Expired', warning:'Requalification <br> Requierd', notify:'Requalify Soon' };
+    statusOptions: trainingStatusInfoType = { danger:'Not Taken', alert:'Expired', warning:'Requalification <br> Required', notify:'Requalify Soon' };
     training: trainingStatusCardInfoType = { danger: [], alert: [], warning: [], notify: [] };
 
     trainingAlert=false;

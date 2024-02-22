@@ -80,8 +80,8 @@ namespace SS.Api.services.usermanagement
 
             var sheriffs = await sheriffQuery.ToListAsync();
 
-            List<LookupCode> mandatoryTrainings = await ManageTypesService.GetAllForReports(trainingReportSearch.reportSubtypeId, LookupTypes.TrainingType, null, true, false);
-            List<LookupCode> optionalTrainings = await ManageTypesService.GetAllForReports(trainingReportSearch.reportSubtypeId, LookupTypes.TrainingType, null, false, false);
+            List<LookupCode> mandatoryTrainings = await ManageTypesService.GetAllForReports(trainingReportSearch.reportSubtypeIds, LookupTypes.TrainingType, null, true, false);
+            List<LookupCode> optionalTrainings = await ManageTypesService.GetAllForReports(trainingReportSearch.reportSubtypeIds, LookupTypes.TrainingType, null, false, false);
 
             var sheriffTrainings = new List<TrainingReportDto>();
 
@@ -100,6 +100,7 @@ namespace SS.Api.services.usermanagement
                         sheriffTrainings.Add(new TrainingReportDto()
                         {
                             name = sheriff.FirstName + ' ' + sheriff.LastName,
+                            location = sheriff.HomeLocation.Name,
                             trainingType = training.Description,
                             end = null,                          
                             expiryDate = null,
@@ -111,13 +112,29 @@ namespace SS.Api.services.usermanagement
                     }
                     else
                     {
-                        var takenTraining = sheriff.Training.Find(t => t.TrainingTypeId == training.Id);
-                        var timezone = takenTraining.Timezone == null? "America/Vancouver" : takenTraining.Timezone; 
-                        var trainingStatus = GetTrainingStatus(takenTraining.TrainingCertificationExpiry, timezone, training.AdvanceNotice, training, takenTraining.FirstNotice);
+                        var takenTrainings = sheriff.Training.FindAll(t => t.TrainingTypeId == training.Id).OrderByDescending(t => t.EndDate).ToList();
+                        var takenTraining = new SheriffTraining();
+                        var timezone = "";
+
+                        TrainingStatus trainingStatus = new TrainingStatus();
+                        if(trainingReportSearch.startDate != null && trainingReportSearch.endDate != null)
+                        {
+                            var takenTrainingInRange = takenTrainings.Find(t => t.EndDate < trainingReportSearch.endDate);
+                            takenTraining = takenTrainingInRange !=null ? takenTrainingInRange : takenTrainings.LastOrDefault();
+                            timezone = takenTraining.Timezone == null? "America/Vancouver" : takenTraining.Timezone;
+                            trainingStatus = GetTrainingStatusOnDateRange(trainingReportSearch, takenTraining.TrainingCertificationExpiry, timezone, training, takenTraining.EndDate);
+                        }                            
+                        else
+                        {
+                            takenTraining = takenTrainings[0];
+                            timezone = takenTraining.Timezone == null? "America/Vancouver" : takenTraining.Timezone;
+                            trainingStatus = GetTrainingStatus(takenTraining.TrainingCertificationExpiry, timezone, training.AdvanceNotice, training, takenTraining.FirstNotice);
+                        }                            
                         
                         sheriffTrainings.Add(new TrainingReportDto()
                         {
                             name = sheriff.FirstName + ' ' + sheriff.LastName,
+                            location = sheriff.HomeLocation.Name,
                             trainingType = training.Description,
                             end = takenTraining.EndDate.ConvertToTimezone(timezone),                          
                             expiryDate = takenTraining.TrainingCertificationExpiry != null ? ((DateTimeOffset)takenTraining.TrainingCertificationExpiry).ConvertToTimezone(timezone): null,
@@ -132,13 +149,13 @@ namespace SS.Api.services.usermanagement
 
             Logger.LogInformation("__________End_Creating_Reports____________");
             
-            if(trainingReportSearch.startDate != null && trainingReportSearch.endDate != null)
-                return sheriffTrainings.FindAll(t => 
-                    t.end>=trainingReportSearch.startDate && 
-                    t.end<=trainingReportSearch.endDate
-                );             
-            else
-                return sheriffTrainings;
+            // if(trainingReportSearch.startDate != null && trainingReportSearch.endDate != null)
+            //     return sheriffTrainings.FindAll(t => 
+            //         t.end>=trainingReportSearch.startDate && 
+            //         t.end<=trainingReportSearch.endDate
+            //     );             
+            // else
+            return sheriffTrainings;
         }
 
         #endregion Training Reports
@@ -216,6 +233,37 @@ namespace SS.Api.services.usermanagement
             {
                 trainingStatus.rowType = "white";
                 trainingStatus.status = "";
+            }
+            
+            return trainingStatus;
+        }
+
+        private  TrainingStatus GetTrainingStatusOnDateRange(TrainingReportSearchDto trainingReportSearch, DateTimeOffset? requalificationDate, string timezone, LookupCode trainingType, DateTimeOffset trainingCompletionDate)
+        {
+            TrainingStatus trainingStatus = new TrainingStatus();
+            
+            var reportEndDate = ((DateTimeOffset)trainingReportSearch.endDate).ConvertToTimezone(timezone);
+            var expiryDate = IsRotatingTraining(trainingType)? requalificationDate : requalificationDate?.AddYears(1);
+
+            if(reportEndDate > expiryDate)
+            {
+                trainingStatus.rowType = "alert";
+                trainingStatus.status = TrainingStatusTypes.alert;
+            }
+            else if(reportEndDate > requalificationDate)
+            {
+                trainingStatus.rowType = "warning";
+                trainingStatus.status = TrainingStatusTypes.warning;
+            }
+            else if(reportEndDate >= trainingCompletionDate && (reportEndDate <= requalificationDate || requalificationDate == null) )
+            {
+                trainingStatus.rowType = "white";
+                trainingStatus.status = "";
+            }
+            else
+            {                            
+                trainingStatus.rowType = "danger";
+                trainingStatus.status = TrainingStatusTypes.danger;
             }
             
             return trainingStatus;

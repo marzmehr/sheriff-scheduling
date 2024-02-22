@@ -139,12 +139,12 @@ namespace SS.Api.services
             return lookupCodes;
         }
 
-        public async Task<List<LookupCode>> GetAllForReports(int? id, LookupTypes? codeType, int? locationId, bool? mandatory, bool showExpired = false)
+        public async Task<List<LookupCode>> GetAllForReports(int[]? ids, LookupTypes? codeType, int? locationId, bool? mandatory, bool showExpired = false)
         {
             var lookupCodes = await Db.LookupCode.AsNoTracking()
                 .Include(lc => lc.SortOrder.Where(so => so.LocationId == locationId))
                 .Where(lc =>
-                    (id == null || lc.Id == id) &&
+                    (ids == null || ids.Length==0 || ids.Contains(lc.Id)) &&
                     (codeType == null || lc.Type == codeType) &&
                     (locationId == null || lc.LocationId == null || lc.LocationId == locationId) &&
                     (mandatory == null || lc.Mandatory == mandatory) &&
